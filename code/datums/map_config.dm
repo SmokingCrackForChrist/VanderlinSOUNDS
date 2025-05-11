@@ -17,10 +17,14 @@
 	var/map_name = "Vanderlin"
 	var/map_path = "map_files/vanderlin"
 	var/map_file = "vanderlin.dmm"
+	var/immigrant_origin = "Kingsfield"
 
 	var/traits = null
 	var/space_ruin_levels = 7
 	var/space_empty_levels = 1
+
+	/// List of unit tests that are skipped when running this map
+	var/list/skipped_tests
 
 	var/custom_area_sound = null
 	var/list/other_z
@@ -66,6 +70,7 @@
 	map_name = json["map_name"]
 	CHECK_EXISTS("map_path")
 	map_path = json["map_path"]
+	immigrant_origin = json["immigrant_origin"]
 
 	map_file = json["map_file"]
 	if (istext(map_file))
@@ -135,6 +140,16 @@
 			stack_trace("tried to add two of the same z-level")
 			continue
 		LAZYOR(final_z, map_path)
+
+#ifdef UNIT_TESTS
+	// Check for unit tests to skip, no reason to check these if we're not running tests
+	for(var/path_as_text in json["ignored_unit_tests"])
+		var/path_real = text2path(path_as_text)
+		if(!ispath(path_real, /datum/unit_test))
+			stack_trace("Invalid path in mapping config for ignored unit tests: \[[path_as_text]\]")
+			continue
+		LAZYADD(skipped_tests, path_real)
+#endif
 
 	src.other_z = final_z
 	defaulted = FALSE

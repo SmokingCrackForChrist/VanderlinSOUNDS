@@ -113,7 +113,7 @@
 				if(gender == MALE)
 					if(prob(50))
 						has_stubble = TRUE
-						update_hair()
+						update_body()
 
 
 /mob/living/carbon/human/handle_traits()
@@ -345,7 +345,7 @@
 		return
 	if(!eyesclosed)
 		return
-	if(mobility_flags & MOBILITY_STAND)
+	if(body_position != LYING_DOWN)
 		return
 	if(!istype(loc, /obj/structure/closet/crate/coffin))
 		return

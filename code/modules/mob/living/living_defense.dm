@@ -193,10 +193,10 @@
 	if(surrendering)
 		combat_modifier = 2
 
-	if(restrained())
+	if(HAS_TRAIT(src, TRAIT_RESTRAINED))
 		combat_modifier += 0.25
 
-	if(!(mobility_flags & MOBILITY_STAND) && user.mobility_flags & MOBILITY_STAND)
+	if(body_position == LYING_DOWN && user.body_position != LYING_DOWN)
 		combat_modifier += 0.05
 	if(user.cmode && !cmode)
 		combat_modifier += 0.3
@@ -316,7 +316,8 @@
 		return FALSE
 
 	M.do_attack_animation(src, visual_effect_icon = M.a_intent.animname)
-	playsound(get_turf(M), pick(M.attack_sound), 100, FALSE)
+	if(M.attack_sound)
+		playsound(get_turf(M), pick(M.attack_sound), 100, FALSE)
 
 	var/cached_intent = M.used_intent
 
@@ -328,7 +329,7 @@
 		return FALSE
 	if(!M.Adjacent(src))
 		return FALSE
-	if(M.incapacitated())
+	if(M.incapacitated(ignore_grab = TRUE))
 		return FALSE
 
 	if(checkmiss(M))
@@ -444,8 +445,7 @@
 /mob/living/proc/damage_clothes(damage_amount, damage_type = BRUTE, damage_flag = 0, def_zone)
 	return
 
-
-/mob/living/do_attack_animation(atom/A, visual_effect_icon, obj/item/used_item, no_effect)
+/mob/living/do_attack_animation(atom/A, visual_effect_icon, obj/item/used_item, no_effect, item_animation_override = null, datum/intent/used_intent)
 	if(!used_item)
 		used_item = get_active_held_item()
 	..()

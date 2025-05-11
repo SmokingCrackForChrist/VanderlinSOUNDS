@@ -185,6 +185,22 @@ GLOBAL_LIST_INIT(spells, typesof(/obj/effect/proc_holder/spell)) //needed for th
 	action_background_icon_state = ""
 	base_action = /datum/action/spell_action/spell
 
+/obj/effect/proc_holder/spell/proc/create_logs(atom/user, list/targets)
+	var/list/parsed_target_list = list()
+	for(var/atom/target as anything in targets)
+		if(ismob(target))
+			var/mob/mob_target = target
+			parsed_target_list += key_name_admin(mob_target)
+		else
+			parsed_target_list += target.name
+	var/targets_string
+	if(parsed_target_list)
+		targets_string = parsed_target_list.Join(", ")
+		for(var/atom/target as anything in targets)
+			target.log_message("was affected by spell [name], caster was [key_name_admin(user)]", LOG_ATTACK, "red", FALSE)
+	if(user)
+		user.log_message("casted the spell [name][targets_string ? " on [targets_string ]" : ""].", LOG_ATTACK, "red")
+
 /obj/effect/proc_holder/spell/get_chargetime()
 	if(ranged_ability_user && chargetime)
 		var/newtime = chargetime
@@ -397,7 +413,7 @@ GLOBAL_LIST_INIT(spells, typesof(/obj/effect/proc_holder/spell)) //needed for th
 		if(istype(target))
 			var/lux_state = target.get_lux_status()
 			if(lux_state != LUX_HAS_LUX)
-				target.visible_message(span_danger("[target] recoils in disgust!"))
+				target.visible_message(span_warning("[target] recoils in disgust!"))
 
 	before_cast(targets)
 	invocation(user)
@@ -421,7 +437,7 @@ GLOBAL_LIST_INIT(spells, typesof(/obj/effect/proc_holder/spell)) //needed for th
 
 	set_attuned_strength(total_attunements)
 	if(user && user.ckey)
-		user.log_message("<span class='danger'>cast the spell [name].</span>", LOG_ATTACK)
+		create_logs(user, targets)
 	if(recharge)
 		recharging = FALSE
 	if(cast(targets,user=user))

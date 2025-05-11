@@ -223,6 +223,18 @@
 		/obj/item/paper/heartfelt/random,
 	)
 
+/obj/item/storage/backpack/satchel/mule/PopulateContents()
+	for(var/i in 1 to 3)
+		switch(rand(1,4))
+			if(1)
+				new /obj/item/reagent_containers/powder/moondust_purest(src)
+			if(2)
+				new /obj/item/reagent_containers/powder/moondust_purest(src)
+			if(3)
+				new /obj/item/reagent_containers/powder/ozium(src)
+			if(4)
+				new /obj/item/reagent_containers/powder/spice(src)
+
 /obj/item/storage/backpack/satchel/black
 	color = CLOTHING_SOOT_BLACK
 
@@ -274,6 +286,22 @@
 		/obj/item/weapon/surgery/hammer,
 	)
 	component_type = /datum/component/storage/concrete/grid/surgery_bag
+
+/obj/item/storage/backpack/satchel/surgbag/shit
+	populate_contents = list(
+		/obj/item/needle,
+		/obj/item/weapon/surgery/scalpel,
+		/obj/item/weapon/surgery/saw,
+		/obj/item/weapon/surgery/hemostat,
+		/obj/item/weapon/surgery/hemostat,
+		/obj/item/weapon/surgery/retractor,
+		/obj/item/weapon/surgery/bonesetter,
+		/obj/item/weapon/surgery/cautery,
+		/obj/item/natural/worms/leech,
+		/obj/item/natural/worms/leech,
+		/obj/item/weapon/surgery/hammer,
+		/obj/item/natural/bundle/fibers/full,
+	)
 
 /obj/item/storage/belt/leather/knifebelt
 

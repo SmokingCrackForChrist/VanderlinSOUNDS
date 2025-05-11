@@ -78,12 +78,6 @@
 	probby = 75
 	spawned = list(/obj/structure/table/wood/treestump)
 
-/obj/effect/spawner/map_spawner/shroud
-	icon_state = "shroud"
-	name = "shroud sp"
-	probby = 30
-	spawned = list(/turf/closed/wall/shroud)
-
 /obj/effect/spawner/map_spawner/hauntpile
 	icon_state = "hauntpile"
 	name = "hauntpile"
@@ -355,6 +349,7 @@
 		/obj/item/alch/benedictus = 5,
 		/obj/item/alch/valeriana = 5,
 		/obj/item/alch/artemisia = 5,
+		/obj/item/alch/rosa = 5,
 	)
 /obj/effect/spawner/map_spawner/loot/potion_stats
 	icon_state = "lootstatpot"
