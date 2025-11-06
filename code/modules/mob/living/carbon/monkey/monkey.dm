@@ -14,7 +14,7 @@
 	unique_name = TRUE
 	bodyparts = list(/obj/item/bodypart/chest/monkey, /obj/item/bodypart/head/monkey, /obj/item/bodypart/l_arm/monkey,
 					/obj/item/bodypart/r_arm/monkey, /obj/item/bodypart/r_leg/monkey, /obj/item/bodypart/l_leg/monkey)
-	hud_type = /datum/hud/monkey
+	hud_type = /datum/hud/human
 
 /mob/living/carbon/monkey/Initialize(mapload, cubespawned=FALSE, mob/spawner)
 	// verbs += /mob/living/proc/mob_sleep
@@ -40,7 +40,7 @@
 
 	create_dna(src)
 	dna.initialize_dna()
-	AddComponent(/datum/component/footstep, FOOTSTEP_MOB_BAREFOOT, 1, 2)
+	AddElement(/datum/element/footstep, FOOTSTEP_MOB_BAREFOOT, 1, -6)
 
 /mob/living/carbon/monkey/Destroy()
 	SSmobs.cubemonkeys -= src

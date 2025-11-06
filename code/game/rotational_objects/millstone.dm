@@ -15,12 +15,9 @@
 	var/mill_progress = 0
 	var/list/millable_contents = list()
 
-/obj/structure/fluff/millstone/Initialize()
+/obj/structure/fluff/millstone/Initialize(mapload, ...)
 	. = ..()
 	START_PROCESSING(SSobj, src)
-
-/obj/structure/fluff/millstone/ComponentInitialize()
-	. = ..()
 	AddComponent(/datum/component/simple_rotation, ROTATION_REQUIRE_WRENCH|ROTATION_IGNORE_ANCHORED)
 
 /obj/structure/fluff/millstone/Destroy()
@@ -37,14 +34,25 @@
 			millable_contents += S
 			S.forceMove(src)
 			return
+	else if(istype(W, /obj/item/ore))
+		var/obj/item/ore/ore = W
+		if(ore.mill_result)
+			millable_contents += ore
+			ore.forceMove(src)
+			to_chat(user, span_notice("You add [ore] to [src] for milling."))
+			return
 	..()
 
-/obj/structure/fluff/millstone/attack_right(mob/living/carbon/human/user)
+/obj/structure/fluff/millstone/attack_hand_secondary(mob/living/carbon/human/user, params)
 	. = ..()
+	if(. == SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN)
+		return
 	var/obj/item/item = input("Choose an item to remove") as anything in millable_contents
 	if(!item)
-		return
-	if(QDELETED(item) || !(item in millable_contents))
+		return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
+	if(QDELETED(item))
+		return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
+	if(item in millable_contents)
 		item.forceMove(get_turf(src))
 		millable_contents -= item
 		var/wound_prob = 60
@@ -55,6 +63,7 @@
 			user.flash_fullscreen("redflash3")
 			user.emote("painscream")
 			user.take_overall_damage(4 + rotations_per_minute)
+	return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
 
 /obj/structure/fluff/millstone/attack_hand(mob/user)
 	var/running = TRUE
@@ -70,7 +79,7 @@
 	set_stress_use(64 * (speed / 8))
 
 /obj/structure/fluff/millstone/update_animation_effect()
-	if(!rotation_network || length(rotation_network) == 1)
+	if(!rotation_network || length(rotation_network.connected) == 1)
 		animate(src, icon_state = "millstone", time = 1)
 		return
 	if(rotation_network?.overstressed || !rotations_per_minute || !rotation_network?.total_stress)
@@ -112,9 +121,22 @@
 
 	if(mill_progress >= 100)
 		mill_progress -= 100
-		var/obj/item/reagent_containers/food/snacks/S = millable_contents[1]
-		new S.mill_result(get_turf(loc))
-		millable_contents -= S
-		qdel(S)
+		var/obj/item/millable_item = millable_contents[1]
+		var/result_type
+		var/quality = millable_item.recipe_quality
+
+		if(istype(millable_item, /obj/item/reagent_containers/food/snacks))
+			var/obj/item/reagent_containers/food/snacks/S = millable_item
+			result_type = S.mill_result
+		else if(istype(millable_item, /obj/item/ore))
+			var/obj/item/ore/ore = millable_item
+			result_type = ore.mill_result
+
+		if(result_type)
+			var/obj/item/mill_result = new result_type(get_turf(loc))
+			mill_result.set_quality(quality)
+
+		millable_contents -= millable_item
+		qdel(millable_item)
 
 	return TRUE

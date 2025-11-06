@@ -5,16 +5,14 @@
 	var/component_type = /datum/component/storage/concrete
 	var/list/populate_contents = list()
 
-/obj/item/storage/get_dumping_location(obj/item/storage/source,mob/user)
-	return src
-
-/obj/item/storage/Initialize()
+/obj/item/storage/Initialize(mapload, ...)
 	. = ..()
-	PopulateContents()
-
-/obj/item/storage/ComponentInitialize()
 	if(component_type)
 		AddComponent(component_type)
+	PopulateContents()
+
+/obj/item/storage/get_dumping_location(obj/item/storage/source,mob/user)
+	return src
 
 /obj/item/storage/AllowDrop()
 	return FALSE
@@ -52,8 +50,3 @@
 	var/datum/component/storage/ST = GetComponent(/datum/component/storage)
 	if(ST)
 		ST.do_quick_empty()
-
-/obj/item/storage/can_craft_with()
-	if(contents.len)
-		return FALSE
-	return ..()

@@ -7,8 +7,9 @@
 	base_state = "oven"
 	density = FALSE
 	on = FALSE
-	temperature_change = 45
+	temperature_change = 30
 	var/lastsmoke = 0
+	soundloop = /datum/looping_sound/fireloop
 
 /obj/machinery/light/fueled/oven/Initialize()
 	. = ..()
@@ -27,59 +28,49 @@
 
 /obj/machinery/light/fueled/oven/OnCrafted(dirin, mob/user)
 	dir = turn(dirin, 180)
-	. = ..()
-	update_icon()
-	update_overlays()
-
+	pixel_x = base_pixel_x
+	pixel_y = base_pixel_y
+	switch(dir)
+		if(SOUTH)
+			pixel_y += 32
+		if(NORTH)
+			pixel_y -= 32
+		if(WEST)
+			pixel_x += 32
+		if(EAST)
+			pixel_x -= 32
+	return ..()
 
 /obj/machinery/light/fueled/oven/Crossed(atom/movable/AM, oldLoc)
 	return
 
 /obj/machinery/light/fueled/oven/south
 	dir = SOUTH
-	pixel_y = 32 //so we see it in mapper
+	SET_BASE_PIXEL(0, 32)
 
 /obj/machinery/light/fueled/oven/west
 	dir = WEST
-	pixel_x = 32
+	SET_BASE_PIXEL(32, 0)
 
 /obj/machinery/light/fueled/oven/east
 	dir = EAST
-	pixel_x = -32
+	SET_BASE_PIXEL(-32, 0)
 
 /obj/machinery/light/fueled/oven/Initialize()
 	. = ..()
-	update_icon()
-	update_overlays()
-
-/obj/machinery/light/fueled/oven/update_icon()
-	pixel_x = 0
-	pixel_y = 0
-	switch(dir)
-		if(SOUTH)
-			pixel_y = 32
-		if(NORTH)
-			pixel_y = -32
-		if(WEST)
-			pixel_x = 32
-		if(EAST)
-			pixel_x = -32
-	icon_state = "[base_state][on]"
-	update_overlays()
-
+	update_appearance(UPDATE_ICON_STATE | UPDATE_OVERLAYS)
 
 /obj/machinery/light/fueled/oven/update_overlays()
 	. = ..()
-	underlays.Cut()
-	for(var/obj/item/I in contents)
-		I.pixel_x = 0
-		I.pixel_y = 0
+	for(var/obj/item/I as anything in contents)
+		I.pixel_x = I.base_pixel_x
+		I.pixel_y = I.base_pixel_y
 		var/mutable_appearance/M = mutable_appearance(I.icon, I.icon_state)
 		M.color = I.color
 		M.transform *= 0.5
 		M.pixel_y = rand(-2,4) // WHY WOULD YOU WANT TO HIDE THE ENTIRE SPRITE?? Fixed now
-		M.layer = 4.24
-		underlays += M
+		M.layer = src.layer - 0.01
+		. += M
 	var/mutable_appearance/M = mutable_appearance(icon, "oven_under")
-	M.layer = 4.23
-	underlays += M
+	M.layer = src.layer - 0.02
+	. += M

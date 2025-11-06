@@ -7,7 +7,7 @@
 ///Carbon checks
 #define SHOULD_RESIST(source) (source.on_fire || source.buckled || HAS_TRAIT(source, TRAIT_RESTRAINED) || (source.pulledby && (source.pulledby != source) && source.pulledby.grab_state > GRAB_PASSIVE))
 #define SHOULD_STAND(source) (source.resting)
-#define IS_DEAD_OR_INCAP(source) (source.incapacitated(ignore_grab = TRUE) || source.stat)
+#define IS_DEAD_OR_INCAP(source) (source.incapacitated(IGNORE_GRAB) || source.stat)
 
 
 // How far should we, by default, be looking for interesting things to de-idle?
@@ -46,6 +46,12 @@
 
 /// Signal sent when a blackboard key is set to a new value
 #define COMSIG_AI_BLACKBOARD_KEY_SET(blackboard_key) "ai_blackboard_key_set_[blackboard_key]"
+#define COMSIG_AI_BLACKBOARD_KEY_CLEARED(blackboard_key) "ai_blackboard_key_clear_[blackboard_key]"
+
+///sent from ai controllers when they pick behaviors: (list/datum/ai_behavior/old_behaviors, list/datum/ai_behavior/new_behaviors)
+#define COMSIG_AI_CONTROLLER_PICKED_BEHAVIORS "ai_controller_picked_behaviors"
+///sent from ai controllers when a behavior is inserted into the queue: (list/new_arguments)
+#define AI_CONTROLLER_BEHAVIOR_QUEUED(type) "ai_controller_behavior_queued_[type]"
 
 ///Targetting keys for something to run away from, if you need to store this separately from current target
 #define BB_BASIC_MOB_FLEE_TARGET "BB_basic_flee_target"
@@ -68,6 +74,10 @@
 #define BB_FISHBOSS_WHIRLPOOL_COOLDOWN "fishboss_whirlpool_cooldown"
 #define BB_FISHBOSS_DEEP_CALL_COOLDOWN "fishboss_deep_call_cooldown"
 
+
+#define BB_KRAKEN_SUMMON "bb_kraken_summon"
+#define BB_KRAKEN_INK "bb_kraken_ink"
+#define BB_KRAKEN_WHIRLPOOL "bb_kraken_whirlpool"
 
 ///Baby-making blackboard
 ///Types of animal we can make babies with.
@@ -98,6 +108,7 @@ F
 
 #define BB_NEST_LIST "BB_nestlist"
 #define BB_NEST_IGNORE_LIST "BB_nest_ignore"
+#define BB_NEST_MATERIAL_LIST "BB_nest_material_list"
 
 ///the bee hive we live inside
 #define BB_CURRENT_HOME "BB_current_home"
@@ -175,6 +186,8 @@ F
 #define BB_SHROOM_COOLDOWN "shroom_cd"
 #define BB_DRUG_COOLDOWN "drug_cd"
 
+#define BB_AGRIOPYLON_BLESS_COOLDOWN "agriopylon_bless_cooldown"
+
 #define BB_QUAKE_COOLDOWN "quake_cooldown"
 #define BB_EARTHQUAKE_COOLDOWN "earthquake_cooldown"
 
@@ -210,6 +223,7 @@ F
 #define BB_CAT_HOME "cat_home"
 /// key that holds the human we will beg
 #define BB_HUMAN_BEG_TARGET "human_beg_target"
+#define BB_BEGGING_FOOD_ITEM "item_beg_target"
 
 #define BB_CAT_KITTEN_TARGET "BB_cat_kitten_target"
 #define BB_CAT_HOLDING_FOOD "BB_cat_holding_food"
@@ -248,8 +262,10 @@ F
 #define BB_GNOME_TARGET_SPLITTER "gnome_target_splitter"
 #define BB_GNOME_CROP_MODE "bb_gnome_crop_mode"
 #define BB_GNOME_WATER_SOURCE "gnome_water_source"
+#define BB_GNOME_COMPOST_SOURCE "gnome_compost_source"
 #define BB_GNOME_SEED_SOURCE "gnome_seed_source"
 #define BB_GNOME_SEARCH_RANGE "gnome_search_range"
+#define BB_ACTION_STATE_MANAGER "action_state_manager"
 
 #define BB_GNOME_ALCHEMY_MODE "alch_mode"
 #define BB_GNOME_TARGET_CAULDRON "target_cauldron"
@@ -273,3 +289,12 @@ F
 #define ALCHEMY_STATE_RETURN_BOTTLE "return_bottle"
 #define ALCHEMY_STATE_RETURN_WATER_CONTAINER "return_container"
 #define ALCHEMY_STATE_RETURN_ESSENCE_VIAL "return_vial"
+
+// Keys used by one and only one behavior
+// Used to hold state without making bigass lists
+/// For /datum/ai_behavior/find_potential_targets, what if any field are we using currently
+#define BB_FIND_TARGETS_FIELD(type) "bb_find_targets_field_[type]"
+
+#define ACTION_STATE_CONTINUE 1
+#define ACTION_STATE_COMPLETE 2
+#define ACTION_STATE_FAILED 3

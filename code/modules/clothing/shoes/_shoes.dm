@@ -27,7 +27,7 @@
 	grid_width = 64
 	grid_height = 32
 
-	smeltresult = /obj/item/ash
+	smeltresult = /obj/item/fertilizer/ash
 	sellprice = 5
 	item_weight = 4
 
@@ -38,8 +38,9 @@
 	var/can_be_bloody = TRUE
 	var/is_barefoot = FALSE
 	var/chained = 0
+	abstract_type = /obj/item/clothing/shoes
 
-/obj/item/clothing/shoes/ComponentInitialize()
+/obj/item/clothing/shoes/Initialize(mapload, ...)
 	. = ..()
 	RegisterSignal(src, COMSIG_COMPONENT_CLEAN_ACT, PROC_REF(clean_blood))
 
@@ -61,23 +62,9 @@
 			playsound(user, 'sound/blank.ogg', 50, TRUE)
 		return(BRUTELOSS)
 
-/obj/item/clothing/shoes/worn_overlays(isinhands = FALSE)
-	. = list()
-//	if(!isinhands)
-//		var/bloody = FALSE
-//		if(GET_ATOM_BLOOD_DNA_LENGTH(src))
-//			bloody = TRUE
-//		else
-//			bloody = bloody_shoes[BLOOD_STATE_HUMAN]
-
-//		if(damaged_clothes)
-//			. += mutable_appearance('icons/effects/item_damage.dmi', "damagedshoe")
-//		if(bloody)
-//			. += mutable_appearance('icons/effects/blood.dmi', "shoeblood")
-
 /obj/item/clothing/shoes/equipped(mob/user, slot)
 	. = ..()
-	if(offset && slot_flags & slotdefine2slotbit(slot))
+	if(offset && (slot_flags & slot))
 		user.pixel_y += offset
 		worn_y_dimension -= (offset * 2)
 		user.update_inv_shoes()

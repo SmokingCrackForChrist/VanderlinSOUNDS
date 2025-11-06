@@ -32,6 +32,7 @@
 #define IN_STORAGE				(1<<11) //is this item in the storage item, such as backpack? used for tooltips
 #define SURGICAL_TOOL			(1<<12)	//Tool commonly used for surgery: won't attack targets in an active surgical operation on help intent (in case of mistakes)
 #define SHRINK_ENCHANT			(1<<13)
+#define ITEM_ONLY_BREAK 		(1<<14)
 
 // Flags for the clothing_flags var on /obj/item/clothing
 
@@ -48,3 +49,8 @@
 #define SNUG_FIT               (1<<11) //Prevents knock-off from things like hat-throwing.
 #define ANTI_TINFOIL_MANEUVER   (1<<12) //Hats with negative effects when worn (i.e the tinfoil hat).
 #define CANT_SLEEP_IN			(1<<13) //Makes you unable to sleep with this on
+
+// flags for misc_flags on /obj/item/clothing
+
+/// use on color subtypes for clothes, so the unit test for crafting doesn't scream at you.
+#define CRAFTING_TEST_EXCLUDE	(1<<0)

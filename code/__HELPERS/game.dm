@@ -130,20 +130,27 @@
 /proc/ScreenText(obj/O, maptext="", screen_loc="CENTER-7,CENTER-7", maptext_height=480, maptext_width=480)
 	if(!isobj(O))
 		O = new /atom/movable/screen/text()
-	O.maptext = maptext
+	O.maptext = MAPTEXT(maptext)
 	O.maptext_height = maptext_height
 	O.maptext_width = maptext_width
 	O.screen_loc = screen_loc
 	return O
 
-/proc/remove_images_from_clients(image/I, list/show_to)
-	for(var/client/C in show_to)
-		C.images -= I
+/// Removes an image from a client's `.images`. Useful as a callback.
+/proc/remove_image_from_client(image/image, client/remove_from)
+	remove_from?.images -= image
 
-/proc/flick_overlay(image/I, list/show_to, duration)
-	for(var/client/C in show_to)
-		C.images += I
-	addtimer(CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(remove_images_from_clients), I, show_to), duration, TIMER_CLIENT_TIME)
+/// Like remove_image_from_client, but will remove the image from a list of clients
+/proc/remove_image_from_clients(image/image_to_remove, list/hide_from)
+	for(var/client/remove_from in hide_from)
+		remove_from.images -= image_to_remove
+
+/proc/flick_overlay(image/image_to_show, list/show_to, duration)
+	if(!show_to || !length(show_to) || !image_to_show)
+		return
+	for(var/client/add_to in show_to)
+		add_to.images += image_to_show
+	addtimer(CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(remove_image_from_clients), image_to_show, show_to), duration, TIMER_CLIENT_TIME)
 
 /**
  * Helper atom that copies an appearance and exists for a period
@@ -253,8 +260,7 @@
 	if (!Question)
 		Question = "Would you like to be a special role?"
 	var/list/result = list()
-	for(var/m in group)
-		var/mob/M = m
+	for(var/mob/M as anything in group)
 		if(!M.key || !M.client || (ignore_category && GLOB.poll_ignore[ignore_category] && (M.ckey in GLOB.poll_ignore[ignore_category])))
 			continue
 		if(be_special_flag)
@@ -284,8 +290,7 @@
 /proc/pollCandidatesForMobs(Question, jobbanType, gametypeCheck, be_special_flag = 0, poll_time = 300, list/mobs, ignore_category = null)
 	var/list/L = pollGhostCandidates(Question, jobbanType, gametypeCheck, be_special_flag, poll_time, ignore_category)
 	var/i=1
-	for(var/v in mobs)
-		var/atom/A = v
+	for(var/atom/A as anything in mobs)
 		if(!A || QDELETED(A) || !A.loc)
 			mobs.Cut(i,i+1)
 		else
@@ -318,7 +323,6 @@
 			C = M.client
 	if(!C || (!C.prefs.windowflashing && !ignorepref))
 		return
-	winset(C, "mainwindow", "flash=5")
 
 //Recursively checks if an item is inside a given type, even through layers of storage. Returns the atom if it finds it.
 /proc/recursive_loc_check(atom/movable/target, type)

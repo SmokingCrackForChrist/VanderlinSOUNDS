@@ -7,6 +7,7 @@
 	foodtype = RAW
 	verb_say = "squeaks"
 	verb_yell = "squeaks"
+	pass_flags = PASSDOORS
 	obj_flags = CAN_BE_HIT
 	var/dead = FALSE
 	eat_effect = /datum/status_effect/debuff/uncookedfood
@@ -16,22 +17,26 @@
 
 /obj/item/reagent_containers/food/snacks/smallrat/onbite(mob/living/carbon/human/user)
 	if(loc == user)
-		if(user.mind && user.mind.has_antag_datum(/datum/antagonist/vampire))
-			if(dead)
-				to_chat(user, "<span class='warning'>It's dead.</span>")
-				return
-			var/datum/antagonist/vampire/VD = user.mind.has_antag_datum(/datum/antagonist/vampire)
+		if(user.clan)
 			if(do_after(user, 3 DECISECONDS, src))
 				user.visible_message("<span class='warning'>[user] drinks from [src]!</span>",\
 				"<span class='warning'>I drink from [src].</span>")
 				playsound(user.loc, 'sound/misc/drink_blood.ogg', 100, FALSE, -4)
-				VD.adjust_vitae(50)
-				dead = TRUE
+
+				user.adjust_bloodpool(50)
+				var/blood_handle = BLOOD_PREFERENCE_RATS
+				if(dead)
+					blood_handle |= BLOOD_PREFERENCE_DEAD
+				else
+					blood_handle |= BLOOD_PREFERENCE_LIVING
+				user.clan.handle_bloodsuck(user, blood_handle)
 				playsound(get_turf(user), 'sound/vo/mobs/rat/rat_death.ogg', 100, FALSE, -1)
+				if(dead)
+					qdel(src)
+					return
 				icon_state = "srat1"
 				rotprocess = SHELFLIFE_SHORT
-				var/mob/living/carbon/V = user
-				V.add_stress(/datum/stressevent/drankrat)
+				dead = TRUE
 			return
 	return ..()
 
@@ -44,7 +49,6 @@
 	tastes = list("burnt flesh" = 1)
 	rotprocess = SHELFLIFE_SHORT
 	sellprice = 0
-	plateable = TRUE
 
 /obj/item/reagent_containers/food/snacks/smallrat/burning(input as num)
 	if(!dead)
@@ -131,14 +135,13 @@
 
 
 
-/obj/item/reagent_containers/food/snacks/smallrat/obj_destruction(damage_flag)
-	//..()
+/obj/item/reagent_containers/food/snacks/smallrat/atom_destruction(damage_flag)
 	if(!dead)
 		new /obj/item/reagent_containers/food/snacks/smallrat/dead(src)
 		playsound(src, 'sound/vo/mobs/rat/rat_death.ogg', 100, FALSE, -1)
 		qdel(src)
 		return 1
-	. = ..()
+	return ..()
 
 /obj/item/reagent_containers/food/snacks/smallrat/attackby(obj/item/I, mob/user, params)
 	if(!dead)
@@ -154,3 +157,28 @@
 					playsound(src, pick('sound/vo/mobs/rat/rat_life.ogg','sound/vo/mobs/rat/rat_life2.ogg','sound/vo/mobs/rat/rat_life3.ogg'), 100, TRUE, -1)
 					return
 	..()
+///For the Nosferatu Vampire Lord transformationn
+/mob/living/simple_animal/hostile/retaliate/smallrat
+	name = "rat"
+	desc = ""
+	icon_state = "srat"
+	icon = 'icons/roguetown/mob/monster/rat.dmi'
+	mob_biotypes = MOB_ORGANIC|MOB_BEAST
+	speak = list("squeaks")
+	speak_chance = 1
+	maxHealth = 15
+	health = 15
+	melee_damage_lower = 5
+	melee_damage_upper = 5
+	attack_verb_continuous = "bites"
+	attack_verb_simple = "bite"
+	response_help_continuous = "pets"
+	response_help_simple = "pet"
+	density = FALSE
+	ventcrawler = VENTCRAWLER_ALWAYS
+	faction = list("hostile")
+	attack_sound = 'sound/blank.ogg'
+	pass_flags = PASSTABLE | PASSGRILLE | PASSMOB
+	mob_size = MOB_SIZE_TINY
+
+	var/stepped_sound = 'sound/blank.ogg'

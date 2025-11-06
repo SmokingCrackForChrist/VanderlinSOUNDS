@@ -8,7 +8,7 @@
 	bodyparts = list(/obj/item/bodypart/chest/goblin, /obj/item/bodypart/head/goblin, /obj/item/bodypart/l_arm/goblin,
 					/obj/item/bodypart/r_arm/goblin, /obj/item/bodypart/r_leg/goblin, /obj/item/bodypart/l_leg/goblin)
 	rot_type = /datum/component/rot/corpse/goblin
-	var/gob_outfit = /datum/outfit/job/npc/goblin
+	var/gob_outfit = /datum/outfit/npc/goblin
 	ambushable = FALSE
 	base_intents = list(INTENT_HELP, INTENT_DISARM, INTENT_GRAB, /datum/intent/unarmed/claw)
 	a_intent = INTENT_HELP
@@ -16,11 +16,31 @@
 	possible_rmb_intents = list(/datum/rmb_intent/feint, /datum/rmb_intent/swift, /datum/rmb_intent/riposte, /datum/rmb_intent/weak)
 	flee_in_pain = TRUE
 	stand_attempts = 6
-	vitae_pool = 250 // Small, frail creechers with not so much vitality to gain from.
+	bloodpool = 250 // Small, frail creechers with not so much vitality to gain from.
+	dodgetime = 30 //they can dodge easily, but have a cooldown on it
+
+/mob/living/carbon/human/species/goblin/apply_prefs_job(client/player_client, datum/job/job)
+	return
+
+/mob/living/carbon/human/species/goblin/slaved
+	gob_outfit = null
+	ai_controller = /datum/ai_controller/human_npc
+
+/mob/living/carbon/human/species/goblin/slaved/Initialize()
+	. = ..()
+	var/static/list/pet_commands = list(
+				/datum/pet_command/idle,
+				/datum/pet_command/free,
+				/datum/pet_command/follow,
+				/datum/pet_command/attack,
+				/datum/pet_command/protect_owner,
+				/datum/pet_command/aggressive,
+				/datum/pet_command/calm,
+			)
+	AddComponent(/datum/component/obeys_commands, pet_commands)
 
 /mob/living/carbon/human/species/goblin/npc
 	ai_controller = /datum/ai_controller/human_npc
-	dodgetime = 30 //they can dodge easily, but have a cooldown on it
 	flee_in_pain = TRUE
 
 	wander = FALSE
@@ -112,6 +132,7 @@
 /obj/item/bodypart/head/goblin/skeletonize()
 	. = ..()
 	icon_state = "goblin_skel_head"
+	sellprice = 2
 	if(headprice)
 		headprice = 2
 
@@ -121,21 +142,24 @@
 
 /datum/species/goblin
 	name = "goblin"
-	id = "goblin"
+	id = SPEC_ID_GOBLIN
 	species_traits = list(NO_UNDERWEAR)
 	inherent_traits = list(TRAIT_RESISTCOLD,TRAIT_RESISTHIGHPRESSURE,TRAIT_RESISTLOWPRESSURE,TRAIT_RADIMMUNE, TRAIT_EASYDISMEMBER, TRAIT_CRITICAL_WEAKNESS, TRAIT_NASTY_EATER, TRAIT_LEECHIMMUNE, TRAIT_INHUMENCAMP)
-	no_equip = list(SLOT_SHIRT, SLOT_WEAR_MASK, SLOT_GLOVES, SLOT_SHOES, SLOT_PANTS)
-	nojumpsuit = 1
-	sexes = 1
-	offset_features = list(OFFSET_HANDS = list(0,-4), OFFSET_HANDS_F = list(0,-4))
+
+	no_equip = list(ITEM_SLOT_SHIRT, ITEM_SLOT_MASK, ITEM_SLOT_GLOVES, ITEM_SLOT_SHOES, ITEM_SLOT_PANTS)
+	offset_features_m = list(OFFSET_HANDS = list(0,-4))
+	offset_features_f = list(OFFSET_HANDS = list(0,-4))
+
+	dam_icon_f = null
+	dam_icon_m = null
 	damage_overlay_type = ""
-	changesource_flags = MIRROR_BADMIN | WABBAJACK | MIRROR_MAGIC | MIRROR_PRIDE | RACE_SWAP | SLIME_EXTRACT
+	changesource_flags = WABBAJACK
 	var/raceicon = "goblin"
+	exotic_bloodtype = /datum/blood_type/human/corrupted/goblin
 
 /datum/species/goblin/regenerate_icons(mob/living/carbon/human/H)
-//	H.cut_overlays()
 	H.icon_state = ""
-	if(H.notransform)
+	if(HAS_TRAIT(H, TRAIT_NO_TRANSFORM))
 		return 1
 	H.update_inv_hands()
 	H.update_inv_handcuffed()
@@ -197,7 +221,7 @@
 	apply_overlay(ARMOR_LAYER)
 
 
-/mob/living/carbon/human/species/goblin/update_inv_head()
+/mob/living/carbon/human/species/goblin/update_inv_head(hide_nonstandard = FALSE)
 	update_wearable()
 /mob/living/carbon/human/species/goblin/update_inv_armor()
 	update_wearable()
@@ -220,6 +244,7 @@
 			headdy.icon = 'icons/roguetown/mob/monster/goblins.dmi'
 			headdy.icon_state = "[src.dna.species.id]_head"
 			headdy.headprice = rand(7,20)
+			headdy.sellprice = rand(7,20)
 	var/obj/item/organ/eyes/eyes = src.getorganslot(ORGAN_SLOT_EYES)
 	if(eyes)
 		eyes.Remove(src,1)
@@ -234,6 +259,9 @@
 		QDEL_NULL(src.charflaw)
 	update_body()
 	faction = list(FACTION_ORCS)
+	var/turf/turf = get_turf(src)
+	if(SSterrain_generation.get_island_at_location(turf))
+		faction |= "islander"
 	name = "goblin"
 	real_name = "goblin"
 	ADD_TRAIT(src, TRAIT_NOMOOD, TRAIT_GENERIC)
@@ -255,7 +283,7 @@
 	last_process = world.time
 	amount += amt2add
 	if(has_world_trait(/datum/world_trait/pestra_mercy))
-		amount -= 5 * time_elapsed
+		amount -= (is_ascendant(PESTRA) ? 2.5 : 5) * time_elapsed
 
 	var/mob/living/carbon/C = parent
 	if(!C)
@@ -294,7 +322,7 @@
 ////
 ///
 
-/datum/outfit/job/npc/goblin/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/npc/goblin/pre_equip(mob/living/carbon/human/H)
 	..()
 	H.base_strength = rand(6, 10)
 	H.base_perception = rand(5, 10)
@@ -302,6 +330,8 @@
 	H.base_constitution = rand(4, 8)
 	H.base_endurance = rand(8, 12)
 	H.base_speed = rand(8, 14)
+	H.recalculate_stats(FALSE)
+
 	if(is_species(H, /datum/species/goblin/hell))
 		H.STASTR += 6
 		H.STACON += 6
@@ -433,7 +463,7 @@
 	else
 		new /mob/living/carbon/human/species/goblin/npc(get_turf(src))
 	gobs++
-	update_icon()
+	update_appearance()
 	if(living_player_count() < 10)
 		maxgobs = 1
 	if(gobs < maxgobs)
@@ -445,7 +475,7 @@
 	if(spawning)
 		return
 	spawning = TRUE
-	update_icon()
+	update_appearance()
 	addtimer(CALLBACK(src, PROC_REF(creategob)), 2 SECONDS)
 
 /obj/structure/gob_portal/Destroy()

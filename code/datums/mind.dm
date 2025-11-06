@@ -77,12 +77,6 @@ GLOBAL_LIST_EMPTY(personal_objective_minds)
 	var/special_role
 	/// list of roles this mind cannot roll
 	var/list/restricted_roles = list()
-	/// list of spells this mind has
-	var/list/spell_list = list() // Wizard mode & "Give Spell" badmin button.
-	/// amount of spell points this mind currently has
-	var/spell_points
-	/// amount of spell points this mind has used
-	var/used_spell_points
 
 	var/linglink
 	var/datum/martial_art/martial_art
@@ -134,9 +128,6 @@ GLOBAL_LIST_EMPTY(personal_objective_minds)
 	var/has_studied = FALSE
 	/// Variable that lets the event picker see if someones getting chosen or not
 	var/picking = FALSE
-	///the bitflag our job applied
-	var/job_bitflag = NONE
-
 
 /datum/mind/New(key)
 	src.key = key
@@ -302,45 +293,23 @@ GLOBAL_LIST_EMPTY(personal_objective_minds)
 	new_character.mind = src							//and associate our new body with ourself
 	for(var/datum/antagonist/antag_datum_ref in antag_datums)	//Makes sure all antag datums effects are applied in the new body
 		antag_datum_ref.on_body_transfer(old_current, current)
-	if(iscarbon(new_character))
-		var/mob/living/carbon/C = new_character
+	if(iscarbon(current))
+		var/mob/living/carbon/C = current
 		C.last_mind = src
 	transfer_antag_huds(hud_to_transfer)				//inherit the antag HUD
-	transfer_actions(new_character)
-	transfer_martial_arts(new_character)
-	RegisterSignal(new_character, COMSIG_MOB_DEATH, PROC_REF(set_death_time))
+	transfer_martial_arts(current)
+	if(old_current.skills)
+		old_current.skills.set_current(current)
+
+	RegisterSignal(current, COMSIG_MOB_DEATH, PROC_REF(set_death_time))
 	if(active || force_key_move)
-		new_character.key = key		//now transfer the key to link the client to our new body
-	new_character.update_fov_angles()
-	SEND_SIGNAL(old_current, COMSIG_MIND_TRANSFER, new_character)
+		current.key = key		//now transfer the key to link the client to our new body
+	current.update_fov_angles()
 
-/**
- * purges all spells known by the mind
- * Vars:
- ** return_skill_points - do we return the skillpoints for the spells?
- ** silent - do we notify the player of this change?
-*/
-/datum/mind/proc/purge_all_spells(return_skill_points, silent = TRUE)
-	for(var/obj/effect/proc_holder/spell_to_purge in spell_list)
-		RemoveSpell(spell_to_purge, return_skill_points ? TRUE : FALSE)
-	if(!silent)
-		to_chat(current, span_boldwarning("I forget all my spells!"))
-
-/datum/mind/proc/purge_all_spellpoints(silent = TRUE)
-	spell_points = 0
-	used_spell_points = 0
-	if(!silent)
-		to_chat(current, span_boldwarning("I lose all my spellpoints!"))
-
-/**
- * adjusts the amount of available spellpoints
- * Vars:
- ** points - amount of points to grant or reduce
-*/
-/datum/mind/proc/adjust_spellpoints(points)
-	spell_points += points
-	check_learnspell() //check if we need to add or remove the learning spell
-
+	SEND_SIGNAL(src, COMSIG_MIND_TRANSFERRED, old_current)
+	SEND_SIGNAL(current, COMSIG_MOB_MIND_TRANSFERRED_INTO, old_current)
+	if(!isnull(old_current))
+		SEND_SIGNAL(old_current, COMSIG_MOB_MIND_TRANSFERRED_OUT_OF, current)
 
 /// set the last_death time of a mind to the current world time
 /datum/mind/proc/set_death_time()
@@ -360,16 +329,6 @@ GLOBAL_LIST_EMPTY(personal_objective_minds)
 /// wipes the memory of a mind
 /datum/mind/proc/wipe_memory()
 	memory = null
-
-/**
- * purges all spells and skills
- * Vars:
- ** silent - do we notify the player of this change?
-*/
-/datum/mind/proc/purge_combat_knowledge(silent)
-	current.purge_all_skills(TRUE)
-	purge_all_spells()
-	purge_all_spellpoints(TRUE)
 
 // Datum antag mind procs
 
@@ -468,39 +427,83 @@ GLOBAL_LIST_EMPTY(personal_objective_minds)
 		message_admins("[ADMIN_LOOKUPFLW(current)] has been created by [ADMIN_LOOKUPFLW(creator)], an antagonist.")
 		to_chat(current, span_danger("Despite my creators current allegiances, my true master remains [creator.real_name]. If their loyalties change, so do yours. This will never change unless my creator's body is destroyed."))
 
-/// output all memories of a mind
-/datum/mind/proc/show_memory(mob/recipient, window=1)
+/// Output all memories of a mind
+/datum/mind/proc/show_memory(mob/recipient, window = TRUE)
 	if(!recipient)
 		recipient = current
-	var/output = "<B>[current.real_name]'s Memories:</B><br>"
-	output += memory
+	var/name_display = "My"
+	if(current?.real_name)
+		name_display = "[current.real_name]'s"
 
-	if(personal_objectives.len)
-		output += "<B>Personal Objectives:</B>"
+	var/output = memory
+
+	if(ishuman(current))
+		var/mob/living/carbon/human/human_current = current
+		if(length(human_current.culinary_preferences))
+			var/favourite_food = human_current.culinary_preferences[CULINARY_FAVOURITE_FOOD]
+			var/favourite_drink = human_current.culinary_preferences[CULINARY_FAVOURITE_DRINK]
+			var/hated_food = human_current.culinary_preferences[CULINARY_HATED_FOOD]
+			var/hated_drink = human_current.culinary_preferences[CULINARY_HATED_DRINK]
+
+			if(favourite_food)
+				var/obj/item/food_instance = favourite_food
+				output += "<br><b>Favourite Food:</b> [capitalize(initial(food_instance.name))]<br>"
+			if(favourite_drink)
+				var/datum/reagent/consumable/drink_instance = favourite_drink
+				output += "<b>Favourite Drink:</b> [capitalize(initial(drink_instance.name))]<br>"
+			if(hated_food)
+				var/obj/item/hated_food_instance = hated_food
+				output += "<b>Hated Food:</b> [capitalize(initial(hated_food_instance.name))]<br>"
+			if(hated_drink)
+				var/datum/reagent/consumable/hated_drink_instance = hated_drink
+				output += "<b>Hated Drink:</b> [capitalize(initial(hated_drink_instance.name))]<br>"
+
+	var/has_personal_objectives = FALSE
+	var/personal_output = ""
+	if(length(personal_objectives))
 		var/personal_count = 1
-		for(var/datum/objective/objective in personal_objectives)
-			output += "<br><B>Personal Goal #[personal_count]</B>: [objective.explanation_text][objective.completed ? " (COMPLETED)" : ""]"
+		for(var/datum/objective/personal/objective in personal_objectives)
+			if(objective.hidden)
+				continue
+			if(!has_personal_objectives)
+				has_personal_objectives = TRUE
+				personal_output += "<br><B>Personal Objectives:</B>"
+			personal_output += "<br><B>Personal Goal #[personal_count]</B>: [objective.explanation_text][objective.completed ? " (COMPLETED)" : ""]"
 			personal_count++
-		output += "<br>"
+		if(has_personal_objectives)
+			personal_output += "<br>"
+
+	output += personal_output
 
 	var/list/all_objectives = list()
+	var/has_antag_objectives = FALSE
+	var/antag_output = ""
+
 	for(var/datum/antagonist/antag_datum_ref in antag_datums)
 		output += antag_datum_ref.antag_memory
 		all_objectives |= antag_datum_ref.objectives
 
-	if(all_objectives.len)
-		output += "<B>Objectives:</B>"
+	if(length(all_objectives))
 		var/antag_obj_count = 1
 		for(var/datum/objective/objective in all_objectives)
-			output += "<br><B>[objective.flavor] #[antag_obj_count]</B>: [objective.explanation_text][objective.completed ? " (COMPLETED)" : ""]"
+			if(objective.hidden)
+				continue
+			if(!has_antag_objectives)
+				has_antag_objectives = TRUE
+				antag_output += "<br><B>Objectives:</B>"
+			antag_output += "<br><B>[objective.flavor] #[antag_obj_count]</B>: [objective.explanation_text][objective.completed ? " (COMPLETED)" : ""]"
 			antag_obj_count++
 
+	output += antag_output
+
 	if(window)
-		recipient << browse(output,"window=memory")
-	else if(all_objectives.len || memory || personal_objectives.len)
+		var/datum/browser/memory_browser = new(recipient, "memory", "<div align='center'>[name_display] Memory</div>", 425, 475)
+		memory_browser.set_content(output)
+		memory_browser.open()
+	else if(length(all_objectives) || length(personal_objectives) || memory)
 		to_chat(recipient, "<i>[output]</i>")
 
-/// output current targets to the player
+/// Output current targets to the player
 /datum/mind/proc/recall_targets(mob/recipient, window=1)
 	var/output = "<B>[recipient.real_name]'s Hitlist:</B><br>"
 	for (var/mob/living/carbon in GLOB.mob_living_list) // Iterate through all mobs in the world
@@ -509,67 +512,6 @@ GLOBAL_LIST_EMPTY(personal_objective_minds)
 			if (carbon.job)
 				output += " - [carbon.job]"
 	output += "<br>Your creed is blood, your faith is steel. You will not rest until these souls are yours. Use the profane dagger to trap their souls for Graggar."
-
-	if(window)
-		recipient << browse(output,"window=memory")
-
-/datum/mind/proc/recall_culling(mob/recipient, window=1)
-	var/output = "<B>[recipient.real_name]'s Rival:</B><br>"
-	for(var/datum/culling_duel/D in GLOB.graggar_cullings)
-		var/mob/living/carbon/human/challenger = D.challenger.resolve()
-		var/mob/living/carbon/human/target = D.target.resolve()
-		var/obj/item/organ/heart/target_heart = D.target_heart.resolve()
-		var/obj/item/organ/heart/challenger_heart = D.challenger_heart.resolve()
-		var/target_heart_location
-		var/challenger_heart_location
-
-		if(target_heart)
-			target_heart_location = target_heart.owner ? target_heart.owner.prepare_deathsight_message() : lowertext(get_area_name(target_heart))
-
-		if(challenger_heart)
-			challenger_heart_location = challenger_heart.owner ? challenger_heart.owner.prepare_deathsight_message() : lowertext(get_area_name(challenger_heart))
-
-		if(recipient == challenger)
-			if(target)
-				if(target_heart && target_heart.owner && target_heart.owner != target) // Rival is not gone but their heart is in someone else
-					output += "<br>[target.real_name], the [target.job]"
-					output += "<br>Your rival's heart beats in [target_heart.owner.real_name]'s chest in [target_heart_location]"
-					output += "<br>Retrieve and consume it to claim victory! Graggar will not forgive failure."
-				else
-					output += "<br>[target.real_name], the [target.job]"
-					output += "<br>Eat your rival's heart before they eat YOURS! Graggar will not forgive failure."
-			else if(target_heart)
-				if(target_heart.owner && target_heart.owner != recipient)
-					output += "<br>Rival's Heart"
-					output += "<br>It's currently inside [target_heart.owner.real_name]'s chest in [target_heart_location]"
-					output += "<br>Your rival's heart beats in another's chest. Retrieve and consume it to claim victory!"
-				else
-					output += "<br>Rival's Heart"
-					output += "<br>It's somewhere in the [target_heart_location]"
-					output += "<br>Your rival's heart is exposed bare! Consume it to claim victory!"
-			else
-				continue
-
-		else if(recipient == target)
-			if(challenger)
-				if(challenger_heart && challenger_heart.owner && challenger_heart.owner != challenger) // Rival is not gone but their heart is in someone else
-					output += "<br>[challenger.real_name], the [challenger.job]"
-					output += "<br>Your rival's heart beats in [challenger_heart.owner.real_name]'s chest in [challenger_heart_location]"
-					output += "<br>Retrieve and consume it to claim victory! Graggar will not forgive failure."
-				else
-					output += "<br>[challenger.real_name], the [challenger.job]"
-					output += "<br>Eat your rival's heart before he eat YOURS! Graggar will not forgive failure."
-			else if(challenger_heart)
-				if(challenger_heart.owner && challenger_heart.owner != recipient)
-					output += "<br>Rival's Heart"
-					output += "<br>It's currently inside [challenger_heart.owner.real_name]'s chest in [challenger_heart_location]"
-					output += "<br>Your rival's heart beats in another's chest. Retrieve and consume it to claim victory!"
-				else
-					output += "<br>Rival's Heart"
-					output += "<br>It's somewhere in the [challenger_heart_location]"
-					output += "<br>Your rival's heart is exposed bare! Consume it to claim victory!"
-			else
-				continue
 
 	if(window)
 		recipient << browse(output,"window=memory")
@@ -723,92 +665,46 @@ GLOBAL_LIST_EMPTY(personal_objective_minds)
 
 /// Announces only antagonist objectives
 /datum/mind/proc/announce_antagonist_objectives()
-	var/obj_count = 1
 	for(var/datum/antagonist/antag_datum_ref in antag_datums)
 		if(length(antag_datum_ref.objectives))
-			to_chat(current, span_notice("Your [antag_datum_ref.name] objectives:"))
+			var/obj_count = 1
+			var/has_visible_objectives = FALSE
+			var/objective_output = ""
+
 			for(var/datum/objective/O in antag_datum_ref.objectives)
-				O.update_explanation_text()
-				to_chat(current, "<B>[O.flavor] #[obj_count]</B>: [O.explanation_text]")
-				obj_count++
+				if(!O.hidden)
+					if(!has_visible_objectives)
+						has_visible_objectives = TRUE
+					O.update_explanation_text()
+					objective_output += "<B>[O.flavor] #[obj_count]</B>: [O.explanation_text]<br>"
+					obj_count++
+
+			if(has_visible_objectives)
+				to_chat(current, span_notice("Your [antag_datum_ref.name] objectives:"))
+				to_chat(current, objective_output)
 
 /// Announces only personal objectives
 /datum/mind/proc/announce_personal_objectives()
 	if(length(personal_objectives))
 		var/personal_count = 1
-		for(var/datum/objective/O in personal_objectives)
-			O.update_explanation_text()
-			to_chat(current, "<B>Personal Goal #[personal_count]</B>: [O.explanation_text]")
-			personal_count++
+		var/has_visible_objectives = FALSE
+		var/objective_output = ""
+
+		for(var/datum/objective/personal/O in personal_objectives)
+			if(!O.hidden)
+				if(!has_visible_objectives)
+					has_visible_objectives = TRUE
+				O.update_explanation_text()
+				objective_output += "<B>Personal Goal #[personal_count]</B>: [O.explanation_text]<br>"
+				personal_count++
+
+		if(has_visible_objectives)
+			to_chat(current, objective_output)
 
 /// Announce all objectives (both types)
 /datum/mind/proc/announce_objectives()
 	announce_personal_objectives()
 	announce_antagonist_objectives()
-
-/**
- * add a spell to a mind
- * Vars:
- ** spell_type - the type of spell to give
- ** silent - is the player notified of the spell gain?
-*/
-/datum/mind/proc/AddSpell(obj/effect/proc_holder/spell/spell_type, silent = TRUE)
-	if(!spell_type)
-		CRASH("AddSpell was called without a specified spell type")
-	if(has_spell(spell_type))
-		return
-	spell_list += spell_type
-	if(!silent)
-		to_chat(current, "<span class='boldnotice'>I have learned a new spell: [spell_type]</span>")
-	spell_type.action.Grant(current)
-
-/**
- * check if we have a learnspell, give them a learnspell spell if they have excess spell points, remove it if we don't have excess spell points
- * Vars:
- ** spell_type - spell type to check
-*/
-/datum/mind/proc/check_learnspell(obj/effect/proc_holder/spell/spell_type)
-	if(!has_spell(/obj/effect/proc_holder/spell/self/learnspell)) //are we missing the learning spell?
-		if((spell_points - used_spell_points) > 0) //do we have points?
-			AddSpell(new /obj/effect/proc_holder/spell/self/learnspell(null)) //put it in
-			return
-
-	if((spell_points - used_spell_points) <= 0) //are we out of points?
-		RemoveSpell(spell_type) //bye bye spell
-		return
-	return
-
-/**
- * check if we have a spell
- * Vars:
- ** spell_type - spell type to check
- ** specific - boolean, if TRUE we check the specific type, if FALSE we check for subtypes too
-*/
-/datum/mind/proc/has_spell(spell_type, specific = FALSE)
-	if(istype(spell_type, /obj/effect/proc_holder))
-		var/obj/instanced_spell = spell_type
-		spell_type = instanced_spell.type
-	for(var/obj/effect/proc_holder/spell as anything in spell_list)
-		if((specific && spell.type == spell_type) || istype(spell, spell_type))
-			return TRUE
-	return FALSE
-
-/**
- * Remove a specific spell from a mind
- * Vars:
- ** spell_type - spell type to check
-*/
-/datum/mind/proc/RemoveSpell(obj/effect/proc_holder/spell/spell, restore_spell_points = FALSE)
-	if(!spell)
-		return
-	for(var/X in spell_list)
-		var/obj/effect/proc_holder/spell/spell_type = X
-		if(istype(spell_type, spell))
-			spell_list -= spell_type
-			qdel(spell_type)
-			if(restore_spell_points)
-				spell_points = max(spell_points + spell_type.cost, 0)
-				used_spell_points = max(used_spell_points - spell_type.cost, 0)
 
 /datum/mind/proc/transfer_martial_arts(mob/living/new_character)
 	if(!ishuman(new_character))
@@ -818,33 +714,6 @@ GLOBAL_LIST_EMPTY(personal_objective_minds)
 			martial_art.remove(new_character)
 		else
 			martial_art.teach(new_character)
-
-/datum/mind/proc/transfer_actions(mob/living/new_character)
-	if(current && current.actions)
-		for(var/datum/action/antag_datum_ref in current.actions)
-			antag_datum_ref.Grant(new_character)
-	transfer_mindbound_actions(new_character)
-
-/datum/mind/proc/transfer_mindbound_actions(mob/living/new_character)
-	for(var/X in spell_list)
-		var/obj/effect/proc_holder/spell/spell_type = X
-		spell_type.action.Grant(new_character)
-
-/**
- * delay usage of all spells except the ones passed into the exceptions list
- * Vars:
- ** delay - how long is the disrupt duration
- ** exceptions - a list of spells to ignore when disrupting
-*/
-/datum/mind/proc/disrupt_spells(delay, list/exceptions = list())
-	for(var/X in spell_list)
-		var/obj/effect/proc_holder/spell/spell_type = X
-		for(var/type in exceptions)
-			if(istype(spell_type, type))
-				continue
-		spell_type.charge_counter = delay
-		spell_type.updateButtonIcon()
-		INVOKE_ASYNC(spell_type, TYPE_PROC_REF(/obj/effect/proc_holder/spell, start_recharge))
 
 /datum/mind/proc/get_ghost(even_if_they_cant_reenter, ghosts_with_clients)
 	for(var/mob/dead/observer/G in (ghosts_with_clients ? GLOB.player_list : GLOB.dead_mob_list))
@@ -910,6 +779,7 @@ GLOBAL_LIST_EMPTY(personal_objective_minds)
  ** check_apprentice - do apprentices recieve skill experience too?
 */
 /datum/mind/proc/add_sleep_experience(skill, amt, silent = FALSE, check_apprentice = TRUE)
+	amt *= GLOB.sleep_experience_modifier
 	if(check_apprentice)
 		current.adjust_apprentice_exp(skill, amt, silent)
 	if(sleep_adv.add_sleep_experience(skill, amt, silent))
@@ -918,6 +788,8 @@ GLOBAL_LIST_EMPTY(personal_objective_minds)
 /datum/mind/proc/add_personal_objective(datum/objective/O)
 	if(!istype(O))
 		return FALSE
+	if(current)
+		current.apply_status_effect(/datum/status_effect/purpose)
 	personal_objectives += O
 	O.owner = src
 	return TRUE

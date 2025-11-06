@@ -66,6 +66,16 @@ body {
 }
 
 @font-face {
+  font-family: "Notredame";
+  src: url('otavan.ttf');
+}
+
+@font-face {
+  font-family: "Underwater Love";
+  src: url('deepspeak.ttf') format('truetype');
+}
+
+@font-face {
   font-family: "Kingthings Petrock";
   src: url('draconic.ttf') format('truetype');
 }
@@ -118,14 +128,27 @@ a.visited {color: #7c00e6;}
 a:visited {color: #7c00e6;}
 a.popt {text-decoration: none;}
 
+.chat_box {
+	display: inline-block;
+	width: calc(100% - 1em);
+	margin: 0.5em;
+	padding: 0.5em 0.75em;
+	box-sizing: border-box;
+}
+
 .examine_block {
-  display: inline-block;
-  width: calc(100% - 1em);
-  background: #0f0f0f;
-  border: 1px solid #1d1d1f;
-  margin: 0.5em;
-  padding: 0.5em 0.75em;
-  box-sizing: border-box;
+	background: #0f0f0f;
+	border: 1px solid #1d1d1f;
+}
+
+.mentor_block {
+	background: #3e263a;
+	border: 1px dotted #7f4274;
+}
+
+.announcement_block {
+	background: #2c032f;
+	border: 6px inset #990b3f;
 }
 
 /*****************************************
@@ -302,12 +325,6 @@ a.popt {text-decoration: none;}
 #newMessages:hover {background: #000000;}
 #newMessages i {vertical-align: middle; padding-left: 3px;}
 #ping {
-	position: fixed;
-	top: 0;
-	right: 135px;
-	width: 45px;
-	background: #202020;
-	height: 30px;
 	padding: 8px 0 2px 0;
 }
 #ping i {display: block; text-align: center;}
@@ -659,6 +676,7 @@ h1.alert, h2.alert	{color: #c9c1ba;font-family: Pterra, TrueType;}
 .alert_holder{
 	border: 0.1rem solid #FFF;
 	border-radius: 0.6rem;
+	padding: 1rem;
 }
 
 .emote					{color: #b1bb9f; font-size: 75%;}
@@ -680,10 +698,13 @@ h1.alert, h2.alert	{color: #c9c1ba;font-family: Pterra, TrueType;}
 .smallnotice			{color: #f1d669;	font-size: 75%;}
 .hear					{color: #6685f5;	font-style: italic;}
 .adminnotice			{color: #6685f5;}
+.adminannouncebig		{color: #6685f5;	font-style: bold;	font-size: 200%}
+.adminannounce			{color: #6685f5;	font-style: bold;	font-size: 120%}
 .adminhelp				{color: #ff0000;	font-weight: bold;}
 .unconscious			{color: #c9c1ba;	font-weight: bold;}
 .suicide				{color: #ff5050;	font-style: italic;}
 .green					{color: #80b077;}
+.good					{color: #00ff00;}
 .smallgreen				{color: #80b077;	font-size: 75%;}
 .boldgreen				{color: #80b077;	font-weight: bold;}
 .red					{color: #b84d47;}
@@ -724,7 +745,7 @@ h1.alert, h2.alert	{color: #c9c1ba;font-family: Pterra, TrueType;}
 
 .spider					{color: #4d004d;}
 
-.interface				{color: #330033;}
+.interface				{color: #DA00DA;}
 
 .sans					{font-family: "Comic Sans MS", cursive, sans-serif;}
 .papyrus				{font-family: "Papyrus", cursive, sans-serif;}
@@ -738,8 +759,10 @@ h1.alert, h2.alert	{color: #c9c1ba;font-family: Pterra, TrueType;}
 .hellspeak				{font-family: "Xaphan", "Pterra"; font-size: 110%}
 .undead					{font-family: "FriskyVampire", "Pterra";}
 .orc					{font-family: "Thief by The Riddler", Pterra;}
+.otavan					{font-family: "Notredame", Pterra; font-size: 200%;}
 .beast					{font-family: "Thief by The Riddler", Pterra;}
 .reptile				{font-family: "Kingthings Petrock", Pterra; font-size: 120%;}
+.deepspeak				{font-family: "Underwater Love", Pterra;}
 .lupian					{font-family: "Emperialisme", Pterra; font-size: 120%;}
 
 .torture				{color: #42ff20}
@@ -785,6 +808,7 @@ h1.alert, h2.alert	{color: #c9c1ba;font-family: Pterra, TrueType;}
 .love_extreme					{color: #d146f5;	font-size: 75%;}
 
 .silver					{color: #c0c0c0;}
+
 /*
 @keyframes hypnocolor {
 	0%		{color: #202020;}
@@ -809,3 +833,49 @@ h1.alert, h2.alert	{color: #c9c1ba;font-family: Pterra, TrueType;}
 /* HELPER CLASSES */
 .text-normal {font-weight: normal;	font-style: normal;}
 .hidden {display: none;	visibility: hidden;}
+
+/* Tooltips */
+.tooltip-trigger {
+	position: relative;
+	cursor: help;
+	text-decoration: underline dotted;
+}
+/* Alt Tooltip (No Italics) */
+.tooltip-alt-trigger {
+	font-style: normal;
+}
+
+.tooltip-trigger::after,
+.tooltip-trigger::before {
+	content: '';
+	position: absolute;
+	visibility: hidden;
+	opacity: 0;
+	transition: opacity 0.3s, visibility 0.3s;
+	pointer-events: none;
+}
+
+/* Tooltip content */
+.tooltip-trigger::after {
+	content: attr(data-tooltip);
+	background-color: rgba(0, 0, 0, 0.85);
+	color: #fff;
+	text-align: center;
+	border-radius: 5px;
+	padding: 8px 12px;
+	font-size: 0.9em;
+	white-space: nowrap;
+	z-index: 1000;
+
+	bottom: 120%;
+	left: 50%;
+	transform: translateX(-50%);
+}
+
+/* Show tooltip on hover */
+.tooltip-trigger:hover::after,
+.tooltip-trigger:hover::before {
+	visibility: visible;
+	opacity: 1;
+}
+

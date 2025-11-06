@@ -1,3 +1,5 @@
+#define LOCKER_FULL -1
+
 /obj/structure/closet
 	name = "closet"
 	desc = ""
@@ -20,7 +22,6 @@
 	var/message_cooldown
 	var/can_weld_shut = TRUE
 	var/horizontal = FALSE
-	var/allow_objects = FALSE
 	var/allow_dense = FALSE
 	var/dense_when_open = FALSE //if it's dense when open or not
 	var/max_mob_size = MOB_SIZE_HUMAN //Biggest mob_size accepted by the container
@@ -32,9 +33,7 @@
 	var/close_sound_volume = 100
 	var/material_drop
 	var/material_drop_amount = 2
-	var/delivery_icon = "deliverycloset" //which icon to use when packagewrapped. null to be unwrappable.
 	var/anchorable = TRUE
-	var/icon_welded = "welded"
 	throw_speed = 1
 	throw_range = 1
 	anchored = FALSE
@@ -42,52 +41,57 @@
 	can_add_lock = TRUE
 	lock = /datum/lock/key
 
-/obj/structure/closet/pre_sell()
-	open()
-	..()
+	var/alternative_icon_handling = FALSE
+	var/list/spawn_contents
+
+/obj/structure/closet/crate/Initialize()
+	. = ..()
+	if(!base_icon_state)
+		base_icon_state = initial(icon_state)
+	update_appearance(UPDATE_ICON_STATE)
+
+/obj/structure/closet/get_save_vars()
+	. = ..()
+	for(var/obj/item/item in contents)
+		LAZYADD(spawn_contents, item.type)
+	. += NAMEOF(src, spawn_contents)
 
 /obj/structure/closet/Initialize(mapload)
+	if(length(spawn_contents))
+		for(var/atom/movable/spawning_atom as anything in spawn_contents)
+			new spawning_atom(get_turf(src))
 	if(mapload && !opened)		// if closed, any item at the crate's loc is put in the contents
 		addtimer(CALLBACK(src, PROC_REF(take_contents)), 0)
 	. = ..()
-	update_icon()
+	update_appearance(UPDATE_ICON_STATE)
 	PopulateContents()
-
-//USE THIS TO FILL IT, NOT INITIALIZE OR NEW
-/obj/structure/closet/proc/PopulateContents()
-	return
+	var/static/list/loc_connections = list(
+		COMSIG_ATOM_MAGICALLY_UNLOCKED = PROC_REF(on_magic_unlock),
+	)
+	AddElement(/datum/element/connect_loc, loc_connections)
 
 /obj/structure/closet/Destroy()
 	dump_contents()
 	return ..()
 
-/obj/structure/closet/update_icon()
-	cut_overlays()
-	if(!opened)
-		layer = OBJ_LAYER
-		if(icon_door)
-			add_overlay("[icon_door]_door")
-		else
-			add_overlay("[icon_state]_door")
-		if(welded)
-			add_overlay(icon_welded)
-		if(secure && !broken)
-			if(locked())
-				add_overlay("locked")
-			else
-				add_overlay("unlocked")
+//USE THIS TO FILL IT, NOT INITIALIZE OR NEW
+/obj/structure/closet/proc/PopulateContents()
+	return
 
-	else
-		layer = BELOW_OBJ_LAYER
-		if(icon_door_override)
-			add_overlay("[icon_door]_open")
-		else
-			add_overlay("[icon_state]_open")
+// TODO: REIMPLEMENT TG CLOSET AND CRATE OVERLAYS
+/obj/structure/closet/update_icon_state()
+	. = ..()
+	if(!alternative_icon_handling)
+		icon_state = "[base_icon_state][opened ? "open" : ""]"
 
-/obj/structure/closet/CanPass(atom/movable/mover, turf/target)
+/obj/structure/closet/pre_sell()
+	open()
+	..()
+
+/obj/structure/closet/CanAllowThrough(atom/movable/mover, turf/target)
+	. = ..()
 	if(wall_mounted)
 		return TRUE
-	return !density
 
 /obj/structure/closet/proc/can_open(mob/living/user)
 	if(welded || locked())
@@ -108,10 +112,14 @@
 	if(throwing)
 		throwing.finalize(FALSE)
 
-/obj/structure/closet/proc/take_contents()
-	var/atom/L = drop_location()
-	for(var/atom/movable/AM in L)
-		if(AM != src && insert(AM) == -1) // limit reached
+/obj/structure/closet/proc/take_contents(mapload = FALSE)
+	var/atom/location = drop_location()
+	if(!location)
+		return
+	for(var/atom/movable/AM in location)
+		if(AM != src && insert(AM, mapload) == LOCKER_FULL) // limit reached
+			if(mapload) // Yea, it's a mapping issue. Blame mappers.
+				log_mapping("Closet storage capacity of [type] exceeded on mapload at [AREACOORD(src)]")
 			break
 
 /obj/structure/closet/proc/open(mob/living/user)
@@ -125,24 +133,26 @@
 	if(!dense_when_open)
 		density = FALSE
 	dump_contents()
-	update_icon()
+	update_appearance(UPDATE_ICON_STATE)
 	return 1
 
-/obj/structure/closet/proc/insert(atom/movable/AM)
-	if(contents.len >= storage_capacity)
-		return -1
-	if(insertion_allowed(AM))
-		AM.forceMove(src)
-		return TRUE
-	else
+/obj/structure/closet/proc/insert(atom/movable/inserted, mapload = FALSE)
+	if(length(contents) >= storage_capacity)
+		if(!mapload)
+			return LOCKER_FULL
+		//For maploading, we only return LOCKER_FULL if the movable was otherwise insertable. This way we can avoid logging false flags.
+		return insertion_allowed(inserted) ? LOCKER_FULL : FALSE
+	if(!insertion_allowed(inserted))
 		return FALSE
+	inserted.forceMove(src)
+	return TRUE
 
 /obj/structure/closet/proc/insertion_allowed(atom/movable/AM)
 	if(ismob(AM))
-		if(!isliving(AM)) //let's not put ghosts or camera mobs inside closets...
+		if(!isliving(AM)) //let's not put ghosts or eye mobs inside closets...
 			return FALSE
 		var/mob/living/L = AM
-		if(L.anchored || (L.buckled && L.buckled != src) || L.incorporeal_move || L.has_buckled_mobs())
+		if(L.anchored || L.buckled || L.incorporeal_move || L.has_buckled_mobs())
 			return FALSE
 		if(L.mob_size > MOB_SIZE_TINY) // Tiny mobs are treated as items.
 			if(horizontal && L.density)
@@ -151,20 +161,18 @@
 				return FALSE
 			var/mobs_stored = 0
 			for(var/mob/living/M in contents)
-				if(++mobs_stored >= mob_storage_capacity)
-					return FALSE
-			for(var/obj/structure/closet/crate/C in contents)
-				if(C != src)
+				mobs_stored++
+				if(mobs_stored >= mob_storage_capacity)
 					return FALSE
 		L.stop_pulling()
 
+	else if(istype(AM, /obj/structure/closet))
+		return FALSE
 	else if(isobj(AM))
 		if((!allow_dense && AM.density) || AM.anchored || AM.has_buckled_mobs())
 			return FALSE
 		else if(isitem(AM) && !HAS_TRAIT(AM, TRAIT_NODROP))
 			return TRUE
-		else if(!allow_objects)
-			return FALSE
 	else
 		return FALSE
 
@@ -180,7 +188,7 @@
 	playsound(loc, close_sound, close_sound_volume, FALSE, -3)
 	opened = FALSE
 	density = TRUE
-	update_icon()
+	update_appearance(UPDATE_ICON_STATE)
 	return TRUE
 
 /obj/structure/closet/proc/toggle(mob/living/user)
@@ -194,10 +202,10 @@
 		new material_drop(loc, material_drop_amount)
 	qdel(src)
 
-/obj/structure/closet/obj_break(damage_flag, silent)
-	if(!broken && !(flags_1 & NODECONSTRUCT_1))
+/obj/structure/closet/atom_break(damage_flag)
+	if(!obj_broken && !(flags_1 & NODECONSTRUCT_1))
 		bust_open()
-	..()
+	. = ..()
 
 /obj/structure/closet/attackby(obj/item/I, mob/user, params)
 	if(user in src)
@@ -312,7 +320,7 @@
 /obj/structure/closet/proc/bust_open()
 	welded = FALSE //applies to all lockers
 	unlock()
-	broken = TRUE //applies to secure lockers only
+	obj_broken = TRUE //applies to secure lockers only
 	open()
 
 /obj/structure/closet/get_remote_view_fullscreens(mob/user)
@@ -326,3 +334,12 @@
 
 /obj/structure/closet/AllowDrop()
 	return TRUE
+
+/// Signal proc for [COMSIG_ATOM_MAGICALLY_UNLOCKED]. Unlock and open up when we get knock casted.
+/obj/structure/closet/proc/on_magic_unlock(datum/source, datum/action/cooldown/spell/knock, mob/living/caster)
+	SIGNAL_HANDLER
+
+	INVOKE_ASYNC(src, PROC_REF(unlock))
+	INVOKE_ASYNC(src, PROC_REF(open))
+
+#undef LOCKER_FULL

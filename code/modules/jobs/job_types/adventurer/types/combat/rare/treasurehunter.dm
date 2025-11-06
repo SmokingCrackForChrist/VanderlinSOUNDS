@@ -1,25 +1,25 @@
 //dagger and huntknife
-/datum/advclass/combat/gravedigger
-	name = "Treasure Hunter"
+/datum/job/advclass/combat/gravedigger
+	title = "Treasure Hunter"
 	tutorial = "Grave robbers sell themselves as treasure hunters, but be sure to wipe that \
 	necrotic flesh off of that trinket you found."
 	allowed_sexes = list(MALE, FEMALE)
 
-	outfit = /datum/outfit/job/adventurer/gravedigger
+	outfit = /datum/outfit/adventurer/gravedigger
 	min_pq = 0
 	category_tags = list(CTAG_ADVENTURER)
 	cmode_music = 'sound/music/cmode/church/CombatGravekeeper.ogg'
 
-/datum/outfit/job/adventurer/gravedigger/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/adventurer/gravedigger/pre_equip(mob/living/carbon/human/H)
 	..()
-	pants = /obj/item/clothing/pants/tights/black
-	armor = /obj/item/clothing/armor/leather/vest/black
-	shirt = /obj/item/clothing/shirt/undershirt/black
+	pants = /obj/item/clothing/pants/tights/colored/black
+	armor = /obj/item/clothing/armor/leather/vest/colored/black
+	shirt = /obj/item/clothing/shirt/undershirt/colored/black
 	backl = /obj/item/storage/backpack/satchel
 	belt = /obj/item/storage/belt/leather/rope
-	backpack_contents = list(/obj/item/weapon/pick = 1, /obj/item/weapon/knife/hunting = 1, /obj/item/lockpickring/mundane)
+	backpack_contents = list(/obj/item/weapon/pick = 1, /obj/item/weapon/knife/dagger = 1, /obj/item/lockpickring/mundane)
 	gloves = /obj/item/clothing/gloves/fingerless
-	cloak = /obj/item/clothing/cloak/raincloak/mortus
+	cloak = /obj/item/clothing/cloak/raincloak/colored/mortus
 	armor = /obj/item/clothing/armor/leather
 	shoes = /obj/item/clothing/shoes/boots/leather
 	beltr = /obj/item/flashlight/flare/torch/lantern
@@ -47,6 +47,6 @@
 		H.change_stat(STATKEY_END, 2)
 		H.change_stat(STATKEY_SPD, 1)
 		H.change_stat(STATKEY_LCK, -1) // Tradeoff for never being cursed when graverobbing.
-		ADD_TRAIT(H, TRAIT_NOSTINK, TRAIT_GENERIC)
+		ADD_TRAIT(H, TRAIT_DEADNOSE, TRAIT_GENERIC)
 		ADD_TRAIT(H, TRAIT_DODGEEXPERT, TRAIT_GENERIC)
 		ADD_TRAIT(H, TRAIT_GRAVEROBBER, TRAIT_GENERIC)

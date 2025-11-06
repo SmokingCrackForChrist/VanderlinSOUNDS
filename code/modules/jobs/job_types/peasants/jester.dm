@@ -4,11 +4,10 @@
 		You command a position of a fool, envious of the position your superiors have upon you. \
 		Your cheap tricks and illusions of intelligence will only work for so long, \
 		and someday you'll find yourself at the end of something sharper than you."
-	flag = JESTER
 	department_flag = PEASANTS
 	display_order = JDO_JESTER
 	job_flags = (JOB_ANNOUNCE_ARRIVAL | JOB_SHOW_IN_CREDITS | JOB_EQUIP_RANK | JOB_NEW_PLAYER_JOINABLE)
-	faction = FACTION_STATION
+	faction = FACTION_TOWN
 	total_positions = 1
 	spawn_positions = 1
 	min_pq = 5
@@ -17,11 +16,16 @@
 	allowed_races = RACES_PLAYER_ALL
 
 
-	outfit = /datum/outfit/job/jester
-	spells = list(/obj/effect/proc_holder/spell/self/telljoke,/obj/effect/proc_holder/spell/self/telltragedy,/obj/effect/proc_holder/spell/self/fart)
+	outfit = /datum/outfit/jester
+	spells = list(
+		/datum/action/cooldown/spell/undirected/joke,
+		/datum/action/cooldown/spell/undirected/tragedy,
+		/datum/action/cooldown/spell/undirected/fart,
+		/datum/action/cooldown/spell/vicious_mockery,
+	)
 	give_bank_account = TRUE
 
-/datum/outfit/job/jester/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/jester/pre_equip(mob/living/carbon/human/H)
 	..()
 	shoes = /obj/item/clothing/shoes/jester
 	pants = /obj/item/clothing/pants/tights
@@ -46,7 +50,6 @@
 	H.adjust_skillrank(/datum/skill/misc/music, pick(1,2,3,4,5,6), TRUE)
 	H.adjust_skillrank(/datum/skill/craft/cooking, pick(1,2,3,4,5,6), TRUE)
 	H.adjust_skillrank(/datum/skill/combat/firearms, pick(1,2,3,4,5,6), TRUE)
-	H.mind?.AddSpell(new /obj/effect/proc_holder/spell/invoked/mockery) // Mock people to your heart's content!
 
 	H.base_intelligence = rand(1, 20)
 	H.base_fortune = rand(1, 20)
@@ -68,6 +71,7 @@
 	ADD_TRAIT(H, TRAIT_EMPATH, TRAIT_GENERIC)
 	ADD_TRAIT(H, TRAIT_NUTCRACKER, TRAIT_GENERIC)
 	ADD_TRAIT(H, TRAIT_ZJUMP, TRAIT_GENERIC)
+	ADD_TRAIT(H, TRAIT_SHAKY_SPEECH, TRAIT_GENERIC)
 
 //Ventriloquism! Make things speak!
 

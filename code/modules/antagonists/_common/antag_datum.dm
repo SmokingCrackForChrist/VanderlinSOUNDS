@@ -2,7 +2,7 @@ GLOBAL_LIST_EMPTY(antagonists)
 
 /datum/antagonist
 	var/name = "\improper Antagonist"
-	var/roundend_category = "other antagonists"				//Section of roundend report, datums with same category will be displayed together, also default header for the section
+	var/roundend_category = "Other Villains"				//Section of roundend report, datums with same category will be displayed together, also default header for the section
 	var/show_in_roundend = TRUE								//Set to false to hide the antagonists from roundend report
 	var/prevent_roundtype_conversion = TRUE		//If false, the roundtype will still convert with this antag active
 	var/datum/mind/owner						//Mind that owns this datum
@@ -13,7 +13,8 @@ GLOBAL_LIST_EMPTY(antagonists)
 	var/replace_banned = TRUE //Should replace jobbanned player with ghosts if granted.
 	var/list/objectives = list()
 	var/antag_memory = ""//These will be removed with antag datum
-	var/antag_moodlet //typepath of moodlet that the mob will gain with their status
+	/// Antag stress event
+	var/datum/stress_event/antag_stress
 	var/antag_hud_type
 	var/antag_hud_name
 	var/list/confess_lines
@@ -97,7 +98,7 @@ GLOBAL_LIST_EMPTY(antagonists)
 /datum/antagonist/proc/remove_antag_hud(antag_hud_type, antag_hud_name, mob/living/mob_override)
 	var/mob/living/M = mob_override || owner.current
 	var/datum/atom_hud/antag/hud = GLOB.huds[antag_hud_type]
-	hud.leave_hud(M)
+	hud?.leave_hud(M)
 	set_antag_hud(M, null)
 
 //Assign default team and creates one for one of a kind team antagonists
@@ -111,7 +112,7 @@ GLOBAL_LIST_EMPTY(antagonists)
 			greet()
 		apply_innate_effects()
 		add_antag_hud(antag_hud_type, antag_hud_name)
-		give_antag_moodies()
+		give_antag_stress()
 		if(owner.current.has_flaw(/datum/charflaw/pacifist))
 			var/mob/living/carbon/human/human_user = owner.current
 			QDEL_NULL(human_user?.charflaw)
@@ -142,14 +143,16 @@ GLOBAL_LIST_EMPTY(antagonists)
 
 /datum/antagonist/proc/on_removal()
 	remove_innate_effects()
-	clear_antag_moodies()
+	clear_antag_stress()
 	remove_antag_hud(antag_hud_type, antag_hud_name)
 	if(owner)
 		LAZYREMOVE(owner.antag_datums, src)
 		if(owner.current)
+			// Maniac sigh
+			owner.current.refresh_looping_ambience()
 			if(was_pacifist)
 				var/mob/living/carbon/human/human_user = owner.current
-				human_user.charflaw = new /datum/charflaw/pacifist(human_user)
+				human_user.set_flaw(/datum/charflaw/pacifist)
 				human_user.charflaw.after_spawn(human_user, TRUE)
 			if(!silent)
 				farewell()
@@ -164,15 +167,15 @@ GLOBAL_LIST_EMPTY(antagonists)
 /datum/antagonist/proc/farewell()
 	return
 
-/datum/antagonist/proc/give_antag_moodies()
-	if(!antag_moodlet)
+/datum/antagonist/proc/give_antag_stress()
+	if(!antag_stress)
 		return
-	SEND_SIGNAL(owner.current, COMSIG_ADD_MOOD_EVENT, "antag_moodlet", antag_moodlet)
+	owner.current.add_stress(antag_stress)
 
-/datum/antagonist/proc/clear_antag_moodies()
-	if(!antag_moodlet)
+/datum/antagonist/proc/clear_antag_stress()
+	if(!antag_stress)
 		return
-	SEND_SIGNAL(owner.current, COMSIG_CLEAR_MOOD_EVENT, "antag_moodlet")
+	owner.current.remove_stress(antag_stress)
 
 //Returns the team antagonist belongs to if any.
 /datum/antagonist/proc/get_team()

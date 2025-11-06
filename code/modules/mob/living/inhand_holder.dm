@@ -21,15 +21,7 @@
 	. = ..()
 	deposit(M)
 
-/obj/item/clothing/head/mob_holder/update_overlays()
-	. = ..()
-	update_visuals(held_mob)
-
-/obj/item/clothing/head/mob_holder/update_icon()
-	. = ..()
-	update_visuals(held_mob)
-
-/obj/item/clothing/head/mob_holder/update_icon_state()
+/obj/item/clothing/head/mob_holder/update_appearance(updates)
 	. = ..()
 	update_visuals(held_mob)
 
@@ -56,6 +48,7 @@
 
 /obj/item/clothing/head/mob_holder/proc/update_visuals(mob/living/L)
 	appearance = L?.appearance
+	plane = ABOVE_HUD_PLANE
 
 /obj/item/clothing/head/mob_holder/proc/release(del_on_release = TRUE)
 	if(!held_mob)

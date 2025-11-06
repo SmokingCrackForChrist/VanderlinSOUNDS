@@ -12,14 +12,16 @@
 /obj/item/bin/crackers/Initialize()
 	. = ..()
 	for(var/i in 1 to 10)
-		new /obj/item/reagent_containers/food/snacks/hardtack(src)
+		var/obj/item/reagent_containers/food/snacks/hardtack/new_hardtack = new()
+		if(!SEND_SIGNAL(src, COMSIG_TRY_STORAGE_INSERT, new_hardtack, null, TRUE, FALSE))
+			qdel(new_hardtack)
 
 /obj/structure/closet/crate/chest/steward
 	lock = /datum/lock/key/steward
 
 /datum/stock/import/wheat
 	name = "Crate of Wheat"
-	desc = "Wheat."
+	desc = "Grains of wheat."
 	item_type = /obj/structure/closet/crate/chest/steward/wheat
 	export_price = 125
 	importexport_amt = 1
@@ -35,8 +37,7 @@
 	export_price = 150
 	importexport_amt = 1
 
-/obj/structure/closet/crate/chest/steward/townguard/Initialize()
-	. = ..()
+/obj/structure/closet/crate/chest/steward/townguard/PopulateContents()
 	new /obj/item/clothing/head/helmet/townwatch(src)
 	new /obj/item/clothing/cloak/half/guard(src)
 	new /obj/item/clothing/armor/gambeson(src)
@@ -52,8 +53,7 @@
 	export_price = 350
 	importexport_amt = 1
 
-/obj/structure/closet/crate/chest/steward/manatarms/Initialize()
-	. = ..()
+/obj/structure/closet/crate/chest/steward/manatarms/PopulateContents()
 	new /obj/item/clothing/head/helmet/kettle(src)
 	new /obj/item/clothing/neck/chaincoif/iron(src)
 	new /obj/item/clothing/cloak/stabard/guard(src)
@@ -70,14 +70,10 @@
 	export_price = 400
 	importexport_amt = 1
 
-/obj/structure/closet/crate/chest/steward/crossbow/Initialize()
-	. = ..()
-	new /obj/item/gun/ballistic/revolver/grenadelauncher/crossbow(src)
-	new /obj/item/gun/ballistic/revolver/grenadelauncher/crossbow(src)
-	new /obj/item/gun/ballistic/revolver/grenadelauncher/crossbow(src)
-	new /obj/item/ammo_holder/quiver/bolts(src)
-	new /obj/item/ammo_holder/quiver/bolts(src)
-	new /obj/item/ammo_holder/quiver/bolts(src)
+/obj/structure/closet/crate/chest/steward/crossbow/PopulateContents()
+	for(var/i in 1 to 3)
+		new /obj/item/gun/ballistic/revolver/grenadelauncher/crossbow(src)
+		new /obj/item/ammo_holder/quiver/bolts(src)
 
 /datum/stock/import/saigabuck
 	name = "Saigabuck"
@@ -86,8 +82,7 @@
 	export_price = 250
 	importexport_amt = 1
 
-/obj/structure/closet/crate/chest/steward/saigabuck/Initialize()
-	. = ..()
+/obj/structure/closet/crate/chest/steward/saigabuck/PopulateContents()
 	new /mob/living/simple_animal/hostile/retaliate/saigabuck/tame/saddled(src)
 
 /datum/stock/import/cow
@@ -97,8 +92,7 @@
 	export_price = 150
 	importexport_amt = 1
 
-/obj/structure/closet/crate/chest/steward/cow/Initialize()
-	. = ..()
+/obj/structure/closet/crate/chest/steward/cow/PopulateContents()
 	new /mob/living/simple_animal/hostile/retaliate/cow(src)
 
 /datum/stock/import/bull
@@ -108,8 +102,7 @@
 	export_price = 200
 	importexport_amt = 1
 
-/obj/structure/closet/crate/chest/steward/bull/Initialize()
-	. = ..()
+/obj/structure/closet/crate/chest/steward/bull/PopulateContents()
 	new /mob/living/simple_animal/hostile/retaliate/bull(src)
 
 /datum/stock/import/goat
@@ -119,8 +112,7 @@
 	export_price = 150
 	importexport_amt = 1
 
-/obj/structure/closet/crate/chest/steward/goat/Initialize()
-	. = ..()
+/obj/structure/closet/crate/chest/steward/goat/PopulateContents()
 	new /mob/living/simple_animal/hostile/retaliate/goat(src)
 
 /datum/stock/import/goatmale
@@ -130,8 +122,7 @@
 	export_price = 200
 	importexport_amt = 1
 
-/obj/structure/closet/crate/chest/steward/goatmale/Initialize()
-	. = ..()
+/obj/structure/closet/crate/chest/steward/goatmale/PopulateContents()
 	new /mob/living/simple_animal/hostile/retaliate/goatmale(src)
 
 /datum/stock/import/chicken
@@ -141,8 +132,7 @@
 	export_price = 100
 	importexport_amt = 1
 
-/obj/structure/closet/crate/chest/steward/chicken/Initialize()
-	. = ..()
+/obj/structure/closet/crate/chest/steward/chicken/PopulateContents()
 	new /mob/living/simple_animal/hostile/retaliate/chicken(src)
 
 /datum/stock/import/farmequip
@@ -152,8 +142,7 @@
 	export_price = 250
 	importexport_amt = 1
 
-/obj/structure/closet/crate/chest/steward/farmequip/Initialize()
-	. = ..()
+/obj/structure/closet/crate/chest/steward/farmequip/PopulateContents()
 	new /obj/item/weapon/hoe(src)
 	new /obj/item/weapon/pitchfork(src)
 	new /obj/item/weapon/sickle(src)

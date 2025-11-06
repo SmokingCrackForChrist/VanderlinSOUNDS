@@ -6,7 +6,7 @@
 	force = 0
 	throwforce = 0
 	color = "#454032"
-	firefuel = 5 MINUTES
+	firefuel = 1 MINUTES
 	resistance_flags = FLAMMABLE
 	slot_flags = ITEM_SLOT_MOUTH
 	max_integrity = 20
@@ -23,7 +23,7 @@
 	force = 0
 	throwforce = 0
 	color = "#e6e3db"
-	firefuel = 5 MINUTES
+	firefuel = 1 MINUTES
 	resistance_flags = FLAMMABLE
 	slot_flags = ITEM_SLOT_MOUTH
 	max_integrity = 20
@@ -56,7 +56,7 @@
 	possible_item_intents = list(/datum/intent/use, /datum/intent/soak, /datum/intent/wring)
 	force = 0
 	throwforce = 0
-	firefuel = 5 MINUTES
+	firefuel = 3 MINUTES
 	resistance_flags = FLAMMABLE
 	slot_flags = ITEM_SLOT_MOUTH|ITEM_SLOT_HIP|ITEM_SLOT_MASK|ITEM_SLOT_BELT
 	body_parts_covered = null
@@ -80,21 +80,19 @@
 	if(isnum(vol) && vol > 0)
 		volume = vol
 	create_reagents(volume, TRANSPARENT)
+	cleaner_component = AddComponent(
+		/datum/component/cleaner, \
+		clean_speed, \
+		CLEAN_SCRUB, \
+		100, \
+		TRUE, \
+		CALLBACK(src, PROC_REF(on_pre_clean)), \
+		CALLBACK(src, PROC_REF(on_clean_success)), \
+	)
 
 /obj/item/natural/cloth/Destroy()
 	cleaner_component = null
 	return ..()
-
-/obj/item/natural/cloth/ComponentInitialize()
-	. = ..()
-	cleaner_component = AddComponent(/datum/component/cleaner, \
-									clean_speed, \
-									CLEAN_SCRUB, \
-									100, \
-									TRUE, \
-									CALLBACK(src, PROC_REF(on_pre_clean)), \
-									CALLBACK(src, PROC_REF(on_clean_success)), \
-									)
 
 /obj/item/natural/cloth/proc/on_pre_clean(datum/cleaning_source, atom/atom_to_clean, mob/living/cleaner)
 	if(cleaner?.used_intent?.type != INTENT_USE || ismob(atom_to_clean) || !check_allowed_items(atom_to_clean))
@@ -104,7 +102,8 @@
 	if(cleaner.client && ((atom_to_clean in cleaner.client.screen) && !cleaner.is_holding(atom_to_clean)))
 		to_chat(cleaner, span_warning("I need to take \the [atom_to_clean] off before cleaning it!"))
 		return DO_NOT_CLEAN
-	if(!reagents.total_volume)
+	if(reagents.total_volume < 0.1)
+		to_chat(cleaner, span_warning("[src] is too dry to clean with!"))
 		return DO_NOT_CLEAN
 
 	// overly complicated effectiveness calculations
@@ -130,17 +129,17 @@
 /obj/item/natural/cloth/mob_can_equip(mob/living/M, mob/living/equipper, slot, disable_warning, bypass_equip_delay_self)
 	. = ..()
 	if(.)
-		if(slot == SLOT_BELT && !equipper)
+		if((slot & ITEM_SLOT_BELT) && !equipper)
 			if(!do_after(M, 1.5 SECONDS, src))
 				return FALSE
 
 /obj/item/natural/cloth/equipped(mob/living/carbon/human/user, slot)
 	. = ..()
-	if(slot == SLOT_WEAR_MASK)
+	if(slot & ITEM_SLOT_MASK)
 		user.become_blind("blindfold_[REF(src)]")
-	else if(slot == SLOT_BELT)
+	else if(slot & ITEM_SLOT_BELT)
 		user.temporarilyRemoveItemFromInventory(src)
-		user.equip_to_slot_if_possible(new /obj/item/storage/belt/leather/cloth(get_turf(user)), SLOT_BELT)
+		user.equip_to_slot_if_possible(new /obj/item/storage/belt/leather/cloth(get_turf(user)), ITEM_SLOT_BELT)
 		qdel(src)
 
 /obj/item/natural/cloth/dropped(mob/living/carbon/human/user)
@@ -150,35 +149,27 @@
 
 // CLEANING
 
-/obj/item/natural/cloth/attack_obj(obj/O, mob/living/user)
+/obj/item/natural/cloth/attack_atom(obj/O, mob/living/user)
 	switch(user.used_intent.type)
 		if(INTENT_SOAK)
 			soak_cloth(O, user)
+			return TRUE
 		if(INTENT_WRING)
 			wring_cloth(O, user)
-		else
-			return ..()
+			return TRUE
+	return ..()
 
-/obj/item/natural/cloth/attack_turf(turf/T, mob/living/user)
-	switch(user.used_intent.type)
-		if(INTENT_SOAK)
-			soak_cloth(T, user)
-		if(INTENT_WRING)
-			wring_cloth(T, user)
-		else
-			return ..()
-
-/obj/item/natural/cloth/attack_self(mob/user)
-	attack_right(user)
-	return
-
-/obj/item/natural/cloth/rmb_self(mob/user)
-	attack_right(user)
-	return
-
-/obj/item/natural/cloth/attack_right(mob/user)
+/obj/item/natural/cloth/attack_self(mob/user, params)
 	wring_cloth(user.loc, user)
-	return
+
+/obj/item/natural/cloth/attack_hand_secondary(mob/user, params)
+	. = ..()
+	if(. == SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN)
+		return
+
+	wring_cloth(user.loc, user)
+
+	return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
 
 /obj/item/natural/cloth/proc/soak_cloth(atom/target, mob/living/user)
 	if(reagents.total_volume == reagents.maximum_volume)
@@ -282,11 +273,11 @@
 	force = 10
 	throwforce = 0
 	possible_item_intents = list(/datum/intent/stab)
-	firefuel = 5 MINUTES
+	firefuel = 1 MINUTES
 	embedding = list("embedded_unsafe_removal_time" = 20, "embedded_pain_chance" = 10, "embedded_pain_multiplier" = 1, "embed_chance" = 35, "embedded_fall_chance" = 0)
 	resistance_flags = FLAMMABLE
 	max_integrity = 20
-/obj/item/natural/thorn/attack_self(mob/living/user)
+/obj/item/natural/thorn/attack_self(mob/living/user, params)
 	user.visible_message("<span class='warning'>[user] snaps [src].</span>")
 	playsound(user,'sound/items/seedextract.ogg', 100, FALSE)
 	qdel(src)
@@ -313,9 +304,9 @@
 	possible_item_intents = list(/datum/intent/use)
 	force = 0
 	throwforce = 0
-	maxamount = 6
+	maxamount = 12
 	color = "#454032"
-	firefuel = 5 MINUTES
+	firemod =  1 MINUTES
 	resistance_flags = FLAMMABLE
 	slot_flags = ITEM_SLOT_MOUTH
 	max_integrity = 20
@@ -326,10 +317,10 @@
 	icon1step = 3
 	icon2step = 6
 
-/obj/item/natural/bundle/fibers/full
-	icon_state = "fibersroll2"
-	amount = 6
-	firefuel = 30 MINUTES
+/obj/item/natural/bundle/fibers/full/Initialize()
+	. = ..()
+	amount = maxamount
+	update_bundle()
 
 /obj/item/natural/bundle/silk
 	name = "silken weave"
@@ -340,7 +331,7 @@
 	throwforce = 0
 	maxamount = 6
 	color = "#e6e3db"
-	firefuel = 5 MINUTES
+	firemod = 1 MINUTES
 	resistance_flags = FLAMMABLE
 	slot_flags = ITEM_SLOT_MOUTH
 	max_integrity = 20
@@ -359,7 +350,7 @@
 	force = 0
 	throwforce = 0
 	maxamount = 10
-	firefuel = 5 MINUTES
+	firemod = 3 MINUTES
 	resistance_flags = FLAMMABLE
 	w_class = WEIGHT_CLASS_TINY
 	spitoutmouth = FALSE
@@ -370,6 +361,11 @@
 	icon2 = "clothroll2"
 	icon2step = 10
 
+/obj/item/natural/bundle/cloth/full/Initialize()
+	. = ..()
+	amount = maxamount
+	update_bundle()
+
 /obj/item/natural/bundle/stick
 	name = "bundle of sticks"
 	desc = "A bundle of wooden sticks, looks like they all need to stick together!"
@@ -378,7 +374,7 @@
 	maxamount = 10
 	force = 0
 	throwforce = 0
-	firefuel = 5 MINUTES
+	firemod = 5 MINUTES
 	resistance_flags = FLAMMABLE
 	w_class = WEIGHT_CLASS_TINY
 	spitoutmouth = FALSE
@@ -430,6 +426,7 @@
 	maxamount = 6
 	color = null
 	firefuel = null
+	firemod = 0
 	resistance_flags = FLAMMABLE
 	slot_flags = ITEM_SLOT_MOUTH
 	max_integrity = 20
@@ -443,5 +440,7 @@
 	icon2 = "bonestack2"
 	icon2step = 4
 
-/obj/item/natural/bundle/bone/full
-	amount = 6
+/obj/item/natural/bundle/bone/full/Initialize()
+	. = ..()
+	amount = maxamount
+	update_bundle()

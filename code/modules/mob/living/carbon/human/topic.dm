@@ -3,7 +3,7 @@ GLOBAL_VAR_INIT(year_integer, text2num(year)) // = 2013???
 
 /mob/living/carbon/human/Topic(href, href_list)
 
-	if(href_list["task"] == "view_flavor_text" && (isobserver(usr) || usr.can_perform_action(src, FORBID_TELEKINESIS_REACH|NEED_LIGHT)))
+	if(href_list["task"] == "view_flavor_text" && (isobserver(usr) || usr.can_perform_action(src, NEED_LIGHT)))
 		if(!ismob(usr))
 			return
 		var/mob/user = usr
@@ -12,15 +12,20 @@ GLOBAL_VAR_INIT(year_integer, text2num(year)) // = 2013???
 			dat += "<br>"
 			dat += ("<div align='center'><img src='[headshot_link]' width='325px' height='325px'></div>")
 		if(flavortext)
+			dat += "<div align='left' style='line-height: 1.2;'>[flavortext_display]</div>"
+		if(ooc_notes)
 			dat += "<br>"
-			dat += "<div align='center'>[flavortext]</div>"
+			dat += "<div align='center'><b>OOC notes</b></div>"
+			dat += "<div align='left' style='line-height: 1.2;'>[ooc_notes_display]</div>"
+		if(ooc_extra)
+			dat += "[ooc_extra]"
 		var/datum/browser/popup = new(user, "[src]", "<center>[src]</center>", 480, 700)
 
 		popup.set_content(dat.Join())
 		popup.open(FALSE)
 		return
 
-	if(href_list["view_descriptors"] && (isobserver(usr) || usr.can_perform_action(src, FORBID_TELEKINESIS_REACH|NEED_LIGHT)))
+	if(href_list["view_descriptors"] && (isobserver(usr) || usr.can_perform_action(src, NEED_LIGHT)))
 		if(!ismob(usr))
 			return
 		var/obscure_name
@@ -100,7 +105,7 @@ GLOBAL_VAR_INIT(year_integer, text2num(year)) // = 2013???
 
 	if(href_list["item"]) //canUseTopic check for this is handled by mob/Topic()
 		var/slot = text2num(href_list["item"])
-		if(slot in check_obscured_slots(TRUE))
+		if(slot & check_obscured_slots(TRUE))
 			to_chat(usr, span_warning("I can't reach that! Something is covering it."))
 			return
 

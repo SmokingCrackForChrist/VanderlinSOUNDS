@@ -10,8 +10,8 @@
 	w_class = WEIGHT_CLASS_SMALL
 	throw_speed = 1
 	throw_range = 5
-	breakouttime = 5 SECONDS
-	slipouttime = 1 MINUTES
+	breakouttime = 10 SECONDS
+	slipouttime = 30 SECONDS
 	possible_item_intents = list(/datum/intent/tie)
 	firefuel = 5 MINUTES
 	drop_sound = 'sound/foley/dropsound/cloth_drop.ogg'
@@ -20,15 +20,15 @@
 /obj/item/rope/mob_can_equip(mob/living/M, mob/living/equipper, slot, disable_warning, bypass_equip_delay_self)
 	. = ..()
 	if(.)
-		if(slot == SLOT_BELT && !equipper)
+		if((slot & ITEM_SLOT_BELT) && !equipper)
 			if(!do_after(M, 1.5 SECONDS, src))
 				return FALSE
 
 /obj/item/rope/equipped(mob/living/carbon/human/user, slot)
 	. = ..()
-	if(slot == SLOT_BELT)
+	if(slot & ITEM_SLOT_BELT)
 		user.temporarilyRemoveItemFromInventory(src)
-		user.equip_to_slot_if_possible(new /obj/item/storage/belt/leather/rope(get_turf(user)), SLOT_BELT)
+		user.equip_to_slot_if_possible(new /obj/item/storage/belt/leather/rope(get_turf(user)), ITEM_SLOT_BELT)
 		qdel(src)
 
 /datum/intent/tie
@@ -62,12 +62,15 @@
 	if(!istype(C))
 		return
 
+	var/surrender_mod = 1
+	if(C.surrendering || HAS_TRAIT(C, TRAIT_BAGGED))
+		surrender_mod = 0.5
 	if(user.aimheight >= 5)
 		if(!C.handcuffed)
 			if(C.num_hands)
 				C.visible_message(span_warning("[user] is trying to tie [C]'s arms with [src.name]!"), \
 									span_danger("[user] is trying to tie my arms with [src.name]!"))
-				if(do_after(user, 6 SECONDS * (C.surrendering ? 0.5 : 1), C) && C.num_hands)
+				if(do_after(user, 6 SECONDS * (surrender_mod), C) && C.num_hands)
 					apply_cuffs(C, user, leg = FALSE)
 					C.visible_message(span_warning("[user] ties [C]' arms with [src.name]."), \
 										span_danger("[user] ties my arms up with [src.name]."))
@@ -143,9 +146,11 @@
 	wdefense = 1
 	throw_speed = 1
 	throw_range = 3
-	breakouttime = 1 MINUTES
-	slipouttime = 5 MINUTES
+	breakouttime = 30 SECONDS
+	slipouttime = 1 MINUTES
 	possible_item_intents = list(/datum/intent/tie, /datum/intent/whip)
+	melting_material = /datum/material/iron
+	melt_amount = 40
 	firefuel = null
 	drop_sound = 'sound/foley/dropsound/chain_drop.ogg'
 
@@ -166,11 +171,11 @@
 	throwforce = 5
 	w_class = WEIGHT_CLASS_SMALL
 	icon_state = "net"
-	breakouttime = 35//easy to apply, easy to break out of
+	breakouttime = 3.5 SECONDS //easy to apply, easy to break out of
 	gender = NEUTER
 	var/knockdown = 0
 
-/obj/item/net/throw_at(atom/target, range, speed, mob/thrower, spin=1, diagonals_first = 0, datum/callback/callback)
+/obj/item/net/throw_at(atom/target, range, speed, mob/thrower, spin=1, diagonals_first = 0, datum/callback/callback, force, gentle = FALSE)
 	if(!..())
 		return
 	playsound(src.loc,'sound/blank.ogg', 75, TRUE)
@@ -208,7 +213,7 @@
 	name = "noose"
 	desc = "Abandon all hope."
 	icon = 'icons/roguetown/misc/tallstructure.dmi'
-	pixel_y = 10
+	SET_BASE_PIXEL(0, 10)
 	icon_state = "noose"
 	can_buckle = 1
 	layer = 4.26
@@ -228,7 +233,7 @@
 	name = "gallows"
 	desc = "Stranded and hanging, limp and dead."
 	icon_state = "gallows"
-	pixel_y = 0
+	SET_BASE_PIXEL(0, 0)
 	max_integrity = 100
 
 /obj/structure/noose/Destroy()
@@ -236,11 +241,10 @@
 	if(has_buckled_mobs())
 		for(var/m in buckled_mobs)
 			var/mob/living/buckled_mob = m
-			if(buckled_mob.has_gravity())
-				buckled_mob.visible_message("<span class='danger'>[buckled_mob] falls over and hits the ground!</span>")
-				to_chat(buckled_mob, "<span class='userdanger'>You fall over and hit the ground!</span>")
-				buckled_mob.adjustBruteLoss(10)
-				buckled_mob.Knockdown(60)
+			buckled_mob.visible_message("<span class='danger'>[buckled_mob] falls over and hits the ground!</span>")
+			to_chat(buckled_mob, "<span class='userdanger'>You fall over and hit the ground!</span>")
+			buckled_mob.adjustBruteLoss(10)
+			buckled_mob.Knockdown(60)
 	return ..()
 
 /obj/structure/noose/attackby(obj/item/W, mob/user, params)
@@ -257,11 +261,11 @@
 	else
 		return ..()
 
-/obj/structure/noose/bullet_act(obj/projectile/P)
+/obj/structure/noose/bullet_act(obj/projectile/P, def_zone, piercing_hit = FALSE)
 	. = ..()
 	new /obj/item/rope(loc)
 	playsound(src, 'sound/foley/dropsound/cloth_drop.ogg', 50, TRUE)
-	if (istype(src, /obj/structure/noose/gallows))
+	if(istype(src, /obj/structure/noose/gallows))
 		new /obj/machinery/light/fueled/lanternpost/unfixed(loc)
 		visible_message(span_danger("The noose is shot down from the gallows!"))
 	else
@@ -310,30 +314,29 @@
 		return
 	for(var/m in buckled_mobs)
 		var/mob/living/buckled_mob = m
-		if(buckled_mob.has_gravity())
-			if(buckled_mob.get_bodypart("head"))
-				if(buckled_mob.stat != DEAD)
-					if(locate(/obj/structure/chair) in get_turf(src)) // So you can kick down the chair and make them hang, and stuff.
-						return
-					if(!HAS_TRAIT(buckled_mob, TRAIT_NOBREATH))
-						buckled_mob.adjustOxyLoss(10)
-						if(prob(20))
-							buckled_mob.emote("gasp")
-					if(prob(25))
-						var/flavor_text = list("<span class='danger'>[buckled_mob]'s legs flail for anything to stand on.</span>",\
-												"<span class='danger'>[buckled_mob]'s hands are desperately clutching the noose.</span>",\
-												"<span class='danger'>[buckled_mob]'s limbs sway back and forth with diminishing strength.</span>")
-						buckled_mob.visible_message(pick(flavor_text))
-					playsound(buckled_mob.loc, 'sound/foley/noose_idle.ogg', 30, 1, -3)
-				else
-					if(prob(1))
-						var/obj/item/bodypart/head/head = buckled_mob.get_bodypart("head")
-						if(head.brute_dam >= 50)
-							if(head.dismemberable)
-								head.dismember()
+		if(buckled_mob.get_bodypart("head"))
+			if(buckled_mob.stat != DEAD)
+				if(locate(/obj/structure/chair) in get_turf(src)) // So you can kick down the chair and make them hang, and stuff.
+					return
+				if(!HAS_TRAIT(buckled_mob, TRAIT_NOBREATH))
+					buckled_mob.adjustOxyLoss(10)
+					if(prob(20))
+						buckled_mob.emote("gasp")
+				if(prob(25))
+					var/flavor_text = list("<span class='danger'>[buckled_mob]'s legs flail for anything to stand on.</span>",\
+											"<span class='danger'>[buckled_mob]'s hands are desperately clutching the noose.</span>",\
+											"<span class='danger'>[buckled_mob]'s limbs sway back and forth with diminishing strength.</span>")
+					buckled_mob.visible_message(pick(flavor_text))
+				playsound(buckled_mob.loc, 'sound/foley/noose_idle.ogg', 30, 1, -3)
 			else
-				buckled_mob.visible_message("<span class='danger'>[buckled_mob] drops from the noose!</span>")
-				buckled_mob.Knockdown(60)
-				buckled_mob.pixel_y = initial(buckled_mob.pixel_y)
-				buckled_mob.pixel_x = initial(buckled_mob.pixel_x)
-				unbuckle_all_mobs(force=1)
+				if(prob(1))
+					var/obj/item/bodypart/head/head = buckled_mob.get_bodypart("head")
+					if(head.brute_dam >= 50)
+						if(head.dismemberable)
+							head.dismember()
+		else
+			buckled_mob.visible_message("<span class='danger'>[buckled_mob] drops from the noose!</span>")
+			buckled_mob.Knockdown(60)
+			buckled_mob.pixel_y = buckled_mob.base_pixel_y
+			buckled_mob.pixel_x = buckled_mob.base_pixel_x
+			unbuckle_all_mobs(force=1)

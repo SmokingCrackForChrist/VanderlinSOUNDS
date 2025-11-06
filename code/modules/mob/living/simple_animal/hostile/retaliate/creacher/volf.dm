@@ -1,7 +1,7 @@
 /mob/living/simple_animal/hostile/retaliate/wolf
 	icon = 'icons/roguetown/mob/monster/vol.dmi'
 	name = "volf"
-	desc = "Usually content to leave menfolk alone if well-fed, but something in the wilds around Enigma turns them hungry, persistent, and vicious."
+	desc = "Usually content to leave menfolk alone if well-fed, but something in the wilds turns them hungry, persistent, and vicious."
 	icon_state = "vv"
 	icon_living = "vv"
 	icon_dead = "vvd"
@@ -9,7 +9,6 @@
 	faction = list(FACTION_ORCS)
 	emote_hear = null
 	emote_see = null
-	turns_per_move = 5
 	see_in_dark = 9
 	move_to_delay = 2
 	vision_range = 9
@@ -18,17 +17,17 @@
 	botched_butcher_results = list(/obj/item/reagent_containers/food/snacks/meat/steak = 1,
 						/obj/item/natural/fur/volf = 1,
 						/obj/item/alch/bone = 1)
-	butcher_results = list(/obj/item/reagent_containers/food/snacks/meat/steak = 1,
+	butcher_results = list(/obj/item/reagent_containers/food/snacks/meat/steak = 2,
 						/obj/item/natural/hide = 1,
 						/obj/item/natural/fur/volf = 2,
 						/obj/item/alch/sinew = 2,
 						/obj/item/alch/bone = 1)
 	perfect_butcher_results = list(/obj/item/reagent_containers/food/snacks/meat/steak = 2,
-						/obj/item/natural/hide = 1,
+						/obj/item/natural/hide = 2,
 						/obj/item/natural/fur/volf = 3,
 						/obj/item/alch/sinew = 2,
-						/obj/item/alch/bone = 1,
-						/obj/item/natural/head/volf = 1)
+						/obj/item/alch/bone = 2)
+	head_butcher = /obj/item/natural/head/volf
 
 	health = VOLF_HEALTH
 	maxHealth = VOLF_HEALTH
@@ -53,7 +52,7 @@
 	defdrain = 5
 	del_on_deaggro = 999 SECONDS
 	retreat_health = 0.4
-	food = 0
+
 	dodgetime = 17
 	aggressive = 1
 //	stat_attack = UNCONSCIOUS
@@ -85,31 +84,26 @@
 	icon = 'icons/roguetown/mob/monster/vol.dmi'
 
 /mob/living/simple_animal/hostile/retaliate/wolf/Initialize()
+	AddComponent(/datum/component/obeys_commands, pet_commands) // here due to signal overridings from pet commands // due to signal overridings from pet commands
 	. = ..()
 	AddComponent(/datum/component/ai_aggro_system)
-	qdel(GetComponent(/datum/component/obeys_commands)) // due to signal overridings from pet commands
-	AddComponent(/datum/component/obeys_commands, pet_commands)
 	AddElement(/datum/element/ai_flee_while_injured, 0.75, retreat_health)
 
 	gender = MALE
 	if(prob(33))
 		gender = FEMALE
 	ADD_TRAIT(src, TRAIT_CRITICAL_WEAKNESS, TRAIT_GENERIC)
-	update_icon()
+	update_appearance(UPDATE_OVERLAYS)
 
 /mob/living/simple_animal/hostile/retaliate/wolf/death(gibbed)
 	..()
-	update_icon()
+	update_appearance(UPDATE_OVERLAYS)
 
-
-/mob/living/simple_animal/hostile/retaliate/wolf/update_icon()
-	cut_overlays()
-	..()
-	if(stat != DEAD)
-		var/mutable_appearance/eye_lights = mutable_appearance(icon, "vve")
-		eye_lights.plane = 19
-		eye_lights.layer = 19
-		add_overlay(eye_lights)
+/mob/living/simple_animal/hostile/retaliate/wolf/update_overlays()
+	. = ..()
+	if(stat == DEAD)
+		return
+	. += emissive_appearance(icon, "vve")
 
 /mob/living/simple_animal/hostile/retaliate/wolf/get_sound(input)
 	switch(input)

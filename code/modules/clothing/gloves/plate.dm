@@ -25,6 +25,14 @@
 	grid_height = 32
 	item_weight = 7 * IRON_MULTIPLIER
 
+/obj/item/clothing/gloves/plate/iron
+	name = "iron plate gauntlets"
+	desc = "Plated gauntlets made out of iron. Offers good protection against melee attacks."
+	icon_state = "igauntlets"
+	sellprice = VALUE_IRON_ARMOR/2
+	armor = ARMOR_PLATE_BAD
+	max_integrity = INTEGRITY_STRONG
+
 /obj/item/clothing/gloves/plate/rust
 	name = "rusted riveted gauntlets"
 	desc = "Riveted gauntlets made out of iron. They're covered in rust.. at least the glove liner is good still."
@@ -37,6 +45,20 @@
 	sellprice = VALUE_IRON_ARMOR/2
 	armor = ARMOR_PLATE_BAD
 	max_integrity = INTEGRITY_STANDARD
+
+/obj/item/clothing/gloves/plate/blk
+	name = "blacksteel gauntlets"
+	desc = "Gauntlets of blacksteel, offering unmatched protection for the hands."
+	icon_state = "bkgloves"
+	icon = 'icons/roguetown/clothing/special/blkknight.dmi'
+	mob_overlay_icon = 'icons/roguetown/clothing/special/onmob/blkknight.dmi'
+	sleeved = 'icons/roguetown/clothing/special/onmob/blkknight.dmi'
+	anvilrepair = /datum/skill/craft/blacksmithing
+	smeltresult = /obj/item/ingot/blacksteel
+	armor_class = AC_MEDIUM
+	armor = ARMOR_PLATE_GOOD
+	item_weight = 7 * BLACKSTEEL_MULTIPLIER
+	sellprice = VALUE_SILVER_ITEM * 2
 
 	//............... Evil Gloves ............... //
 
@@ -53,6 +75,15 @@
 	name = "gilded gauntlets"
 	desc = "Shimmering plate gauntelts. Many riches have been taken with these, and just as many lives."
 	icon_state = "matthiosgloves"
+	icon = 'icons/roguetown/clothing/special/evilarmor.dmi'
+	mob_overlay_icon = 'icons/roguetown/clothing/special/onmob/evilarmor.dmi'
+	sleeved = 'icons/roguetown/clothing/special/onmob/evilarmor.dmi'
+	sellprice = 0 // See above comment
+
+/obj/item/clothing/gloves/plate/graggar
+	name = "vicious gauntlets"
+	desc = "Plate gauntlets that reek of death. Many lives have been taken with these."
+	icon_state = "graggarplategloves"
 	icon = 'icons/roguetown/clothing/special/evilarmor.dmi'
 	mob_overlay_icon = 'icons/roguetown/clothing/special/onmob/evilarmor.dmi'
 	sleeved = 'icons/roguetown/clothing/special/onmob/evilarmor.dmi'

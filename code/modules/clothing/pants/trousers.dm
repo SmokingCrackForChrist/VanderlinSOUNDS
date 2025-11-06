@@ -24,29 +24,55 @@
 	armor = ARMOR_LEATHER
 	max_integrity = INTEGRITY_POOR
 
-/obj/item/clothing/pants/trou/leather/guard/Initialize()
-	. = ..()
-	color = pick(CLOTHING_PLUM_PURPLE, CLOTHING_BLOOD_RED)
-	if(GLOB.lordprimary)
-		lordcolor(GLOB.lordprimary,GLOB.lordsecondary)
-	else
-		GLOB.lordcolor += src
+/obj/item/clothing/pants/trou/leather/guard
+	uses_lord_coloring = LORD_PRIMARY
+	misc_flags = CRAFTING_TEST_EXCLUDE
 
-/obj/item/clothing/pants/trou/leather/guard/Destroy()
-	GLOB.lordcolor -= src
-	return ..()
+/obj/item/clothing/pants/trou/leather/splint
+	name = "splint plate trousers"
+	desc = "Affordable armored pants for regular soldiers, they seem simple and their craftmanship is solid, makes sure all stays in place with a plated codpiece."
+	icon_state = "splintlegs"
+	armor = ARMOR_MAILLE_IRON
+	max_integrity = INTEGRITY_STANDARD
+
+/obj/item/clothing/pants/trou/leather/guard
+	uses_lord_coloring = LORD_PRIMARY
+	misc_flags = CRAFTING_TEST_EXCLUDE
 
 /obj/item/clothing/pants/trou/leather/advanced
 	name = "hardened leather chausses"
 	desc = "Sturdy, durable, flexible. The finest leather to protect your nether regions."
-	max_integrity = 200
+	max_integrity = INTEGRITY_POOR + 50
 	prevent_crits = list(BCLASS_CUT, BCLASS_BLUNT, BCLASS_TWIST)
 	armor = list("blunt" = 70, "slash" = 60, "stab" = 30, "piercing" = 20,"fire" = 0, "acid" = 0)
+
+/obj/item/clothing/pants/trou/leather/advanced/colored
+	misc_flags = CRAFTING_TEST_EXCLUDE
+
+/obj/item/clothing/pants/trou/leather/quiltedkilt //close enough!
+	name = "quilted kilt"
+	desc = "A sturdy quilted kilt, commonly worn by Lakkarian soldiers or worn casually by Lakkarian commoners."
+	icon_state = "lakkarikilt"
+	r_sleeve_status = SLEEVE_NORMAL
+	l_sleeve_status = SLEEVE_NORMAL
+	sewrepair = TRUE
+	max_integrity = 175
+	prevent_crits = list(BCLASS_CUT, BCLASS_BLUNT, BCLASS_TWIST, BCLASS_CHOP)
+	armor = list("blunt" = 65, "slash" = 50, "stab" = 25, "piercing" = 25,"fire" = 0, "acid" = 0)
+
+/obj/item/clothing/pants/trou/leather/quiltedkilt/colored
+	misc_flags = CRAFTING_TEST_EXCLUDE
+
+/obj/item/clothing/pants/trou/leather/quiltedkilt/colored/blue
+	color = CLOTHING_SKY_BLUE
+
+/obj/item/clothing/pants/trou/leather/quiltedkilt/colored/linen
+	color = CLOTHING_LINEN
 
 /obj/item/clothing/pants/trou/leather/masterwork
 	name = "masterwork leather chausses"
 	desc = "These chausses are a craftsmanship marvel. Made with the finest leather. Strong, nimible, reliable."
-	max_integrity = 250
+	max_integrity = INTEGRITY_POOR + 100
 	prevent_crits = list(BCLASS_CUT, BCLASS_BLUNT, BCLASS_TWIST, BCLASS_CHOP)
 	armor = list("blunt" = 100, "slash" = 70, "stab" = 40, "piercing" = 20, "fire" = 0, "acid" = 0)
 
@@ -96,9 +122,10 @@
 	item_state = "beltpants"
 
 //Valorian Duelist Merc - On par with grenzelhoftian's stats.
-/obj/item/clothing/pants/trou/leather/advanced/duelpants
+/obj/item/clothing/pants/trou/leather/advanced/colored/duelpants
 	desc = "Padded pants, favored by Valoria's Duelists, Legs are often a prime target in a duel, and these pants seem to have seen their fair share of it"
 	color = "#5a5a5a"
 	armor = ARMOR_PADDED
 	prevent_crits = MINOR_CRITICALS
 	max_integrity = INTEGRITY_STANDARD
+

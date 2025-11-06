@@ -6,13 +6,13 @@
 	bulb_colour = "#f9ad80"
 	bulb_power = 1
 	var/datum/looping_sound/soundloop = null // = /datum/looping_sound/fireloop
-	pass_flags = LETPASSTHROW
+	pass_flags_self = LETPASSTHROW
 	flags_1 = NODECONSTRUCT_1
 	var/cookonme = FALSE
 	var/crossfire = TRUE
 	var/can_damage = FALSE
 
-	var/temperature_change = 25
+	var/temperature_change = 20
 	var/temperature_weight = 1
 	var/temperature_falloff = 0.9
 
@@ -23,7 +23,7 @@
 	GLOB.fires_list += src
 	if(fueluse > 0)
 		fueluse = fueluse - (rand(fueluse*0.1,fueluse*0.3))
-	update_icon()
+	update_appearance(UPDATE_ICON_STATE)
 	seton(TRUE)
 
 	. = ..()
@@ -66,8 +66,6 @@
 		new /obj/effect/temp_visual/small_smoke(src.loc)
 	..()
 
-
-
 /obj/machinery/light/fueled/burn_out()
 	if(soundloop)
 		soundloop.stop()
@@ -75,13 +73,11 @@
 		playsound(src.loc, 'sound/items/firesnuff.ogg', 100)
 	..()
 	remove_temp_effect()
-	update_icon()
+	update_appearance(UPDATE_ICON_STATE)
 
-/obj/machinery/light/fueled/update_icon()
-	if(on)
-		icon_state = "[base_state]1"
-	else
-		icon_state = "[base_state]0"
+/obj/machinery/light/fueled/update_icon_state()
+	. = ..()
+	icon_state = "[base_state][on]"
 
 /obj/machinery/light/fueled/update()
 	. = ..()
@@ -100,7 +96,7 @@
 		playsound(src.loc, 'sound/items/firelight.ogg', 100)
 		on = TRUE
 		update()
-		update_icon()
+		update_appearance(UPDATE_ICON_STATE)
 		if(soundloop)
 			soundloop.start()
 		return TRUE
@@ -118,7 +114,6 @@
 	if(cookonme)
 		if(istype(W, /obj/item/reagent_containers/food/snacks))
 			if(istype(W, /obj/item/reagent_containers/food/snacks/egg))
-				to_chat(user, "<span class='warning'>I wouldn't be able to cook this over the fire...</span>")
 				return FALSE
 			var/obj/item/A = user.get_inactive_held_item()
 			if(A)
@@ -256,7 +251,7 @@
 					return
 				on = FALSE
 				update()
-				update_icon()
+				update_appearance(UPDATE_ICON_STATE)
 				qdel(W)
 				src.visible_message("<span class='warning'>[user] snuffs the fire.</span>")
 				return

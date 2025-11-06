@@ -58,6 +58,8 @@
 	var/obj/item/cloak = null
 	var/obj/item/clothing/wear_shirt = null
 
+	var/hygiene = HYGIENE_LEVEL_NORMAL
+
 	///for the intent of dodge this is your armor class that you have worn (its highest worn)
 	var/worn_armor_class = ARMOR_CLASS_NONE
 
@@ -80,9 +82,6 @@
 	dodgecd = FALSE
 	dodgetime = 0
 
-//	var/alignment = ALIGNMENT_TN
-
-	var/advjob = null
 	var/canseebandits = FALSE
 
 	//Familytree datum
@@ -91,6 +90,7 @@
 	var/mob/living/carbon/spouse_mob
 	var/image/spouse_indicator
 	var/setspouse
+	var/gender_choice_pref = ANY_GENDER
 	var/familytree_pref = FAMILY_NONE
 	var/datum/heritage/family_datum
 	var/list/temp_ui_list = list()
@@ -102,14 +102,21 @@
 	var/buried = FALSE // Whether the body is buried or not.
 	var/funeral = FALSE // Whether the body has received rites or not.
 
-	var/datum/devotion/cleric_holder/cleric = null // Used for cleric_holder for priests
+	var/datum/devotion/cleric = null // Used for cleric_holder for priests
+	var/datum/inspiration/inspiration = null
+	var/datum/rage/rage_datum = null //teehee
 
 	var/headshot_link = null
 	var/flavortext = null
+	var/flavortext_display = null
+	var/ooc_notes = null
+	var/ooc_notes_display = null
+	var/ooc_extra_link
+	var/ooc_extra
 
 	var/confession_points = 0 // Used to track how many confessions the Inquisitor has gotten signed. Used to buy items at mailboxes.
 	var/purchase_history = null // Used to track what the Inquisitor has bought from the mailbox.
-	var/has_confessed = FALSE // Used to track if they have confessed it was written onto a confession paper
+	var/breathe_tick = 0 // Used for gas mask delays.
 
 	var/merctype = 0 // Used for mercenary backgrounds - check mail.dm
 	var/tokenclaimed = FALSE // Check for one-time tri reward.
@@ -126,8 +133,14 @@
 
 	rot_type = /datum/component/rot/corpse
 
-	blocks_emissive = EMISSIVE_BLOCK_UNIQUE
+	/// voice type of the mob
+	var/voice_type = null //  defines what sound pack we use. keep this null so mobs resort to their typical gender typing - preferences set this
+
+	blocks_emissive = NONE
 	var/datum/charflaw/charflaw
+
+	/// Assoc list of culinary preferences of the mob
+	var/list/culinary_preferences = list()
 
 	/// List of curses on this mob
 	var/list/curses = list()
@@ -137,10 +150,11 @@
 
 	var/mob/stored_mob = null // werewolf bullshit
 
-	fovangle = FOV_DEFAULT // our fov
+	var/datum/family_member/family_member_datum
 
-	var/mob/living/carbon/human/hostagetaker //Stores the person that took us hostage in a var, allows us to force them to attack the mob and such
-	var/mob/living/carbon/human/hostage //What hostage we have
+	var/temp_debuff_level = null
+
+	fovangle = FOV_DEFAULT // our fov
 
 //Checking the highest armor class worn
 //Limb armors use the second highest armor class

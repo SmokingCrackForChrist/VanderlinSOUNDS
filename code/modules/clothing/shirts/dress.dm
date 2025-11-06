@@ -16,36 +16,29 @@
 	icon_state = "dressgen"
 	item_state = "dressgen"
 
-/obj/item/clothing/shirt/dress/gen/brown
+/obj/item/clothing/shirt/dress/gen/colored
+	misc_flags = CRAFTING_TEST_EXCLUDE
+
+/obj/item/clothing/shirt/dress/gen/colored/brown
 	color = CLOTHING_PEASANT_BROWN
 
-/obj/item/clothing/shirt/dress/gen/black
+/obj/item/clothing/shirt/dress/gen/colored/black
 	color = CLOTHING_SOOT_BLACK
 
-/obj/item/clothing/shirt/dress/gen/blue
+/obj/item/clothing/shirt/dress/gen/colored/blue
 	color = CLOTHING_SKY_BLUE
 
-/obj/item/clothing/shirt/dress/gen/green
+/obj/item/clothing/shirt/dress/gen/colored/green
 	color = CLOTHING_BOG_GREEN
 
-/obj/item/clothing/shirt/dress/gen/purple
+/obj/item/clothing/shirt/dress/gen/colored/purple
 	color = CLOTHING_PLUM_PURPLE
 
-/obj/item/clothing/shirt/dress/gen/maid
+/obj/item/clothing/shirt/dress/gen/colored/maid
 	color = CLOTHING_DARK_INK
+	uses_lord_coloring = LORD_PRIMARY
 
-/obj/item/clothing/shirt/dress/gen/maid/Initialize()
-	. = ..()
-	if(GLOB.lordprimary)
-		lordcolor(GLOB.lordprimary,GLOB.lordsecondary)
-	else
-		GLOB.lordcolor += src
-
-/obj/item/clothing/shirt/dress/gen/maid/Destroy()
-	GLOB.lordcolor -= src
-	return ..()
-
-/obj/item/clothing/shirt/dress/gen/random/Initialize()
+/obj/item/clothing/shirt/dress/gen/colored/random/Initialize()
 	color = pick_assoc(GLOB.peasant_dyes)
 	return ..()
 
@@ -59,47 +52,30 @@
 	salvage_result = /obj/item/natural/silk
 	salvage_amount = 1
 
-/obj/item/clothing/shirt/dress/silkdress/princess
+/obj/item/clothing/shirt/dress/silkdress/colored
+	misc_flags = CRAFTING_TEST_EXCLUDE
+
+/obj/item/clothing/shirt/dress/silkdress/colored/princess
 	color = CLOTHING_CHALK_WHITE
+	uses_lord_coloring = LORD_PRIMARY
 
-/obj/item/clothing/shirt/dress/silkdress/princess/Initialize()
-	. = ..()
-	if(GLOB.lordprimary)
-		lordcolor(GLOB.lordprimary,GLOB.lordsecondary)
-	else
-		GLOB.lordcolor += src
-
-/obj/item/clothing/shirt/dress/silkdress/princess/Destroy()
-	GLOB.lordcolor -= src
-	return ..()
-
-/obj/item/clothing/shirt/dress/silkdress/black
+/obj/item/clothing/shirt/dress/silkdress/colored/black
 	color = CLOTHING_DARK_INK
 
-/obj/item/clothing/shirt/dress/silkdress/green
+/obj/item/clothing/shirt/dress/silkdress/colored/green
 	color = CLOTHING_FOREST_GREEN
 
-/obj/item/clothing/shirt/dress/silkdress/random/Initialize()
+/obj/item/clothing/shirt/dress/silkdress/colored/random/Initialize()
 	color = pick_assoc(GLOB.noble_dyes)
 	return ..()
 
-/obj/item/clothing/shirt/dress/silkdress/silkdressprimary
+/obj/item/clothing/shirt/dress/silkdress/colored/silkdressprimary
 	color = CLOTHING_BLOOD_RED
-
-/obj/item/clothing/shirt/dress/silkdress/silkdressprimary/Initialize()
-	. = ..()
-	if(GLOB.lordprimary)
-		lordcolor(GLOB.lordprimary,GLOB.lordsecondary)
-	else
-		GLOB.lordcolor += src
-
-/obj/item/clothing/shirt/dress/silkdress/silkdressprimary/Destroy()
-	GLOB.lordcolor -= src
-	return ..()
+	uses_lord_coloring = LORD_PRIMARY
 
 /obj/item/clothing/shirt/dress/stewarddress
 	name = "steward's dress"
-	desc = "A victorian-styled black dress with shining bronze buttons."
+	desc = "A heartfeltian-styled black dress with shining bronze buttons."
 	icon = 'icons/roguetown/clothing/special/steward.dmi'
 	mob_overlay_icon = 'icons/roguetown/clothing/special/onmob/steward.dmi'
 	icon_state = "stewarddress"
@@ -113,7 +89,7 @@
 	icon = 'icons/roguetown/clothing/shirts_royalty.dmi'
 	mob_overlay_icon = 'icons/roguetown/clothing/onmob/shirts_royalty.dmi'
 	name = "royal gown"
-	desc = "An elaborate ball gown, a favoured fashion of queens and elevated nobility around Enigma."
+	desc = "An elaborate ball gown, a favoured fashion of queens and elevated nobility around Faience."
 	body_parts_covered = CHEST|GROIN|ARMS|VITALS
 	icon_state = "royaldress"
 	sleeved = 'icons/roguetown/clothing/onmob/helpers/sleeves_shirts_royalty.dmi'
@@ -122,47 +98,20 @@
 	detail_color = CLOTHING_SOOT_BLACK
 	r_sleeve_status = SLEEVE_NORMAL
 	l_sleeve_status = SLEEVE_NORMAL
-
-/obj/item/clothing/shirt/dress/royal/update_icon()
-	cut_overlays()
-	if(get_detail_tag())
-		var/mutable_appearance/pic = mutable_appearance(icon(icon, "[icon_state][detail_tag]"))
-		pic.appearance_flags = RESET_COLOR
-		if(get_detail_color())
-			pic.color = get_detail_color()
-		add_overlay(pic)
-
-/obj/item/clothing/shirt/dress/royal/lordcolor(primary,secondary)
-	detail_color = primary
-	update_icon()
-
-/obj/item/clothing/shirt/dress/royal/Initialize()
-	. = ..()
-	if(GLOB.lordprimary)
-		lordcolor(GLOB.lordprimary,GLOB.lordsecondary)
-	else
-		GLOB.lordcolor += src
-
-/obj/item/clothing/shirt/dress/royal/Destroy()
-	GLOB.lordcolor -= src
-	return ..()
+	uses_lord_coloring = LORD_PRIMARY
 
 //................ Princess Dress ............... //
 /obj/item/clothing/shirt/dress/royal/princess
-	slot_flags = ITEM_SLOT_SHIRT|ITEM_SLOT_ARMOR
 	name = "pristine dress"
 	desc = "A flowy, intricate dress made by the finest tailors in the land for the monarch's children."
 	icon_state = "princess"
-	boobed = TRUE
 	detail_color = CLOTHING_BERRY_BLUE
 
 //................ Prince Shirt   ............... //
 /obj/item/clothing/shirt/dress/royal/prince
-	slot_flags = ITEM_SLOT_SHIRT|ITEM_SLOT_ARMOR
 	name = "gilded dress shirt"
 	desc = "A gold-embroidered dress shirt specially tailored for the monarch's children."
 	icon_state = "prince"
-	boobed = TRUE
 	detail_color = CLOTHING_ROYAL_MAJENTA
 
 // End royal clothes
@@ -190,7 +139,6 @@
 	item_state = "silkydress"
 	sleevetype = null
 	sleeved = null
-
 
 /obj/item/clothing/shirt/dress/gown
 	icon = 'icons/roguetown/clothing/shirts_gown.dmi'

@@ -66,12 +66,12 @@
 	throwforce = 5
 	throw_speed = 1
 	throw_range = 7
-	w_class = WEIGHT_CLASS_NORMAL
+	w_class = WEIGHT_CLASS_SMALL
 	attack_verb = list("bashed", "battered", "bludgeoned", "thrashed", "whacked")
 	custom_price = 5
 	resistance_flags = FLAMMABLE // Weapon made mostly of wood
 	possible_item_intents = list(/datum/intent/use, /datum/intent/mace/strike/wood)
-	smeltresult = /obj/item/ash
+	smeltresult = /obj/item/fertilizer/ash
 	experimental_inhand = FALSE
 
 /obj/item/kitchen/rollingpin/suicide_act(mob/living/carbon/user)

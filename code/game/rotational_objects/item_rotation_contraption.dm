@@ -30,8 +30,7 @@
 
 			in_stack += contraption.in_stack
 			qdel(contraption)
-	update_overlays()
-
+	update_appearance(UPDATE_NAME)
 
 /obj/item/rotation_contraption/afterpickup(mob/user)
 	. = ..()
@@ -64,22 +63,26 @@
 	desc = initial(parent_type.desc)
 	placed_type = parent_type
 
-/obj/item/rotation_contraption/attack_turf(turf/T, mob/living/user)
-	. = ..()
-	if(!istype(T))
-		return
-	// if(is_blocked_turf(T))
-	// 	return
+/obj/item/rotation_contraption/attack_atom(atom/attacked_atom, mob/living/user)
+	var/turf/T = get_turf(attacked_atom)
+	. = TRUE
 	for(var/obj/structure/structure in T.contents)
 		if(structure.rotation_structure && !ispath(placed_type, /obj/structure/water_pipe))
 			return
 
 		if(structure.accepts_water_input && !ispath(placed_type, /obj/structure/rotation_piece))
-			return
+			if(place_behavior != PLACE_ON_PIPE)
+				return
+			if((place_behavior == PLACE_ON_PIPE) && !istype(structure, /obj/structure/water_pipe))
+				return
 
 		if(istype(structure, placed_type))
 			return
 
+	if(place_behavior == PLACE_ON_PIPE)
+		var/obj/structure/water_pipe/pipe = locate(/obj/structure/water_pipe) in T.contents
+		if(!pipe)
+			return
 	visible_message("[user] starts placing down [src].", "You start to place [src].")
 	if(!do_after(user, 1.2 SECONDS - user.get_skill_level(/datum/skill/craft/engineering), T))
 		return
@@ -99,9 +102,9 @@
 	if(in_stack <= 0)
 		qdel(src)
 	else
-		update_overlays()
+		update_appearance(UPDATE_NAME)
 
-/obj/item/rotation_contraption/update_overlays()
+/obj/item/rotation_contraption/update_name()
 	. = ..()
 	if(in_stack > 1)
 		name = "pile of [initial(placed_type.name)]s x [in_stack]"
@@ -120,7 +123,7 @@
 	I:in_stack += in_stack
 	visible_message("[user] collects [src].")
 	qdel(src)
-	I.update_overlays()
+	I.update_appearance(UPDATE_NAME)
 
 /obj/item/rotation_contraption/cog
 	placed_type = /obj/structure/rotation_piece/cog
@@ -195,3 +198,21 @@
 	grid_width = 64
 
 	place_behavior = PLACE_TOWARDS_USER
+
+/obj/item/rotation_contraption/sprinkler
+	placed_type = /obj/structure/sprinkler
+	grid_height = 64
+
+	place_behavior = PLACE_ON_PIPE
+
+/obj/item/rotation_contraption/pressurizer
+	placed_type = /obj/structure/pressurizer
+	grid_height = 64
+
+	place_behavior = PLACE_ON_PIPE
+
+/obj/item/rotation_contraption/drain
+	placed_type = /obj/structure/fluid_drain
+	grid_height = 32
+
+	place_behavior = PLACE_ON_PIPE

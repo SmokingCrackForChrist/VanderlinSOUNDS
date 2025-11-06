@@ -1,7 +1,3 @@
-#define STAIR_TERMINATOR_AUTOMATIC 0
-#define STAIR_TERMINATOR_NO 1
-#define STAIR_TERMINATOR_YES 2
-
 // stairs require /turf/open/transparent/openspace as the tile above them to work
 // multiple stair objects can be chained together; the Z level transition will happen on the final stair object in the chain
 
@@ -11,8 +7,8 @@
 	icon_state = "stairs"
 	anchored = TRUE
 	layer = 2
-	obj_flags = CAN_BE_HIT | IGNORE_SINK
-	nomouseover = TRUE
+	obj_flags = CAN_BE_HIT | IGNORE_SINK | BLOCK_Z_OUT_DOWN | BLOCK_Z_IN_UP
+	no_over_text = TRUE
 	var/should_sink = FALSE
 
 /obj/structure/stairs/Initialize(mapload)
@@ -22,6 +18,11 @@
 
 	if(should_sink)
 		obj_flags &= ~IGNORE_SINK
+
+/obj/structure/stairs/abyss
+	name = "abyss stairs"
+	icon = 'icons/delver/abyss_objects.dmi'
+	icon_state = "abyss_stairs"
 
 /obj/structure/stairs/stone
 	name = "stone stairs"
@@ -42,32 +43,15 @@
 
 /obj/structure/stairs/fancy/c
 	icon_state = "fancy_stairs_c"
+	uses_lord_coloring = LORD_PRIMARY
 
 /obj/structure/stairs/fancy/r
 	icon_state = "fancy_stairs_r"
+	uses_lord_coloring = LORD_PRIMARY
 
 /obj/structure/stairs/fancy/l
 	icon_state = "fancy_stairs_l"
-
-/obj/structure/stairs/fancy/Initialize()
-	. = ..()
-	if(GLOB.lordprimary)
-		lordcolor(GLOB.lordprimary,GLOB.lordsecondary)
-	else
-		GLOB.lordcolor += src
-
-/obj/structure/stairs/fancy/Destroy()
-	GLOB.lordcolor -= src
-	return ..()
-
-/obj/structure/stairs/fancy/lordcolor(primary,secondary)
-	if(!primary || !secondary)
-		return
-	var/mutable_appearance/M = mutable_appearance(icon, "[icon_state]_primary", -(layer+0.1))
-	M.color = primary
-	add_overlay(M)
-	GLOB.lordcolor -= src
-
+	uses_lord_coloring = LORD_PRIMARY
 
 /obj/structure/stairs/OnCrafted(dirin, mob/user)
 	dir = dirin
@@ -82,9 +66,9 @@
 
 /obj/structure/stairs/d/OnCrafted(dirin, mob/user)
 	SHOULD_CALL_PARENT(FALSE)
-	dir = turn(dirin, 180)
+	dir = dirin
 	var/turf/partner = get_step_multiz(get_turf(src), DOWN)
-	partner = get_step(partner, dirin)
+	partner = get_step(partner, turn(dir, 180))
 	if(isopenturf(partner))
 		var/obj/structure/stairs/stairs = locate() in partner
 		if(!stairs)

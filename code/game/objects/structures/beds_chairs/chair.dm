@@ -3,38 +3,21 @@
 	desc = ""
 	icon = 'icons/obj/chairs.dmi'
 	icon_state = "chair"
-	anchored = TRUE
+	anchored = FALSE
 	can_buckle = 1
 	buckle_lying = 0 //you sit in a chair, not lay
 	resistance_flags = NONE
 	max_integrity = 250
 	integrity_failure = 0.1
+	pass_flags_self = PASSTABLE|LETPASSTHROW
 	var/buildstacktype
 	var/buildstackamount = 1
 	var/item_chair = /obj/item/chair // if null it can't be picked up
 	layer = OBJ_LAYER
 
-/obj/structure/chair/examine(mob/user)
-	. = ..()
-//	. += "<span class='notice'>It's held together by a couple of <b>bolts</b>.</span>"
-//	if(!has_buckled_mobs())
-//		. += "<span class='notice'>Drag your sprite to sit in it.</span>"
-
-/obj/structure/chair/Initialize()
-	. = ..()
-	if(!anchored)	//why would you put these on the shuttle?
-		addtimer(CALLBACK(src, PROC_REF(RemoveFromLatejoin)), 0)
-
-/obj/structure/chair/ComponentInitialize()
+/obj/structure/chair/Initialize(mapload, ...)
 	. = ..()
 	AddComponent(/datum/component/simple_rotation)
-
-/obj/structure/chair/Destroy()
-	RemoveFromLatejoin()
-	return ..()
-
-/obj/structure/chair/proc/RemoveFromLatejoin()
-	SSjob.latejoin_trackers -= src	//These may be here due to the arrivals shuttle
 
 /obj/structure/chair/deconstruct()
 	// If we have materials, and don't have the NOCONSTRUCT flag
@@ -66,10 +49,12 @@
 			buckled_mob.setDir(direction)
 
 /obj/structure/chair/proc/handle_layer()
-	if(has_buckled_mobs() && dir == NORTH)
+	if(dir == NORTH)
 		layer = ABOVE_MOB_LAYER
+		plane = GAME_PLANE_UPPER
 	else
 		layer = OBJ_LAYER
+		plane = GAME_PLANE
 
 /obj/structure/chair/post_buckle_mob(mob/living/M)
 	. = ..()
@@ -94,7 +79,7 @@
 	max_integrity = 70
 	buildstacktype = null
 	buildstackamount = 0
-	item_chair = null
+	item_chair = /obj/item/chair/wood
 	anchored = FALSE
 
 /obj/structure/chair/wood/narsie_act()
@@ -104,7 +89,7 @@
 /obj/structure/chair/stool
 	name = "stool"
 	desc = ""
-	icon_state = "barstool"
+	icon_state = "stool"
 	icon = 'icons/roguetown/misc/structure.dmi'
 	item_chair = /obj/item/chair/stool
 	max_integrity = 100
@@ -112,6 +97,9 @@
 	destroy_sound = 'sound/combat/hits/onwood/destroyfurniture.ogg'
 	attacked_sound = "woodimpact"
 	metalizer_result = /obj/item/cooking/pan
+
+/obj/structure/chair/stool/handle_layer()
+	return
 
 /obj/structure/chair/MouseDrop(over_object, src_location, over_location)
 	. = ..()
@@ -128,10 +116,11 @@
 		qdel(src)
 
 /obj/structure/chair/stool/bar
-	name = "bar stool"
+	name = "barstool"
 	desc = ""
-	icon_state = "bar"
+	icon_state = "barstool"
 	item_chair = /obj/item/chair/stool/bar
+	sleepy = 0.2
 
 /obj/item/chair
 	name = "chair"
@@ -151,7 +140,6 @@
 	throw_range = 3
 	hitsound = 'sound/blank.ogg'
 	hit_reaction_chance = 50
-	twohands_required = TRUE
 	obj_flags = CAN_BE_HIT
 	max_integrity = 100
 	destroy_sound = 'sound/combat/hits/onwood/destroyfurniture.ogg'
@@ -159,6 +147,9 @@
 	sleepy = 0.1
 	var/break_chance = 23 //Likely hood of smashing the chair.
 	var/obj/structure/chair/origin_type = /obj/structure/chair/wood/alt
+
+/obj/item/chair/apply_components()
+	AddComponent(/datum/component/two_handed, require_twohands=TRUE, wield_callback = CALLBACK(src, PROC_REF(on_wield)), unwield_callback = CALLBACK(src, PROC_REF(on_unwield)))
 
 /obj/item/chair/getonmobprop(tag)
 	. = ..()
@@ -181,7 +172,7 @@
 	W.setDir(dir)
 	qdel(src)
 
-/obj/item/chair/attack_self(mob/user)
+/obj/item/chair/attack_self(mob/user, params)
 	plant(user)
 
 /obj/item/chair/proc/plant(mob/user)
@@ -219,15 +210,16 @@
 		smash(user)
 
 /obj/item/chair/stool
-	name = "bar stool"
-	icon_state = "bar_toppled"
-	item_state = "stool_bar"
+	name = "stool"
+	icon = 'icons/roguetown/misc/structure.dmi'
+	icon_state = "stoolover"
+	item_state = "stool"
 	origin_type = /obj/structure/chair/stool
 
 /obj/item/chair/stool/bar
-	name = "bar stool"
-	icon_state = "bar_toppled"
-	item_state = "stool_bar"
+	name = "barstool"
+	icon_state = "barstoolover"
+	item_state = "barstool"
 	origin_type = /obj/structure/chair/stool/bar
 
 /obj/item/chair/stool/narsie_act()

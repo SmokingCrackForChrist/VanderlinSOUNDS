@@ -1,6 +1,5 @@
 /datum/job/gaffer
 	title = "Gaffer"
-	flag = GAFFER
 	department_flag = SERFS
 	faction = "Station"
 	job_flags = (JOB_ANNOUNCE_ARRIVAL | JOB_SHOW_IN_CREDITS | JOB_EQUIP_RANK | JOB_NEW_PLAYER_JOINABLE )
@@ -8,10 +7,11 @@
 	spawn_positions = 1
 
 	allowed_races = RACES_PLAYER_ALL
-	//I say we let all races be the gaffer, this is job concerns the adventurers and mercs, and those come in all types and sizes,
+	//I say we let all species be the gaffer, this is job concerns the adventurers and mercs, and those come in all types and sizes,
 	//so it fits better with the wild cards that is this demographic of people
 	//having said that I am gate keeping the moment felinids are in the damn game
-	allowed_ages = list(AGE_MIDDLEAGED,AGE_OLD, AGE_IMMORTAL) //AGE_OLD with the ring on? I say unlikely - clown
+	allowed_ages = list(AGE_MIDDLEAGED, AGE_OLD, AGE_IMMORTAL) //AGE_OLD with the ring on? I say unlikely - clown
+	blacklisted_species = list(SPEC_ID_HALFLING)
 	tutorial = "Forced out of your old adventure party, you applied to the Mercenary guild. Eventually becoming\
 	the next Guild Master. Gone are the excitements of your past, today your life is engrossed with two \
 	things: administrative work, and feeding the monstrous Head Eater. Act as the\
@@ -20,15 +20,15 @@
 
 	display_order = JDO_GAFFER
 	cmode_music = 'sound/music/cmode/towner/CombatGaffer.ogg'
-	outfit = /datum/outfit/job/gaffer
+	outfit = /datum/outfit/gaffer
 	give_bank_account = 20
 	min_pq = 8
 	bypass_lastclass = TRUE
 	selection_color = "#3b150e"
 
-	spells = list(/obj/effect/proc_holder/spell/self/convertrole/mercenary)
+	spells = list(/datum/action/cooldown/spell/undirected/list_target/convert_role/mercenary)
 
-/datum/outfit/job/gaffer/pre_equip(mob/living/carbon/human/H, visualsOnly)
+/datum/outfit/gaffer/pre_equip(mob/living/carbon/human/H, visuals_only)
 	..()
 
 
@@ -38,16 +38,16 @@
 	belt = /obj/item/storage/belt/leather/plaquegold
 	beltl = /obj/item/storage/keyring/gaffer
 	beltr = /obj/item/flashlight/flare/torch/lantern
-	shirt = /obj/item/clothing/shirt/tunic/black
+	shirt = /obj/item/clothing/shirt/tunic/colored/black
 	wrists = /obj/item/clothing/wrists/bracers/leather/advanced
 	armor = /obj/item/clothing/armor/leather/hide
-	if(!visualsOnly)
+	if(!visuals_only)
 		ring = /obj/item/clothing/ring/gold/burden
 	else
 		ring = /obj/item/clothing/ring/gold
 	pants = /obj/item/clothing/pants/trou/leather/advanced
 	shoes = /obj/item/clothing/shoes/nobleboot
-	cloak = /obj/item/clothing/cloak/raincloak/furcloak/black
+	cloak = /obj/item/clothing/cloak/raincloak/furcloak/colored/black
 	mask = /obj/item/clothing/face/eyepatch/fake
 
 	ADD_TRAIT(H, TRAIT_SEEPRICES, type)
@@ -85,11 +85,3 @@
 		H.adjust_skillrank(/datum/skill/misc/athletics, 2, TRUE)
 		H.change_stat("perception", 1)
 
-/obj/effect/proc_holder/spell/self/convertrole/mercenary
-	name = "Recruit Mercenary"
-	new_role = "Mercenary"
-	overlay_state = "recruit_servant" //N/A change this to the correct sprite when its made
-	recruitment_faction = "Mercenaries"
-	recruitment_message = "Hey, %RECRUIT, you ever considered going full time?"
-	accept_message = "For coin and glory!"
-	refuse_message = "I refuse."

@@ -4,6 +4,7 @@
 GLOBAL_LIST_EMPTY(patronlist)
 GLOBAL_LIST_EMPTY(patrons_by_faith) // Does not include patrons with preference_accessible as FALSE
 GLOBAL_LIST_EMPTY(preference_patrons) // Does not include patrons with preference_accessible as FALSE
+GLOBAL_LIST_EMPTY(prayers)
 
 /datum/patron
 	/// Name of the god
@@ -28,14 +29,9 @@ GLOBAL_LIST_EMPTY(preference_patrons) // Does not include patrons with preferenc
 	var/preference_accessible = TRUE
 	/// All gods have related confessions
 	var/list/confess_lines
-	/// Tier 0 spell
-	var/t0
-	/// Tier 1 spell
-	var/t1
-	/// Tier 2 spell
-	var/t2
-	/// Final tier spell
-	var/t3
+
+	/// Devotion datum type associated with this god
+	var/datum/devotion/devotion_holder = null
 
 	/// List of words that this god considers profane.
 	var/list/profane_words = list("zizo","cock","dick","fuck","shit","pussy","cuck","cunt","asshole")
@@ -45,6 +41,9 @@ GLOBAL_LIST_EMPTY(preference_patrons) // Does not include patrons with preferenc
 
 	///verbs applied by set_patron and removed when changed
 	var/list/added_verbs
+
+	//If the patron has a specific specie worshipping them.
+	var/list/allowed_races
 
 	var/datum/storyteller/storyteller
 
@@ -72,7 +71,7 @@ GLOBAL_LIST_EMPTY(preference_patrons) // Does not include patrons with preferenc
 /datum/patron/proc/hear_prayer(mob/living/follower, message)
 	if(!follower || !message)
 		return FALSE
-	var/prayer = sanitize_hear_message(message)
+	var/prayer = SANITIZE_HEAR_MESSAGE(message)
 
 	if(length(profane_words))
 		for(var/profanity in profane_words)
@@ -85,7 +84,8 @@ GLOBAL_LIST_EMPTY(preference_patrons) // Does not include patrons with preferenc
 		return FALSE
 
 	. = TRUE //the prayer has succeeded by this point forward
-	GLOB.vanderlin_round_stats[STATS_PRAYERS_MADE]++
+	GLOB.prayers |= prayer
+	record_round_statistic(STATS_PRAYERS_MADE)
 
 	if(findtext(prayer, name))
 		reward_prayer(follower)
@@ -94,12 +94,12 @@ GLOBAL_LIST_EMPTY(preference_patrons) // Does not include patrons with preferenc
 /datum/patron/proc/punish_prayer(mob/living/follower)
 	follower.adjust_divine_fire_stacks(100)
 	follower.IgniteMob()
-	GLOB.vanderlin_round_stats[STATS_PEOPLE_SMITTEN]++
-	follower.add_stress(/datum/stressevent/psycurse)
+	record_round_statistic(STATS_PEOPLE_SMITTEN)
+	follower.add_stress(/datum/stress_event/psycurse)
 
 /// The follower has prayed in a special way to the patron and is being rewarded.
 /datum/patron/proc/reward_prayer(mob/living/follower)
 	SHOULD_CALL_PARENT(TRUE)
 
 	follower.playsound_local(follower, 'sound/misc/notice (2).ogg', 100, FALSE)
-	follower.add_stress(/datum/stressevent/psyprayer)
+	follower.add_stress(/datum/stress_event/psyprayer)

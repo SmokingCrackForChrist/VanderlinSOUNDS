@@ -85,7 +85,7 @@
 	ASSERT(momentum_mod >= 1)
 	if(!smacked.apply_damage(damage_mod * momentum, BRUTE, BODY_ZONE_CHEST))
 		return
-	if(obj_integrity <= max_integrity * 0.05)
+	if(atom_integrity <= max_integrity * 0.05)
 		smacked.visible_message(
 			span_danger("[src] smashes into [smacked], breaking into pieces!"),
 			span_userdanger("You are smacked by [src] as it breaks into pieces!"),
@@ -109,7 +109,7 @@
 	for(var/side_dir in shuffle(GLOB.alldirs))
 		// Don't throw people in front of the cart, and
 		// don't throw people in any direction behind us
-		if(side_dir == dir || (side_dir & GLOB.reverse_dir[dir]))
+		if(side_dir == dir || (side_dir & REVERSE_DIR(dir)))
 			continue
 		var/turf/open/open_turf = get_step(src, side_dir)
 		if(!istype(open_turf))
@@ -280,7 +280,7 @@
 		momentum = 0
 		return MOVELOOP_SKIP_STEP
 	// Forced to not move
-	if(anchored || !has_gravity())
+	if(anchored)
 		return MOVELOOP_SKIP_STEP
 
 	// Going through open space
@@ -355,7 +355,7 @@
 			momentum = 0
 			return
 		check_powered()
-		momentum -= 1
+		momentum -= 0.7
 
 	// No more momentum = STOP
 	if(momentum <= 0)

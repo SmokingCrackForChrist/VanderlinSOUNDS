@@ -71,8 +71,7 @@
 
 	location.active_hotspot = src
 
-	for(var/A in location)
-		var/atom/AT = A
+	for(var/atom/AT as anything in location)
 		if(!QDELETED(AT) && AT != src) // It's possible that the item is deleted in temperature_expose
 			AT.fire_act(1, 20)
 	return
@@ -141,8 +140,7 @@
 		just_spawned = FALSE
 		return
 
-	var/turf/open/location = loc
-	if(!istype(location))
+	if(!isturf(loc))
 		qdel(src)
 		return
 
@@ -232,7 +230,7 @@
 							new /obj/effect/hotspot(spreader_level, volume, temperature)
 							break
 
-						spreader_level = GET_TURF_BELOW(get_step(ranged_floor, GLOB.reverse_dir[stair.dir]))
+						spreader_level = GET_TURF_BELOW(get_step(ranged_floor, REVERSE_DIR(stair.dir)))
 						for(var/obj/structure/stairs/lower_stair in spreader_level)
 							new /obj/effect/hotspot(spreader_level, volume, temperature)
 							break

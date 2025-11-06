@@ -36,9 +36,6 @@
 	else if(href_list["ahelp_tickets"])
 		GLOB.ahelp_tickets.BrowseTickets(text2num(href_list["ahelp_tickets"]))
 
-	else if(href_list["stickyban"])
-		stickyban(href_list["stickyban"],href_list)
-
 	else if(href_list["getplaytimewindow"])
 		if(!check_rights(R_ADMIN))
 			return
@@ -694,6 +691,33 @@
 
 		src.manage_free_slots()
 
+	else if(href_list["enablejob"])
+		if(!check_rights(R_ADMIN))
+			return
+
+		var/Enable = href_list["enablejob"]
+		for(var/datum/job/job in SSjob.joinable_occupations)
+			if(job.title == Enable)
+				job.enabled = TRUE
+				job.total_positions = initial(job.total_positions)
+				job.spawn_positions = initial(job.spawn_positions)
+				break
+
+		src.manage_free_slots()
+
+	else if(href_list["disablejob"])
+		if(!check_rights(R_ADMIN))
+			return
+
+		var/Disable = href_list["disablejob"]
+		for(var/datum/job/job in SSjob.joinable_occupations)
+			if(job.title == Disable)
+				job.enabled = FALSE
+				job.total_positions = 0
+				job.spawn_positions = 0
+				break
+		src.manage_free_slots()
+
 
 	else if(href_list["adminsmite"])
 		if(!check_rights(R_ADMIN|R_FUN))
@@ -748,7 +772,6 @@
 		var/datum/skill/skill = href_list["skill"]
 		M.adjust_skillrank(text2path(skill), 1)
 		log_admin("[key_name_admin(usr)] increased [key_name_admin(M)]'s [initial(skill.name)] skill.")
-		message_admins("[key_name_admin(usr)] increased [key_name_admin(M)]'s [initial(skill.name)] skill.")
 		show_player_panel_next(M, "skills")
 
 	else if(href_list["decrease_skill"])
@@ -756,7 +779,6 @@
 		var/datum/skill/skill = href_list["skill"]
 		M.adjust_skillrank(text2path(skill), -1)
 		log_admin("[key_name_admin(usr)] decreased [key_name_admin(M)]'s [initial(skill.name)] skill.")
-		message_admins("[key_name_admin(usr)] decreased [key_name_admin(M)]'s [initial(skill.name)] skill.")
 		show_player_panel_next(M, "skills")
 
 	else if(href_list["add_language"])
@@ -789,6 +811,18 @@
 		M.change_stat(statkey, -1)
 		log_admin("[key_name_admin(usr)] decreased [key_name_admin(M)]'s [statkey].")
 		message_admins("[key_name_admin(usr)] decreased [key_name_admin(M)]'s [statkey].")
+		show_player_panel_next(M, "stats")
+
+	else if(href_list["bulk_change"])
+		var/mob/living/M = locate(href_list["bulk_change"])
+		var/statkey = href_list["stat"]
+		var/change_stat = input(usr, "Increase or Decrease this stat.", "Bulk Stat Change", 1) as num
+		if(!change_stat)
+			return
+		M.change_stat(statkey, change_stat)
+
+		log_admin("[key_name_admin(usr)] changed [key_name_admin(M)]'s [statkey] by [change_stat].")
+		message_admins("[key_name_admin(usr)] changed [key_name_admin(M)]'s [statkey] by [change_stat].")
 		show_player_panel_next(M, "stats")
 
 	else if(href_list["sendmob"])
@@ -1201,7 +1235,7 @@
 			return
 
 		var/raisin = stripped_input(usr, "State a short reason for this change", "Game Master", null, null)
-		M.adjust_triumphs(amt2change, FALSE, raisin)
+		M.adjust_triumphs(amt2change, FALSE, raisin, override_bonus = TRUE)
 		message_admins("[key_name_admin(usr)] adjusted [M.key]'s triumphs by [amt2change] with [!raisin ? "no reason given" : "reason: [raisin]"].")
 		log_admin("[key_name_admin(usr)] adjusted [M.key]'s triumphs by [amt2change] with [!raisin ? "no reason given" : "reason: [raisin]"].")
 
@@ -1247,8 +1281,7 @@
 		message_admins("[key_name_admin(usr)] changed [key_name_admin(M)]'s flaw from [being_changed.charflaw ? being_changed.charflaw : "NA"] to [flaw_to_change_to]")
 		log_admin("[key_name_admin(usr)] changed [key_name_admin(M)]'s flaw from [being_changed.charflaw ? being_changed.charflaw : "NA"] to [flaw_to_change_to]")
 
-		var/datum/charflaw/C = new flaw_to_change_to()
-		being_changed.charflaw = C
+		being_changed.set_flaw(flaw_to_change_to)
 
 	else if(href_list["modifycurses"])
 
@@ -1483,7 +1516,7 @@
 		if(!fexists(json_file))
 			WRITE_FILE(json_file, "{}")
 		var/list/json = json_decode(file2text(json_file))
-		for(var/curse in CURSE_MASTER_LIST)
+		for(var/curse in list("brokedick"))
 			var/yes_cursed
 			for(var/X in json)
 				if(X == curse)
@@ -1497,6 +1530,12 @@
 		var/datum/browser/noclose/popup = new(usr, "cursecheck", "", 370, 220)
 		popup.set_content(popup_window_data)
 		popup.open()
+
+	else if(href_list["adminbirdletter"])
+		if(!check_rights(R_ADMIN))
+			return
+		var/mob/M = locate(href_list["adminbirdletter"])
+		usr.client.send_bird_letter(M)
 
 /datum/admins/proc/HandleCMode()
 	if(!check_rights(R_ADMIN))

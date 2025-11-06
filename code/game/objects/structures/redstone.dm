@@ -21,7 +21,7 @@ GLOBAL_LIST_EMPTY(redstone_objs)
 	user.visible_message("[user] starts tinkering with [src].", "You start tinkering with [src].")
 	if(!do_after(user, 8 SECONDS, src))
 		return
-	var/datum/effect_system/spark_spread/S = new()
+	var/datum/effect_system/spark_spread/noisy/S = new()
 	var/turf/front = get_turf(src)
 	S.set_up(1, 1, front)
 	S.start()
@@ -89,6 +89,7 @@ GLOBAL_LIST_EMPTY(redstone_objs)
 		if(do_after(user, used_time))
 			for(var/obj/structure/O in redstone_attached)
 				spawn(0) O.redstone_triggered(user)
+			trigger_wire_network(user)
 			toggled = !toggled
 			icon_state = "leverfloor[toggled]"
 			playsound(src, 'sound/foley/lever.ogg', 100, extrarange = 3)
@@ -103,6 +104,7 @@ GLOBAL_LIST_EMPTY(redstone_objs)
 		if(prob(L.STASTR * 4))
 			for(var/obj/structure/O in redstone_attached)
 				spawn(0) O.redstone_triggered(user)
+			trigger_wire_network(user)
 			toggled = !toggled
 			icon_state = "leverfloor[toggled]"
 			playsound(src, 'sound/foley/lever.ogg', 100, extrarange = 3)
@@ -113,14 +115,22 @@ GLOBAL_LIST_EMPTY(redstone_objs)
 /obj/structure/lever/hidden
 	icon = null
 
-/obj/structure/lever/hidden/proc/feel_button(mob/living/user)
-	if(isliving(user))
-		var/mob/living/L = user
+	//the perception DC to use this
+	var/hidden_dc = 10
+
+/obj/structure/lever/hidden/proc/feel_button(mob/living/user, ignore_dc = FALSE)
+	if(!isliving(user))
+		return
+	var/mob/living/L = user
+	// they're trained at this
+	var/bonuses = (HAS_TRAIT(user, TRAIT_THIEVESGUILD) || HAS_TRAIT(user, TRAIT_ASSASSIN)) ? 2 : 0
+	if(L.STAPER + bonuses >= hidden_dc || ignore_dc)
 		L.changeNext_move(CLICK_CD_MELEE)
-		user.visible_message("<span class='warning'>[user] presses a hidden button.</span>")
+		user.visible_message(span_danger("[user] presses a hidden button."), span_notice("I push a hidden button."))
 		user.log_message("pulled the lever with redstone id \"[redstone_id]\"", LOG_GAME)
 		for(var/obj/structure/O in redstone_attached)
-			spawn(0) O.redstone_triggered(user)
+			INVOKE_ASYNC(O, PROC_REF(redstone_triggered), user)
+		trigger_wire_network(user)
 		toggled = !toggled
 		playsound(src, 'sound/foley/lever.ogg', 100, extrarange = 3)
 
@@ -148,7 +158,7 @@ GLOBAL_LIST_EMPTY(redstone_objs)
 	var/mode = 1 // 1 means repeat 5 times, 2 means random, 0 means indefinite but has chance to explode, 3 means indefinite no chance to explode
 	var/obj/structure/linked_thing // because redstone code is weird
 
-/obj/structure/repeater/ComponentInitialize()
+/obj/structure/repeater/Initialize(mapload, ...)
 	. = ..()
 	AddComponent(/datum/component/simple_rotation, ROTATION_REQUIRE_WRENCH|ROTATION_IGNORE_ANCHORED)
 
@@ -247,6 +257,7 @@ GLOBAL_LIST_EMPTY(redstone_objs)
 		if(structure.w_class >= WEIGHT_CLASS_BULKY)
 			playsound(src, 'sound/misc/pressurepad_down.ogg', 65, extrarange = 2)
 			triggerplate()
+			trigger_wire_network(AM)
 
 /obj/structure/pressure_plate/Uncrossed(atom/movable/AM)
 	. = ..()
@@ -254,11 +265,12 @@ GLOBAL_LIST_EMPTY(redstone_objs)
 		return
 	if(isliving(AM))
 		triggerplate()
+		trigger_wire_network(AM)
 
 /obj/structure/pressure_plate/proc/triggerplate()
 	playsound(src, 'sound/misc/pressurepad_up.ogg', 65, extrarange = 2)
 	for(var/obj/structure/O in redstone_attached)
-		spawn(0) O.redstone_triggered()
+		INVOKE_ASYNC(O, TYPE_PROC_REF(/obj/structure, redstone_triggered))
 
 /obj/structure/pressure_plate/attack_hand(mob/user)
 	. = ..()
@@ -280,19 +292,17 @@ GLOBAL_LIST_EMPTY(redstone_objs)
 	var/obj/item/containment
 	var/obj/item/ammo_holder/ammo // used if the contained item is a bow or crossbow
 
-/obj/structure/activator/Initialize()
+/obj/structure/activator/Initialize(mapload, ...)
 	. = ..()
-	update_icon()
-
-/obj/structure/activator/ComponentInitialize()
-	. = ..()
+	update_appearance(UPDATE_OVERLAYS)
 	AddComponent(/datum/component/simple_rotation, ROTATION_REQUIRE_WRENCH|ROTATION_IGNORE_ANCHORED)
 
-/obj/structure/activator/update_icon()
-	. = ..()
-	cut_overlays()
-	if(!containment)
-		add_overlay("activator-e")
+/obj/structure/activator/Destroy()
+	ammo = null
+	if(containment)
+		containment.forceMove(get_turf(src))
+	containment = null
+	return ..()
 
 /obj/structure/activator/attack_hand(mob/user)
 	. = ..()
@@ -306,16 +316,16 @@ GLOBAL_LIST_EMPTY(redstone_objs)
 		playsound(src, 'sound/misc/hiss.ogg', 100, FALSE, -1)
 		ammo.forceMove(get_turf(src))
 		ammo = null
-	update_icon()
+	update_appearance(UPDATE_OVERLAYS)
 	return TRUE
 
 /obj/structure/activator/attackby(obj/item/I, mob/user, params)
-	if(!containment && (istype(I, /obj/item/gun/ballistic/revolver/grenadelauncher) || istype(I, /obj/item/bomb) || istype(I, /obj/item/flint)))
+	if(!containment && (istype(I, /obj/item/gun/ballistic/revolver/grenadelauncher) || istype(I, /obj/item/explosive/bottle) || istype(I, /obj/item/flint)))
 		if(!user.transferItemToLoc(I, src))
 			return ..()
 		containment = I
 		playsound(src, 'sound/misc/chestclose.ogg', 25)
-		update_icon()
+		update_appearance(UPDATE_OVERLAYS)
 		return TRUE
 	if(!ammo && istype(I, /obj/item/ammo_holder))
 		if(!user.transferItemToLoc(I, src))
@@ -328,9 +338,9 @@ GLOBAL_LIST_EMPTY(redstone_objs)
 /obj/structure/activator/redstone_triggered(mob/user)
 	if(!containment)
 		return
-	if(istype(containment, /obj/item/bomb))
-		var/obj/item/bomb/bomba = containment
-		bomba.light()
+	if(istype(containment, /obj/item/explosive/bottle))
+		var/obj/item/explosive/bottle/bomba = containment
+		bomba.arm_grenade()
 	if(istype(containment, /obj/item/flint))
 		var/datum/effect_system/spark_spread/S = new()
 		var/turf/front = get_step(src, dir)
@@ -348,7 +358,7 @@ GLOBAL_LIST_EMPTY(redstone_objs)
 					ammo.ammo_list -= BT
 					BT.fire_casing(get_step(src, dir), null, null, null, null, pick(BODY_ZONE_L_LEG, BODY_ZONE_R_LEG, BODY_ZONE_CHEST), 0,  src)
 					ammo.contents -= BT
-					ammo.update_icon()
+					ammo.update_appearance()
 					break
 
 /obj/structure/floordoor
@@ -363,15 +373,19 @@ GLOBAL_LIST_EMPTY(redstone_objs)
 	redstone_structure = TRUE
 	var/togg = FALSE
 	var/base_state = "floorhatch"
-	max_integrity = 0
+	resistance_flags = INDESTRUCTIBLE
 /*
 /obj/structure/floordoor/Initialize()
 	AddComponent(/datum/component/squeak, list('sound/foley/footsteps/FTMET_A1.ogg','sound/foley/footsteps/FTMET_A2.ogg','sound/foley/footsteps/FTMET_A3.ogg','sound/foley/footsteps/FTMET_A4.ogg'), 40)
 	return ..()
 */
-/obj/structure/floordoor/obj_break(damage_flag, silent)
+/obj/structure/floordoor/atom_break(damage_flag)
+	. = ..()
 	obj_flags = null
-	..()
+
+/obj/structure/floordoor/atom_fix()
+	. = ..()
+	obj_flags = initial(obj_flags)
 
 /obj/structure/floordoor/redstone_triggered(mob/user)
 	if(obj_broken)
@@ -398,13 +412,13 @@ GLOBAL_LIST_EMPTY(redstone_objs)
 	var/changing_state = FALSE
 	var/delay2open = 0
 	var/delay2close = 0
-	max_integrity = 0
-	nomouseover = TRUE
+	resistance_flags = INDESTRUCTIBLE
+	no_over_text = TRUE
 	mouse_opacity = 0
 	redstone_structure = TRUE
 
 /obj/structure/floordoor/gatehatch/Initialize()
-	AddComponent(/datum/component/squeak, list('sound/foley/footsteps/FTMET_A1.ogg','sound/foley/footsteps/FTMET_A2.ogg','sound/foley/footsteps/FTMET_A3.ogg','sound/foley/footsteps/FTMET_A4.ogg'), 40)
+	AddComponent(/datum/component/squeak, list('sound/foley/footsteps/FTMET_A1.ogg','sound/foley/footsteps/FTMET_A2.ogg','sound/foley/footsteps/FTMET_A3.ogg','sound/foley/footsteps/FTMET_A4.ogg'), 40, extrarange = SHORT_RANGE_SOUND_EXTRARANGE)
 	return ..()
 
 /obj/structure/floordoor/gatehatch/redstone_triggered(mob/user)
@@ -441,16 +455,16 @@ GLOBAL_LIST_EMPTY(redstone_objs)
 
 /obj/structure/kybraxor
 	name = "Kybraxor the Devourer"
-	desc = "The old mad duke's hungriest pet."
+	desc = "Two massive slabs of metal flooring which threaten to swallow you whole. Watch out!"
 	density = FALSE
-	nomouseover = TRUE
+	no_over_text = TRUE
 	icon = 'icons/roguetown/misc/96x96.dmi'
 	icon_state = "kybraxor1"
 	redstone_id = "gatelava"
 	var/openn = FALSE
 	var/changing_state = FALSE
 	layer = ABOVE_OPEN_TURF_LAYER
-	max_integrity = 0
+	resistance_flags = INDESTRUCTIBLE
 
 /obj/structure/kybraxor/redstone_triggered(mob/user)
 	if(changing_state)

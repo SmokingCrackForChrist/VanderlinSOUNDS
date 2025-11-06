@@ -41,7 +41,7 @@
 
 	/* admin stuff */
 	var/follower_ident = "[follower.key]/([follower.real_name]) (follower of [patron])"
-	message_admins("[follower_ident] [ADMIN_SM(follower)] [ADMIN_FLW(follower)] prays: [span_info(prayer)]")
+	message_admins("[follower_ident] [ADMIN_SM(follower)] [ADMIN_FLW(follower)] prays: [span_info(html_encode(prayer))]")
 	user.log_message("(follower of [patron]) prays: [prayer]", LOG_GAME)
 
 	follower.whisper(prayer)
@@ -502,6 +502,13 @@
 	emote_type = EMOTE_AUDIBLE
 	only_forced_audio = TRUE
 
+/datum/emote/living/haltyellorphan
+
+	key = "haltyellorphan"
+	message = "tries to shout a convincing halt!"
+	emote_type = EMOTE_AUDIBLE
+	only_forced_audio = TRUE
+
 /datum/emote/living/hmm
 	key = "hmm"
 	key_third_person = "hmms"
@@ -581,12 +588,37 @@
 		return
 	if(ishuman(target))
 		var/mob/living/carbon/H = target
-		H.add_stress(/datum/stressevent/hug)
+		H.add_stress(/datum/stress_event/hug)
 		playsound(target.loc, pick('sound/vo/hug.ogg'), 100, FALSE, -1)
 
 		if(user.mind)
 			SEND_SIGNAL(user, COMSIG_MOB_HUGGED, H)
-			GLOB.vanderlin_round_stats[STATS_HUGS_MADE]++
+			record_round_statistic(STATS_HUGS_MADE)
+
+/datum/emote/living/headpat
+	key = "headpat"
+	key_third_person = "pats"
+	message = ""
+	message_param = "pats %t on the head."
+	emote_type = EMOTE_VISIBLE
+	restraint_check = TRUE
+
+/mob/living/carbon/human/verb/emote_headpat()
+	set name = "Headpat"
+	set category = "Emotes"
+	emote("headpat", intentional = TRUE, targetted = TRUE)
+
+/datum/emote/living/headpat/adjacentaction(mob/user, mob/target)
+	. = ..()
+	if(!user || !target)
+		return
+	if(ishuman(target))
+		var/mob/living/carbon/human/H = target
+		playsound(target.loc, pick('sound/vo/hug.ogg'), 100, FALSE, -1)
+		if(israkshari(H))
+			if(prob(10))
+				H.emote("purr")
+
 
 // ............... I ..................
 /datum/emote/living/idle
@@ -671,7 +703,7 @@
 				message_param = "kisses %t on \the [parse_zone(H.zone_selected)]."
 	playsound(target.loc, pick('sound/vo/kiss (1).ogg','sound/vo/kiss (2).ogg'), 100, FALSE, -1)
 	if(user.mind)
-		GLOB.vanderlin_round_stats[STATS_KISSES_MADE]++
+		record_round_statistic(STATS_KISSES_MADE)
 
 // ............... L ..................
 /datum/emote/living/laugh
@@ -691,7 +723,7 @@
 /datum/emote/living/laugh/run_emote(mob/user, params, type_override, intentional, targetted)
 	. = ..()
 	if(. && user.mind)
-		GLOB.vanderlin_round_stats[STATS_LAUGHS_MADE]++
+		record_round_statistic(STATS_LAUGHS_MADE)
 
 /mob/living/carbon/human/verb/emote_laugh()
 	set name = "Laugh"
@@ -810,6 +842,43 @@
 	message = "pouts."
 	emote_type = EMOTE_AUDIBLE
 
+/datum/emote/living/preen
+	key = "preen"
+	key_third_person = "preens"
+	message = "preens their feathers."
+	emote_type = EMOTE_AUDIBLE
+	COOLDOWN_DECLARE(time_to_next_preen)
+
+
+/mob/living/carbon/human/verb/emote_preen()
+	set hidden = TRUE
+	set name = "Preen"
+	set category = "Emotes"
+	emote("preen", intentional = TRUE)
+
+/datum/emote/living/preen/can_run_emote(mob/living/user, status_check = TRUE , intentional)
+	. = ..()
+	if(!isharpy(user))
+		return FALSE
+
+/datum/emote/living/preen/run_emote(mob/user, params, type_override, intentional, targetted)
+	. = ..()
+	if(ishuman(user))
+		var/mob/living/carbon/human/H = user
+		if(!isharpy(H))
+			return
+		var/time_left = COOLDOWN_TIMELEFT(src, time_to_next_preen)
+		if(time_left)
+			to_chat(H, span_warning("I have preened my feathers recently! It has no effect on my hygiene."))
+		else
+			COOLDOWN_START(src, time_to_next_preen, HARPY_PREENING_COOLDOWN)
+			H.set_hygiene(HYGIENE_LEVEL_NORMAL)
+			if(prob(50))
+				var/preened_feather = /obj/item/natural/feather
+				new preened_feather(user.loc)
+
+
+
 /datum/emote/living/scream/painscream
 	key = "painscream"
 	message = "screams in pain!"
@@ -871,7 +940,7 @@
 /datum/emote/living/rage/run_emote(mob/user, params, type_override, intentional, targetted)
 	. = ..()
 	if(. && user.mind)
-		GLOB.vanderlin_round_stats[STATS_WARCRIES]++
+		record_round_statistic(STATS_WARCRIES)
 
 /mob/living/carbon/human/verb/emote_rage()
 	set name = "Rage"
@@ -885,10 +954,12 @@
 	message = "spits on the ground."
 	message_param = "spits on %t."
 	emote_type = EMOTE_VISIBLE
+
 /mob/living/carbon/human/verb/emote_spit()
 	set name = "Spit"
 	set category = "Emotes"
 	emote("spit", intentional = TRUE, targetted = TRUE)
+
 /datum/emote/living/spit/run_emote(mob/user, params, type_override, intentional)
 	message_param = initial(message_param) // reset
 	var/mob/living/carbon/human/H = user
@@ -899,6 +970,7 @@
 				H.dropItemToGround(H.mouth, silent = FALSE)
 			return
 	..()
+
 /datum/emote/living/spit/adjacentaction(mob/user, mob/target)
 	. = ..()
 	if(!user || !target)
@@ -908,7 +980,7 @@
 			playsound(target.loc, pick('sound/vo/male/gen/spit.ogg','sound/vo/male/gen/spit_floor.ogg'), 100, FALSE, -1)
 		else
 			playsound(target.loc, pick('sound/vo/female/gen/spit.ogg', 'sound/vo/female/gen/spit_floor.ogg'), 100, FALSE, -1)
-
+		SEND_SIGNAL(user, COMSIG_SPAT_ON, target)
 
 /datum/emote/living/slap
 	key = "slap"
@@ -997,6 +1069,7 @@
 	key_third_person = "shakeshead"
 	message = "shakes their head."
 	emote_type = EMOTE_VISIBLE
+
 /mob/living/carbon/human/verb/emote_shakehead()
 	set name = "Shakehead"
 	set category = "Emotes"

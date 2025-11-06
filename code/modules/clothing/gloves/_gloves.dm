@@ -19,7 +19,6 @@
 
 	body_parts_covered = HANDS
 	slot_flags = ITEM_SLOT_GLOVES
-	body_parts_covered = HANDS
 	resistance_flags = FIRE_PROOF
 
 	attack_verb = list("challenged")
@@ -30,7 +29,7 @@
 
 	sewrepair = TRUE
 	anvilrepair = null
-	smeltresult = /obj/item/ash
+	smeltresult = /obj/item/fertilizer/ash
 	sewrepair = TRUE
 	fiber_salvage = FALSE
 	salvage_amount = 1
@@ -40,8 +39,10 @@
 	item_weight = 4
 
 	var/transfer_prints = FALSE
+	abstract_type = /obj/item/clothing/gloves
+	var/unarmed_bonus = 1
 
-/obj/item/clothing/gloves/ComponentInitialize()
+/obj/item/clothing/gloves/Initialize(mapload, ...)
 	. = ..()
 	RegisterSignal(src, COMSIG_COMPONENT_CLEAN_ACT, PROC_REF(clean_blood))
 
@@ -53,9 +54,6 @@
 /obj/item/clothing/gloves/suicide_act(mob/living/carbon/user)
 	user.visible_message("<span class='suicide'>\the [src] are forcing [user]'s hands around [user.p_their()] neck! It looks like the gloves are possessed!</span>")
 	return OXYLOSS
-
-/obj/item/clothing/gloves/worn_overlays(isinhands = FALSE)
-	. = list()
 
 /obj/item/clothing/gloves/update_clothes_damaged_state(damaging = TRUE)
 	..()

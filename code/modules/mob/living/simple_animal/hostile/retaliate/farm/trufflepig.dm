@@ -92,6 +92,16 @@
 	gender = MALE
 	random_gender = FALSE
 
+/mob/living/simple_animal/hostile/retaliate/trufflepig/male/Initialize()
+	. = ..()
+
+
+	AddComponent(\
+		/datum/component/breed,\
+		can_breed_with = list(/mob/living/simple_animal/hostile/retaliate/trufflepig, /mob/living/simple_animal/hostile/retaliate/trufflepig/male, /mob/living/simple_animal/hostile/retaliate/trufflepig/female),\
+		breed_timer = 2 MINUTES \
+	)
+
 //	........   Truffle Pig   ................
 /mob/living/simple_animal/hostile/retaliate/trufflepig
 	icon = 'icons/roguetown/mob/monster/piggie.dmi'
@@ -146,8 +156,6 @@
 	buckle_lying = FALSE
 	can_saddle = TRUE
 
-	childtype = list(/mob/living/simple_animal/hostile/retaliate/trufflepig/piglet = 90, /mob/living/simple_animal/hostile/retaliate/trufflepig/piglet/boy = 10)
-
 	ai_controller = /datum/ai_controller/pig
 
 
@@ -166,17 +174,14 @@
 			/datum/pet_command/truffle_sniff,
 		)
 
+	happy_funtime_mob = TRUE
 	var/hangry_meter = 0
 	var/random_gender = TRUE
 	var/can_breed = TRUE
 
 
 /mob/living/simple_animal/hostile/retaliate/trufflepig/Initialize()
-	if(random_gender)
-		if(prob(50))
-			gender = FEMALE
-	qdel(GetComponent(/datum/component/obeys_commands)) // due to signal overridings from pet commands
-	AddComponent(/datum/component/obeys_commands, pet_commands)
+	AddComponent(/datum/component/obeys_commands, pet_commands) // here due to signal overridings from pet commands // due to signal overridings from pet commands
 	. = ..()
 
 	if(can_breed)
@@ -295,23 +300,21 @@
 	icon = 'icons/roguetown/mob/trufflesniff.dmi'
 	icon_state = "foundsome"
 	appearance_flags = 0 //to avoid having TILE_BOUND in the flags, so that the 480x480 icon states let you see it no matter where you are
-	duration = 35
-	pixel_x = -224
-	pixel_y = -224
-
-/mob/living/simple_animal/hostile/retaliate/trufflepig/piglet/boy
-	adult_growth = /mob/living/simple_animal/hostile/retaliate/trufflepig/male
-	gender = MALE
+	duration = 3.5 SECONDS
+	SET_BASE_PIXEL(-224, -224)
 
 /mob/living/simple_animal/hostile/retaliate/trufflepig/piglet
 	gender = FEMALE
 	name = "truffle piglet"
 	adult_growth = /mob/living/simple_animal/hostile/retaliate/trufflepig/female
 	can_breed = FALSE
-	random_gender = FALSE
 
 /mob/living/simple_animal/hostile/retaliate/trufflepig/piglet/Initialize()
 	. = ..()
 	var/matrix/matrix = matrix()
 	matrix.Scale(0.75, 0.75)
 	transform = matrix
+
+/mob/living/simple_animal/hostile/retaliate/trufflepig/piglet/boy
+	adult_growth = /mob/living/simple_animal/hostile/retaliate/trufflepig/male
+	gender = MALE

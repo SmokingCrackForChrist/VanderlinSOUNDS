@@ -10,8 +10,10 @@
 	var/id = "effect"
 	/// How long the status effect lasts in DECISECONDS. Enter -1 for an effect that never ends unless removed through some means.
 	var/duration = -1
+	/// What the duration was when we applied the status effect
+	var/initial_duration
 	/// How many deciseconds between ticks, approximately. Leave at 10 for every second.
-	var/tick_interval = 10
+	var/tick_interval = 1 SECONDS
 	/// The mob affected by the status effect.
 	var/mob/living/owner
 	/// How many of the effect can be on one mob, and what happens when you try to add another
@@ -24,12 +26,13 @@
 	var/alert_type = /atom/movable/screen/alert/status_effect
 	/// The alert itself, if it exists
 	var/atom/movable/screen/alert/status_effect/linked_alert = null
+	/// Assoc list of statkey to value
 	var/list/effectedstats = list()
 
 /datum/status_effect/New(list/arguments)
 	on_creation(arglist(arguments))
 
-/datum/status_effect/proc/on_creation(mob/living/new_owner, ...)
+/datum/status_effect/proc/on_creation(mob/living/new_owner, duration_override, ...)
 	if(new_owner)
 		owner = new_owner
 	if(owner)
@@ -37,6 +40,9 @@
 	if(!owner || !on_apply())
 		qdel(src)
 		return
+	if(isnum(duration_override) && duration_override != duration)
+		duration = duration_override
+	initial_duration = duration
 	if(duration != -1)
 		duration = world.time + duration
 	tick_interval = world.time + tick_interval
@@ -59,6 +65,8 @@
 	return ..()
 
 /datum/status_effect/process()
+	SHOULD_NOT_OVERRIDE(TRUE)
+
 	if(!owner)
 		qdel(src)
 		return
@@ -70,6 +78,8 @@
 
 /// Called whenever the buff is applied; returning FALSE will cause it to autoremove itself.
 /datum/status_effect/proc/on_apply()
+	SHOULD_CALL_PARENT(TRUE)
+
 	for(var/stat in effectedstats)
 		owner.set_stat_modifier("[id]", stat, effectedstats[stat])
 	return TRUE
@@ -79,6 +89,8 @@
 
 /// Called whenever the buff expires or is removed; do note that at the point this is called, it is out of the owner's status_effects but owner is not yet null
 /datum/status_effect/proc/on_remove()
+	SHOULD_CALL_PARENT(TRUE)
+
 	owner.remove_stat_modifier("[id]")
 
 /// Called instead of on_remove when a status effect is replaced by itself or when a status effect with on_remove_on_mob_delete = FALSE has its mob deleted
@@ -89,11 +101,15 @@
 	owner = null
 	qdel(src)
 
-/datum/status_effect/proc/refresh()
-	var/original_duration = initial(duration)
-	if(original_duration == -1)
+/// Called before being fully removed (before on_remove)
+/// Returning FALSE will cancel removal
+/datum/status_effect/proc/before_remove()
+	return TRUE
+
+/datum/status_effect/proc/refresh(mob/living/new_owner, duration_override, ...)
+	if(initial_duration == -1)
 		return
-	duration = world.time + original_duration
+	duration = world.time + initial_duration
 
 /// clickdelay/nextmove modifiers!
 /datum/status_effect/proc/nextmove_modifier()
@@ -136,33 +152,59 @@
 //////////////////
 
 /// Applies a given status effect to this mob, returning the effect if it was successful
-/mob/living/proc/apply_status_effect(effect, ...)
-	. = FALSE
-	var/datum/status_effect/S1 = effect
-	LAZYINITLIST(status_effects)
-	for(var/datum/status_effect/S in status_effects)
-		if(S.id == initial(S1.id) && S.status_type)
-			if(S.status_type == STATUS_EFFECT_REPLACE)
-				S.be_replaced()
-			else if(S.status_type == STATUS_EFFECT_REFRESH)
-				S.refresh()
-				return
-			else
-				return
+/mob/living/proc/apply_status_effect(datum/status_effect/new_effect, duration_override, ...)
+	RETURN_TYPE(/datum/status_effect)
+
+	// The arguments we pass to the start effect. The 1st argument is this mob.
 	var/list/arguments = args.Copy()
 	arguments[1] = src
-	S1 = new effect(arguments)
-	. = S1
 
-/// Removes all of a given status effect from this mob, returning TRUE if at least one was removed
-/mob/living/proc/remove_status_effect(effect)
+	// If the status effect we're applying doesn't allow multiple effects, we need to handle it
+	if(initial(new_effect.status_type) != STATUS_EFFECT_MULTIPLE)
+		for(var/datum/status_effect/existing_effect as anything in status_effects)
+			if(existing_effect.id != initial(new_effect.id))
+				continue
+
+			switch(existing_effect.status_type)
+				// Multiple are allowed, continue as normal. (Not normally reachable)
+				if(STATUS_EFFECT_MULTIPLE)
+					break
+				// Only one is allowed of this type - early return
+				if(STATUS_EFFECT_UNIQUE)
+					return
+				// Replace the existing instance (deletes it).
+				if(STATUS_EFFECT_REPLACE)
+					existing_effect.be_replaced()
+				// Refresh the existing type, then early return
+				if(STATUS_EFFECT_REFRESH)
+					existing_effect.refresh(arglist(arguments))
+					SEND_SIGNAL(src, COMSIG_MOB_APPLIED_STATUS_EFFECT, existing_effect)
+					return
+
+	// Create the status effect with our mob + our arguments
+	var/datum/status_effect/new_instance = new new_effect(arguments)
+	if(!QDELETED(new_instance))
+		SEND_SIGNAL(src, COMSIG_MOB_APPLIED_STATUS_EFFECT, new_instance)
+		return new_instance
+
+/**
+ * Removes all instances of a given status effect from this mob
+ *
+ * removed_effect - TYPEPATH of a status effect to remove.
+ * Additional status effect arguments can be passed - these are passed into before_remove.
+ *
+ * Returns TRUE if at least one was removed.
+ */
+/mob/living/proc/remove_status_effect(datum/status_effect/removed_effect, ...)
+	var/list/arguments = args.Copy(2)
+
 	. = FALSE
-	if(status_effects)
-		var/datum/status_effect/S1 = effect
-		for(var/datum/status_effect/S in status_effects)
-			if(initial(S1.id) == S.id)
-				qdel(S)
-				. = TRUE
+	for(var/datum/status_effect/existing_effect as anything in status_effects)
+		if(existing_effect.id == initial(removed_effect.id) && existing_effect.before_remove(arglist(arguments)))
+			qdel(existing_effect)
+			. = TRUE
+
+	return .
 
 /// Returns the effect if the mob calling the proc owns the given status effect
 /mob/living/proc/has_status_effect(effect)
@@ -273,9 +315,10 @@
 		fadeout_effect()
 		qdel(src) //deletes status if stacks fall under one
 
-/datum/status_effect/stacking/on_creation(mob/living/new_owner, stacks_to_apply)
-	..()
-	src.add_stacks(stacks_to_apply)
+/datum/status_effect/stacking/on_creation(mob/living/new_owner, duration_override, stacks_to_apply)
+	. = ..()
+	if(.)
+		add_stacks(stacks_to_apply)
 
 /datum/status_effect/stacking/on_apply()
 	if(!can_have_status())

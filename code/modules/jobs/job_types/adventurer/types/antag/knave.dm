@@ -1,12 +1,11 @@
-/datum/advclass/knave //sneaky bastards - ranged classes of two flavors archers and rogues
-	name = "Knave"
+/datum/job/advclass/knave //sneaky bastards - ranged classes of two flavors archers and rogues
+	title = "Knave"
 	tutorial = "Not all followers of Matthios take by force. Thieves, poachers, and ne'er-do-wells of all forms steal from others from the shadows, long gone before their marks realize their misfortune."
-	allowed_sexes = list(MALE, FEMALE)
-	outfit = /datum/outfit/job/bandit/knave
+	outfit = /datum/outfit/bandit/knave
 	category_tags = list(CTAG_BANDIT)
 	cmode_music = 'sound/music/cmode/antag/CombatBandit1.ogg'
 
-/datum/outfit/job/bandit/knave/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/bandit/knave/pre_equip(mob/living/carbon/human/H)
 	..()
 	H.adjust_skillrank(/datum/skill/combat/polearms, 3, TRUE)
 	H.adjust_skillrank(/datum/skill/combat/axesmaces, 3, TRUE)
@@ -31,7 +30,7 @@
 	//H.adjust_skillrank(/datum/skill/misc/tracking, 3, TRUE)
 	belt = /obj/item/storage/belt/leather
 	pants = /obj/item/clothing/pants/trou/leather
-	shirt = /obj/item/clothing/shirt/shortshirt/random
+	shirt = /obj/item/clothing/shirt/shortshirt/colored/random
 	shoes = /obj/item/clothing/shoes/boots
 	mask = /obj/item/clothing/face/facemask/steel
 	neck = /obj/item/clothing/neck/coif
@@ -48,7 +47,7 @@
 		if("Crossbow & Dagger") //Rogue
 			backl= /obj/item/gun/ballistic/revolver/grenadelauncher/crossbow //we really need to make this not a grenade launcher subtype
 			beltr = /obj/item/ammo_holder/quiver/bolts
-			cloak = /obj/item/clothing/cloak/raincloak/mortus //cool cloak
+			cloak = /obj/item/clothing/cloak/raincloak/colored/mortus //cool cloak
 			beltl = /obj/item/weapon/knife/dagger/steel
 			backr = /obj/item/storage/backpack/satchel
 			backpack_contents = list(/obj/item/needle/thorn = 1, /obj/item/natural/cloth = 1, /obj/item/lockpickring/mundane = 1) //rogue gets lockpicks
@@ -64,3 +63,4 @@
 			H.adjust_skillrank(/datum/skill/combat/bows, 1, TRUE)
 			H.adjust_skillrank(/datum/skill/combat/swords, 1, TRUE)
 			ADD_TRAIT(H, TRAIT_FORAGER, TRAIT_GENERIC)
+			ADD_TRAIT(H, TRAIT_BRUSHWALK, TRAIT_GENERIC)

@@ -20,7 +20,7 @@
 	dropshrink = 0.75
 	throwforce = 0
 	max_integrity = 10
-	picklvl = 1
+	var/picklvl = 1
 	slot_flags = ITEM_SLOT_HIP|ITEM_SLOT_MOUTH|ITEM_SLOT_NECK
 	destroy_sound = 'sound/items/pickbreak.ogg'
 	grid_width = 32
@@ -39,7 +39,7 @@
 		if(k.access2add)
 			src.access2add = k.access2add
 			return TRUE
-	var/list/access= O.get_access()
+	var/list/access = O.get_access()
 	if(access)
 		access2add = access.Copy()
 		return TRUE
@@ -72,12 +72,15 @@
 	to_chat(user, span_notice("You set the key ID to [input]."))
 	access2add = list("[input]")
 
-/obj/item/key/custom/attack_right(mob/user)
+/obj/item/key/custom/attackby_secondary(obj/item/I, mob/user, params)
+	. = ..()
+	if(. == SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN)
+		return
+	. = SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
 	if(lockids)
 		to_chat(user, span_warning("[src] has been finished, it cannot be adjusted again!"))
 		return
-	var/held = user.get_active_held_item()
-	if(istype(held, /obj/item/weapon/hammer))
+	if(istype(I, /obj/item/weapon/hammer))
 		if(!access2add)
 			to_chat(user, span_warning("[src] is not ready, its teeth are not set!"))
 			return
@@ -85,10 +88,10 @@
 		access2add = null
 		to_chat(user, span_notice("You finish [src]."))
 		return
-	if(!copy_access(held))
-		to_chat(user, span_warning("I cannot forge a key from [held]!"))
+	if(!copy_access(I))
+		to_chat(user, span_warning("I cannot forge a key from [I]!"))
 		return
-	to_chat(user, span_notice("I forge the key based on the workings of [held]."))
+	to_chat(user, span_notice("I forge the key based on the workings of [I]."))
 
 /obj/item/key/lord
 	name = "master key"
@@ -147,7 +150,7 @@
 	name = "Soilson Key"
 	desc = "This key is used by the Soilsons."
 	icon_state = "rustkey"
-	lockids = list(ACCESS_FARM)
+	lockids = list(ACCESS_FARM, ACCESS_BUTCHER)
 
 /obj/item/key/merchant
 	name = "merchant's key"
@@ -215,6 +218,12 @@
 	desc = "This key belongs to the City Watch."
 	icon_state = "spikekey"
 	lockids = list(ACCESS_GARRISON)
+
+/obj/item/key/lieutenant
+	name = "city watch lieutenant key"
+	desc = "This key belongs to the Lieutenant of the City Watch."
+	icon_state = "spikekey"
+	lockids = list(ACCESSS_LIEUTENANT)
 
 /obj/item/key/forrestgarrison
 	name = "forest guard key"
@@ -693,7 +702,7 @@
 	icon_state = "brownkey"
 	lockids = list("luxroomv")
 
-/obj/item/key/luxroomiv
+/obj/item/key/luxroomvi
 	name = "luxury room VI key"
 	desc = "The key to the sixth luxury room."
 	icon_state = "brownkey"
@@ -704,6 +713,37 @@
 	desc = "The key to the most luxurious Inn room."
 	icon_state = "brownkey"
 	lockids = list("roomhunt")
+
+/obj/item/key/thatchwood
+	name = "ABSTRACT THATCHWOOD KEY CALL CODERS"
+	desc = "Contact a dev on the discord, or make a bug report"
+	icon_state = "brownkey"
+	abstract_type = /obj/item/key/thatchwood
+
+/obj/item/key/thatchwood/farm
+	name = "old farmhouse key"
+	desc = "A rusty key. Specs of dirt and soil cover its handle."
+	lockids = list("oldfarm")
+
+/obj/item/key/thatchwood/smithy
+	name = "old smithy key"
+	desc = "A rusty key."
+	lockids = list("oldsmith")
+
+/obj/item/key/thatchwood/inn1
+	name = "room I key"
+	desc = "A rusty key. The number I has been engraved on its handle."
+	lockids = list("oldinn1")
+
+/obj/item/key/thatchwood/inn2
+	name = "room II key"
+	desc = "A rusty key. The number II has been engraved on its handle."
+	lockids = list("oldinn2")
+
+/obj/item/key/thatchwood/inn3
+	name = "side room key"
+	desc = "A rusty key. Something was engraved on its handle, but you can't make it out anymore."
+	lockids = list("oldinn3")
 
 // Special Keys
 

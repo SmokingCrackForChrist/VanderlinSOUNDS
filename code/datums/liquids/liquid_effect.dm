@@ -42,13 +42,13 @@
 
 /obj/effect/abstract/liquid_turf/proc/set_connection(dir)
 	connected["[dir]"] = 1
-	update_icon()
+	update_appearance(UPDATE_ICON)
 
 /obj/effect/abstract/liquid_turf/proc/unset_connection(dir)
 	connected["[dir]"] = 0
-	update_icon()
+	update_appearance(UPDATE_ICON)
 
-/obj/effect/abstract/liquid_turf/update_icon()
+/obj/effect/abstract/liquid_turf/update_icon_state()
 	. = ..()
 	make_unshiny()
 	var/new_overlay = ""
@@ -60,6 +60,14 @@
 		icon_state = "puddle"
 	make_shiny(initial(shine))
 
+/obj/effect/abstract/liquid_turf/update_overlays()
+	. = ..()
+	var/number = liquid_state - 1
+	if(number != 0)
+		. += mutable_appearance('icons/effects/liquid_overlays.dmi', "stage[number]_bottom", plane = GAME_PLANE_UPPER, layer = ABOVE_MOB_LAYER)
+		. += mutable_appearance('icons/effects/liquid_overlays.dmi', "stage[number]_top", plane =GAME_PLANE, layer = BELOW_MOB_LAYER)
+	if(liquid_group?.glows)
+		. += mutable_appearance(icon, icon_state, plane = EMISSIVE_PLANE)
 
 /obj/effect/abstract/liquid_turf/make_shiny(_shine = SHINE_REFLECTIVE)
 	if(total_reflection_mask)
@@ -109,12 +117,12 @@
 			set_connection(get_dir(src, pipe))
 			pipe.set_connection(get_dir(pipe, src))
 	if(z)
-		update_icon()
+		update_appearance(UPDATE_ICON)
 		for(var/direction in GLOB.cardinals)
 			var/turf/turf = get_step(src, direction)
 			if(!turf.liquids)
 				continue
-			turf.liquids.update_icon()
+			turf.liquids.update_appearance(UPDATE_ICON)
 
 /obj/effect/abstract/liquid_turf/Destroy(force)
 	UnregisterSignal(my_turf, list(COMSIG_ATOM_ENTERED, COMSIG_PARENT_EXAMINE))
@@ -134,7 +142,7 @@
 				return
 			set_connection(get_dir(src, pipe))
 			pipe.set_connection(get_dir(pipe, src))
-			pipe.update_icon()
+			pipe.update_appearance()
 
 	for(var/direction in GLOB.cardinals)
 		var/turf/turf = get_step(src, direction)
@@ -155,6 +163,8 @@
 	var/evaporation_multiplier = liquid_group.evaporation_multiplier
 	var/datum/reagent/R //Faster declaration
 	for(var/reagent_type in liquid_group.reagents.reagent_list)
+		if(QDELETED(liquid_group))
+			continue
 		R = reagent_type
 		//We evaporate. bye bye
 		if(initial(R.evaporates) || always_evaporates)
@@ -179,26 +189,15 @@
 	var/number = new_state - 1
 	if(number != 0)
 		icon_state = null
-		update_icon()
-
+		update_appearance(UPDATE_OVERLAYS)
 	else
 		icon_state = initial(icon_state)
-		update_icon()
+		update_appearance(UPDATE_OVERLAYS)
 		for(var/direction in GLOB.cardinals)
 			var/turf/turf = get_step(src, direction)
 			if(!turf.liquids)
 				continue
-			turf.liquids.update_icon()
-
-/obj/effect/abstract/liquid_turf/update_overlays()
-	. = ..()
-	cut_overlays()
-	var/number = liquid_state - 1
-	if(number != 0)
-		. += mutable_appearance('icons/effects/liquid_overlays.dmi', "stage[number]_bottom", plane = GAME_PLANE_UPPER, layer = ABOVE_MOB_LAYER)
-		. += mutable_appearance('icons/effects/liquid_overlays.dmi', "stage[number]_top", plane =GAME_PLANE, layer = BELOW_MOB_LAYER)
-	if(liquid_group?.glows)
-		. += mutable_appearance(icon, icon_state, plane = EMISSIVE_PLANE)
+			turf.liquids.update_appearance(UPDATE_OVERLAYS)
 
 /obj/effect/abstract/liquid_turf/proc/set_fire_effect()
 	if(displayed_content)
@@ -263,8 +262,7 @@
 
 /obj/effect/abstract/liquid_turf/proc/mob_fall(datum/source, mob/M)
 	SIGNAL_HANDLER
-	var/turf/T = source
-	if(liquid_group.group_overlay_state >= LIQUID_STATE_ANKLES && T.has_gravity(T))
+	if(liquid_group.group_overlay_state >= LIQUID_STATE_ANKLES)
 		if(iscarbon(M))
 			var/mob/living/carbon/C = M
 			if(C.wear_mask && C.wear_mask.flags_cover & MASKCOVERSMOUTH)
@@ -324,8 +322,7 @@
 			var/datum/reagent/reagent_type = liquid_group.reagents.reagent_list[1]
 			var/reagent_name = initial(reagent_type.name)
 			var/volume = round(reagent_type.volume / length(liquid_group.members), 0.01)
-
-			examine_list += span_notice("There is [replacetext(liquid_state_template, "$", "[round(volume / 3)] oz of [reagent_name]")] here.")
+			examine_list += span_notice("There is [replacetext(liquid_state_template, "$", "[UNIT_FORM_STRING(volume)] of [reagent_name]")] here.")
 		else
 			// Show each individual reagent
 			examine_list += "There is [replacetext(liquid_state_template, "$", "the following")] here:"
@@ -333,7 +330,7 @@
 			for(var/datum/reagent/reagent_type as anything in liquid_group.reagents.reagent_list)
 				var/reagent_name = initial(reagent_type.name)
 				var/volume = round(reagent_type.volume / length(liquid_group.members), 0.01)
-				examine_list += "&bull; [round(volume / 3)] oz of [reagent_name]"
+				examine_list += "&bull; [UNIT_FORM_STRING(volume)] of [reagent_name]"
 
 		examine_list +=  "<hr>"
 		return

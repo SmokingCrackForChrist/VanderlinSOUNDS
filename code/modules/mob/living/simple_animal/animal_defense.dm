@@ -23,8 +23,8 @@
 			if(HAS_TRAIT(M, TRAIT_PACIFISM))
 				to_chat(M, "<span class='warning'>I don't want to hurt [src]!</span>")
 				return
-			M.do_attack_animation(src, M.used_intent.animname)
-			playsound(loc, attacked_sound, 25, TRUE, -1)
+			M.do_attack_animation(src, M.used_intent.animname, atom_bounce = TRUE)
+			playsound(loc, punched_sound, 25, TRUE, -1)
 			var/damage = M.get_punch_dmg()
 			next_attack_msg.Cut()
 			attack_threshold_check(damage)
@@ -47,7 +47,7 @@
 			if(user.loc == target.loc)
 				return FALSE
 			else
-				user.do_attack_animation(target, ATTACK_EFFECT_DISARM)
+				user.do_attack_animation(target, ATTACK_EFFECT_DISARM, atom_bounce = TRUE)
 				playsound(target, 'sound/combat/shove.ogg', 100, TRUE, -1)
 
 				var/turf/target_oldturf = target.loc
@@ -56,7 +56,7 @@
 				var/mob/living/target_collateral_mob
 				var/obj/structure/table/target_table
 				var/shove_blocked = FALSE //Used to check if a shove is blocked so that if it is knockdown logic can be applied
-				if(prob(clamp(30 + (user.stat_fight(target,STATKEY_CON,STATKEY_STR)*10),0,100)))//check if we actually shove them
+				if(prob(clamp(30 + (user.stat_compare(target, STATKEY_STR, STATKEY_CON)*10),0,100)))//check if we actually shove them
 					target_collateral_mob = locate(/mob/living) in target_shove_turf.contents
 					if(target_collateral_mob)
 						shove_blocked = TRUE
@@ -112,8 +112,8 @@
 		if(HAS_TRAIT(M, TRAIT_PACIFISM))
 			to_chat(M, "<span class='warning'>I don't want to hurt [src]!</span>")
 			return
-		M.do_attack_animation(src, M.used_intent.animname)
-		playsound(loc, attacked_sound, 25, TRUE, -1)
+		M.do_attack_animation(src, M.used_intent.animname, atom_bounce = TRUE)
+		playsound(loc, punched_sound, 25, TRUE, -1)
 		var/damage = M.get_punch_dmg()
 		next_attack_msg.Cut()
 		attack_threshold_check(damage)
@@ -164,9 +164,10 @@
 		return FALSE
 	if(user == target)
 		return FALSE
-	if(user.check_leg_grabbed(1) || user.check_leg_grabbed(2))
-		to_chat(user, "<span class='notice'>I can't move my leg!</span>")
-		return
+	if(!HAS_TRAIT(user, TRAIT_GARROTED))
+		if(user.check_leg_grabbed(1) || user.check_leg_grabbed(2))
+			to_chat(user, "<span class='notice'>I can't move my leg!</span>")
+			return
 	if(user.stamina >= user.maximum_stamina)
 		return FALSE
 	if(user.loc == target.loc)
@@ -187,6 +188,7 @@
 		playsound(target, 'sound/combat/hits/kick/kick.ogg', 100, TRUE, -1)
 		target.lastattacker = user.real_name
 		target.lastattackerckey = user.ckey
+		target.lastattacker_weakref = WEAKREF(user)
 		if(target.mind)
 			target.mind.attackedme[user.real_name] = world.time
 		user.adjust_stamina(15)
@@ -240,7 +242,7 @@
 
 	take_overall_damage(brute_loss,burn_loss)
 
-/mob/living/simple_animal/do_attack_animation(atom/A, visual_effect_icon, used_item, no_effect, item_animation_override = null, datum/intent/used_intent)
+/mob/living/simple_animal/do_attack_animation(atom/A, visual_effect_icon, used_item, no_effect, item_animation_override = null, datum/intent/used_intent, atom_bounce)
 	if(!no_effect && !visual_effect_icon && melee_damage_upper)
 		if(melee_damage_upper < 10)
 			visual_effect_icon = ATTACK_EFFECT_PUNCH

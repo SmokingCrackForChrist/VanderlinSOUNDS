@@ -1,6 +1,6 @@
 /obj/machinery/artificer_table
 	name = "artificer table"
-	desc = "An artificers wood work station, blessed by some odd machination, or perhaps... magic..."
+	desc = "An artificers wood work station, nice and sturdy for working."
 	icon_state = "art_table"
 	icon = 'icons/roguetown/misc/tables.dmi'
 	var/obj/item/material
@@ -18,7 +18,7 @@
 		if(!material)
 			I.forceMove(src)
 			material = I
-			update_icon()
+			update_appearance(UPDATE_OVERLAYS)
 			return
 	if(istype(I, /obj/item/weapon/hammer))
 		user.changeNext_move(CLICK_CD_RAPID)
@@ -37,13 +37,14 @@
 		var/skill = user.get_skill_level(material.artrecipe.appro_skill)
 		if(material.artrecipe.progress == 100)
 			for(var/i in 1 to material.artrecipe.created_amount)
-				new material.artrecipe.created_item(get_turf(src))
+				var/atom/new_atom = new material.artrecipe.created_item(get_turf(src))
+				new_atom.update_integrity(new_atom.max_integrity, update_atom = FALSE)
 			var/obj/item/created_item_instance = material.artrecipe.created_item
 			user.visible_message(span_info("[user] creates \a [created_item_instance.name]."))
 			user.mind.add_sleep_experience(material.artrecipe.appro_skill, (user.STAINT * (material.artrecipe.craftdiff + 1)/2) * user.get_learning_boon(material.artrecipe.appro_skill)) //may need to be adjusted
 			qdel(material)
 			material = null
-			update_icon()
+			update_appearance(UPDATE_OVERLAYS)
 			return
 		if(skill < material.artrecipe.craftdiff)
 			if(prob(max(0, 25 - user.goodluck(2) - (skill * 2))))
@@ -107,17 +108,17 @@
 	material = null
 	I.loc = user.loc
 	user.put_in_active_hand(I)
-	update_icon()
+	update_appearance(UPDATE_OVERLAYS)
 
-/obj/machinery/artificer_table/update_icon()
-	cut_overlays()
+/obj/machinery/artificer_table/update_overlays()
+	. = ..()
 	if(!material)
 		return
 	var/obj/item/I = material
-	I.pixel_x = 0
-	I.pixel_y = 0
+	I.pixel_x = I.base_pixel_x
+	I.pixel_y = I.base_pixel_y
 	var/mutable_appearance/M = new /mutable_appearance(I)
 	M.transform *= 0.8
 	M.pixel_y = 6
 	M.pixel_x = 0
-	add_overlay(M)
+	. += M

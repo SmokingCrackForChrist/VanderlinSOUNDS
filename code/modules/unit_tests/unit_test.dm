@@ -14,10 +14,14 @@ You can use the run_loc_bottom_left and run_loc_top_right to get turfs for testi
 GLOBAL_DATUM(current_test, /datum/unit_test)
 GLOBAL_VAR_INIT(failed_any_test, FALSE)
 GLOBAL_VAR(test_log)
+/// When unit testing, all logs sent to log_mapping are stored here and retrieved in log_mapping unit test.
+GLOBAL_LIST_EMPTY(unit_test_mapping_logs)
 
 /// The name of the test that is currently focused.
 /// Use the PERFORM_ALL_TESTS macro instead.
 GLOBAL_VAR_INIT(focused_test, focused_test())
+/// Global assoc list of required mapping items, [item typepath] to [required item datum].
+GLOBAL_LIST_EMPTY(required_map_items)
 
 /proc/focused_test()
 	for(var/datum/unit_test/unit_test as anything in subtypesof(/datum/unit_test))
@@ -132,8 +136,6 @@ GLOBAL_VAR_INIT(focused_test, focused_test())
 		/obj/item/storage/fancy,
 		//needs a mob passed to view it
 		/atom/movable/screen/credit,
-		//invalid without mob/living passed
-		/obj/shapeshift_holder,
 		// requires a pod passed
 		/obj/effect/DPfall,
 		/obj/effect/DPtarget,
@@ -141,9 +143,19 @@ GLOBAL_VAR_INIT(focused_test, focused_test())
 		/obj/item/clothing/shirt/grenzelhoft,
 		// Sets usr on initialise,
 		/obj/item/sendingstonesummoner,
+		// sets all it's shit on initialize
+		/obj/effect/temp_visual/offered_item_effect,
 		// This should be obvious
 		/obj/merge_conflict_marker,
+		///this object exists purely to create a template spawning it in is nah
+		/obj/effect/landmark/house_spot,
+		/// stuff in this sets everyting in initialize args
+		/obj/effect/fuse,
+		///shit that calls explosion() should probably not be called in empty space
+		/obj/effect/temp_visual/target/meteor
 	)
+	///this does some wonky things that we don't want in a test area
+	ignore += typesof(/obj/structure/stockpile_storage,)
 	//these are VERY situational and need info passed
 	ignore += typesof(/obj/effect/abstract)
 	//needs a lich passed
@@ -233,6 +245,7 @@ GLOBAL_VAR_INIT(focused_test, focused_test())
 
 		var/list/log_entry = list()
 		var/list/fail_reasons = test.fail_reasons
+		var/map_name = SSmapping.config.map_name
 
 		for(var/reasonID in 1 to LAZYLEN(fail_reasons))
 			var/text = fail_reasons[reasonID][1]
@@ -242,7 +255,7 @@ GLOBAL_VAR_INIT(focused_test, focused_test())
 			test.log_for_test(text, "error", file, line)
 
 			// Normal log message
-			log_entry += "\tFAILURE #[reasonID]: [text] at [file]:[line]"
+			log_entry += "\tFAILURE #[reasonID]: [text] at [file]:[line] on [map_name]"
 
 		if(length(log_entry))
 			message = log_entry.Join("\n")

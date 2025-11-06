@@ -1,13 +1,12 @@
-/datum/advclass/combat/dbomb
-	name = "Dwarven Bombardier"
+/datum/job/advclass/combat/dbomb
+	title = "Dwarven Bombardier"
 	tutorial = "Tinkering Dwarves that like to blow things up."
-	allowed_sexes = list(MALE, FEMALE)
-	allowed_races = list("Dwarf")
-	outfit = /datum/outfit/job/adventurer/dbomb
+	allowed_races = list(SPEC_ID_DWARF)
+	outfit = /datum/outfit/adventurer/dbomb
 	min_pq = 0
 	category_tags = list(CTAG_ADVENTURER)
 
-/datum/outfit/job/adventurer/dbomb/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/adventurer/dbomb/pre_equip(mob/living/carbon/human/H)
 	..()
 	head = /obj/item/clothing/head/helmet/horned
 	pants = /obj/item/clothing/pants/trou
@@ -17,7 +16,7 @@
 	backl = /obj/item/storage/backpack/backpack
 	beltl = /obj/item/weapon/pick
 	beltr = /obj/item/weapon/hammer/iron
-	backpack_contents = list(/obj/item/bomb = 1, /obj/item/flint = 1)
+	backpack_contents = list(/obj/item/explosive/bottle = 1, /obj/item/flint = 1)
 	H.adjust_skillrank(/datum/skill/combat/axesmaces, 2, TRUE)
 	H.adjust_skillrank(/datum/skill/labor/mining, 1, TRUE)
 	H.adjust_skillrank(/datum/skill/craft/engineering, 5, TRUE)

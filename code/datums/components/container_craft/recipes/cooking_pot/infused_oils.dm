@@ -4,8 +4,9 @@
 	category = "Herbal Oils"
 	crafting_time = 25 SECONDS
 	reagent_requirements = list(
-		/datum/reagent/consumable/ethanol/ale = 30
+		/datum/reagent/consumable/ethanol = 30
 	)
+	subtype_reagents_allowed = TRUE
 	craft_verb = "infusing "
 	required_chem_temp = 300 // Low heat for oil infusion
 	pollute_amount = 100
@@ -20,7 +21,7 @@
 	created_reagent = /datum/reagent/consumable/herbal/rosa_oil
 	water_conversion = 1
 	requirements = list(
-		/obj/item/alch/rosa = 3
+		/obj/item/alch/herb/rosa = 3
 	)
 	output_amount = 20
 	finished_smell = /datum/pollutant/food/flower
@@ -31,8 +32,8 @@
 	created_reagent = /datum/reagent/medicine/herbal/mentha_oil
 	water_conversion = 1
 	requirements = list(
-		/obj/item/alch/mentha = 2,
-		/obj/item/alch/euphrasia = 1
+		/obj/item/alch/herb/mentha = 2,
+		/obj/item/alch/herb/euphrasia = 1
 	)
 	output_amount = 25
 	finished_smell = /datum/pollutant/food/mint

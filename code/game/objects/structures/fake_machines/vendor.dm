@@ -6,7 +6,6 @@
 	density = TRUE
 	blade_dulling = DULLING_BASH
 	integrity_failure = 0.1
-	max_integrity = 0
 	anchored = TRUE
 	layer = BELOW_OBJ_LAYER
 	rattle_sound = 'sound/misc/machineno.ogg'
@@ -17,59 +16,65 @@
 	var/budget = 0
 	var/wgain = 0
 	/// Max amount of items we can sell
-	var/max_merchanise = 15
+	var/max_merchandise = 15
 	/// Overlay used when theres items inside and we are locked
 	var/filled_overlay = "vendor-gen"
 	/// Light color used when theres items inside and we are locked
 	var/lighting_color = "#cf7214"
+	/// Tracking the hawking
+	var/next_hawk = 0
 
 /obj/structure/fake_machine/vendor/Initialize()
 	. = ..()
-	update_icon()
+	update_appearance(UPDATE_ICON_STATE)
+	START_PROCESSING(SSroguemachine, src)
+
+/obj/structure/fake_machine/vendor/Destroy(force)
+	STOP_PROCESSING(SSroguemachine, src)
+	return ..()
 
 /obj/structure/fake_machine/vendor/on_lock_add()
-	update_icon()
+	update_appearance(UPDATE_ICON_STATE)
 
-/obj/structure/fake_machine/vendor/on_lock(mob/user, silent)
+/obj/structure/fake_machine/vendor/on_lock(mob/living/user, silent)
 	. = ..()
-	update_icon()
+	update_appearance(UPDATE_ICON)
 
-/obj/structure/fake_machine/vendor/on_unlock(mob/user, silent)
+/obj/structure/fake_machine/vendor/on_unlock(mob/living/user, silent)
 	. = ..()
-	update_icon()
+	update_appearance(UPDATE_ICON)
 
-/obj/structure/fake_machine/vendor/obj_break(damage_flag, silent)
+/obj/structure/fake_machine/vendor/atom_break(damage_flag)
 	. = ..()
 	for(var/obj/item/I as anything in held_items)
 		I.forceMove(loc)
 		held_items -= I
 	budget2change(budget)
-	update_icon()
+	update_appearance(UPDATE_ICON)
+
+/obj/structure/fake_machine/vendor/atom_fix()
+	. = ..()
+	update_appearance(UPDATE_ICON)
 
 /obj/structure/fake_machine/vendor/Destroy()
 	for(var/obj/item/I as anything in held_items)
 		I.forceMove(loc)
 		held_items -= I
 	budget2change(budget)
-	set_light(0)
-	. = ..()
+	return ..()
 
-/obj/structure/fake_machine/vendor/update_icon()
-	if(!locked() || obj_broken)
-		icon_state = "streetvendor0"
-		if(length(overlays))
-			cut_overlays()
-		set_light(0)
-		return
-	icon_state = "streetvendor1"
-	if(!length(held_items))
-		if(length(overlays))
-			cut_overlays()
+/obj/structure/fake_machine/vendor/update_icon_state()
+	. = ..()
+	var/state = locked() && !obj_broken
+	icon_state = "streetvendor[state]"
+
+/obj/structure/fake_machine/vendor/update_overlays()
+	. = ..()
+	if(!length(held_items) || !locked() || obj_broken)
 		set_light(0)
 		return
 	set_light(1, 1, 1, l_color = lighting_color)
-	if(!length(overlays))
-		add_overlay(mutable_appearance(icon, filled_overlay))
+	. += mutable_appearance(icon, filled_overlay)
 
 /obj/structure/fake_machine/vendor/attackby(obj/item/I, mob/user, params)
 	if(istype(I, /obj/item/coin))
@@ -85,13 +90,17 @@
 		return
 	return ..()
 
-/obj/structure/fake_machine/vendor/attack_right(mob/user)
+/obj/structure/fake_machine/vendor/attackby_secondary(obj/item/weapon, mob/user, params)
 	. = ..()
+	if(. == SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN)
+		return
+	if(user.cmode)
+		return
 	if(!lock_check())
 		to_chat(user, span_notice("There is no lock on \the [src]! I won't be able to sell this!"))
-		return
-	var/held = user.get_active_held_item()
-	add_merchandise(held, user)
+		return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
+	add_merchandise(weapon, user)
+	return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
 
 /obj/structure/fake_machine/vendor/proc/add_merchandise(obj/item/I, mob/user)
 	if(QDELETED(I) || !isitem(I))
@@ -102,7 +111,7 @@
 	if(I.w_class > WEIGHT_CLASS_BULKY)
 		to_chat(user, span_info("[I] is too big for \the [src]!"))
 		return
-	if(length(held_items) > max_merchanise)
+	if(length(held_items) > max_merchandise)
 		to_chat(user, span_info("\The [src] is full!"))
 		return
 	held_items[I] = list()
@@ -110,7 +119,7 @@
 	held_items[I]["PRICE"] = 0
 	I.forceMove(src)
 	playsound(get_turf(src), 'sound/misc/machinevomit.ogg', 100, TRUE, -1)
-	update_icon()
+	update_appearance(UPDATE_ICON)
 
 /obj/structure/fake_machine/vendor/Topic(href, href_list)
 	. = ..()
@@ -128,10 +137,11 @@
 				else
 					say("NO MONEY NO HONEY!")
 					return
+			record_round_statistic(STATS_PEDDLER_REVENUE, held_items[O]["PRICE"])
 			held_items -= O
 			if(!usr.put_in_hands(O))
 				O.forceMove(get_turf(src))
-			update_icon()
+			update_appearance(UPDATE_OVERLAYS)
 	if(href_list["retrieve"])
 		var/obj/item/O = locate(href_list["retrieve"]) in held_items
 		if(!O || !istype(O))
@@ -142,7 +152,7 @@
 			held_items -= O
 			if(!usr.put_in_hands(O))
 				O.forceMove(get_turf(src))
-			update_icon()
+			update_appearance(UPDATE_OVERLAYS)
 	if(href_list["change"])
 		if(!usr.can_perform_action(src, NEED_DEXTERITY|FORBID_TELEKINESIS_REACH) || !locked())
 			return
@@ -167,7 +177,7 @@
 			var/prename
 			if(held_items[O]["NAME"])
 				prename = held_items[O]["NAME"]
-			var/newname = input(usr, "SET A NEW NAME FOR THIS PRODUCT", src, prename)
+			var/newname = browser_input_text(usr, "SET A NEW NAME FOR THIS PRODUCT", src, prename, max_length = MAX_NAME_LEN)
 			if(newname)
 				held_items[O]["NAME"] = newname
 	if(href_list["setprice"])
@@ -234,6 +244,17 @@
 	popup.set_content(contents)
 	popup.open()
 
+/obj/structure/fake_machine/vendor/process()
+	if(obj_broken)
+		return
+	if(world.time > next_hawk)
+		next_hawk = world.time + rand(1 MINUTES, 2 MINUTES)
+		if(length(held_items))
+			var/item = pick(held_items)
+			var/sale = LAZYACCESSASSOC(held_items, item, "NAME")
+			var/price = LAZYACCESSASSOC(held_items, item, "PRICE")
+			say("[sale] for sale! [price] mammons!")
+
 /obj/structure/fake_machine/vendor/nolock
 	lock = null
 	can_add_lock = TRUE
@@ -243,16 +264,10 @@
 
 /obj/structure/fake_machine/vendor/inn/Initialize()
 	. = ..()
-	for(var/X in list(/obj/item/key/roomi, /obj/item/key/roomii, /obj/item/key/roomiii))
-		var/obj/I = new X(src)
-		held_items[I] = list()
-		held_items[I]["NAME"] = I.name
-		held_items[I]["PRICE"] = 20
-	var/obj/I = new /obj/item/key/roomhunt(src)
+	var/obj/I = new /obj/item/key/medroomi(src)
 	held_items[I] = list()
 	held_items[I]["NAME"] = I.name
-	held_items[I]["PRICE"] = 40
-	update_icon()
+	held_items[I]["PRICE"] = 20
 
 /obj/structure/fake_machine/vendor/steward
 	lockids = list(ACCESS_STEWARD)
@@ -261,21 +276,20 @@
 
 /obj/structure/fake_machine/vendor/steward/Initialize()
 	. = ..()
-	for(var/X in list(/obj/item/key/shops/shop1, /obj/item/key/shops/shop2, /obj/item/key/shops/shop3, /obj/item/key/shops/shop4))
+	for(var/X in list(/obj/item/key/shops/shop4))
 		var/obj/I = new X(src)
 		held_items[I] = list()
 		held_items[I]["NAME"] = I.name
-		held_items[I]["PRICE"] = 5
-	for(var/X in list(/obj/item/key/houses/house2, /obj/item/key/houses/house3))
+		held_items[I]["PRICE"] = 20
+	for(var/X in list(/obj/item/key/houses/house1, /obj/item/key/houses/house2, /obj/item/key/houses/house3)) ///why was house 1 not here?
 		var/obj/I = new X(src)
 		held_items[I] = list()
 		held_items[I]["NAME"] = I.name
 		held_items[I]["PRICE"] = 100
-	var/obj/I = new /obj/item/key/houses/house7(src)
+	var/obj/I = new /obj/item/key/houses/house7(src) ///house 7 doesn't exist on Vanderlin. need to make map specific peddlers if we want to continue doing this.
 	held_items[I] = list()
 	held_items[I]["NAME"] = I.name
 	held_items[I]["PRICE"] = 120
-	update_icon()
 
 /obj/structure/fake_machine/vendor/apothecary
 	name = "DRUG PEDDLER"
@@ -291,17 +305,28 @@
 	lockids = list(ACCESS_INN)
 
 /obj/structure/fake_machine/vendor/butcher
+	name = "BUTCHER"
 	lockids = list(ACCESS_BUTCHER)
+	lighting_color = "#8d1818"
+	filled_overlay = "vendor-butcher"
+
 
 /obj/structure/fake_machine/vendor/soilson
 	name = "FARMHAND"
 	lockids = list(ACCESS_FARM)
+	lighting_color = "#707a24"
+	filled_overlay = "vendor-farm"
+
+/obj/structure/fake_machine/vendor/merchant
+	name = "SHOPHAND"
+	lockids = list(ACCESS_MERCHANT)
+	lighting_color = "#1b7bf1"
+	filled_overlay = "vendor-merch"
 
 /obj/structure/fake_machine/vendor/centcom
 	name = "LANDLORD"
 	desc = "Give this thing money, and you will immediately buy a neat property in the capital."
 	icon_state = "streetvendor1"
-	max_integrity = 0
 	var/list/cachey = list()
 
 /obj/structure/fake_machine/vendor/centcom/attack_hand(mob/living/user)
@@ -313,7 +338,6 @@
 			cachey[user] = list()
 		cachey[user]["moneydonate"] += P.get_real_price()
 		qdel(P)
-		update_icon()
 		playsound(loc, 'sound/misc/machinevomit.ogg', 100, TRUE, -1)
 
 		if(cachey[user]["moneydonate"] > 99)

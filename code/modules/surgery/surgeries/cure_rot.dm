@@ -20,6 +20,7 @@
 	time = 8 SECONDS
 	surgery_flags = SURGERY_INCISED
 	skill_min = SKILL_LEVEL_APPRENTICE
+	skill_median = SKILL_LEVEL_JOURNEYMAN
 	preop_sound = 'sound/surgery/cautery1.ogg'
 	success_sound = 'sound/surgery/cautery2.ogg'
 
@@ -34,7 +35,6 @@
 	var/burndam = 20
 	if(user.mind)
 		burndam -= (user.get_skill_level(/datum/skill/misc/medicine) * 3)
-	var/unzombification_pq = 0.1
 	var/datum/antagonist/zombie/was_zombie = target.mind?.has_antag_datum(/datum/antagonist/zombie)
 	var/has_rot = was_zombie
 	if(!has_rot && iscarbon(target))
@@ -47,9 +47,6 @@
 		was_zombie.become_rotman = FALSE
 		target.mind.remove_antag_datum(/datum/antagonist/zombie)
 		target.death()
-		if(unzombification_pq && !HAS_TRAIT(target, TRAIT_IWASUNZOMBIFIED) && user?.ckey)
-			adjust_playerquality(unzombification_pq, user.ckey)
-			ADD_TRAIT(target, TRAIT_IWASUNZOMBIFIED, "[type]")
 	var/datum/component/rot/rot = target.GetComponent(/datum/component/rot)
 	if(rot)
 		rot.amount = 0

@@ -59,9 +59,9 @@
 	mid_length = 4 MINUTES
 	volume = 70
 	extra_range = 8
-	falloff = 0
+	falloff_exponent = 0
 	persistent_loop = TRUE
-	var/stress2give = /datum/stressevent/music
+	var/stress2give = /datum/stress_event/music
 	channel = CHANNEL_JUKEBOX
 
 /datum/looping_sound/musloop/on_hear_sound(mob/M)
@@ -73,12 +73,12 @@
 
 /obj/structure/fake_machine/musicbox
 	name = "wax music device"
-	desc = "A marvelous device invented to record sermons. Aleksandar Gemrald Sparks invented this machine to discover prophecies of Psydon's return but failed. It now brings us strange music from another realm."
+	desc = "A marvelous device created by Heartfelts artificers before its fall, it plays a variety of songs from across Faience, as if their preformers where within the same room."
 	icon = 'icons/roguetown/misc/machines.dmi'
 	icon_state = "music0"
 	density = TRUE
 	anchored = TRUE
-	max_integrity = 0
+	resistance_flags = INDESTRUCTIBLE
 	rattle_sound = 'sound/misc/machineno.ogg'
 	unlock_sound = 'sound/misc/beep.ogg'
 	lock_sound = 'sound/misc/beep.ogg'
@@ -100,7 +100,8 @@
 	. = ..()
 	qdel(soundloop)
 
-/obj/structure/fake_machine/musicbox/update_icon()
+/obj/structure/fake_machine/musicbox/update_icon_state()
+	. = ..()
 	icon_state = "music[playing]"
 
 /obj/structure/fake_machine/musicbox/examine(mob/user)
@@ -122,12 +123,12 @@
 	soundloop.cursound = null
 	soundloop.volume = curvol
 	soundloop.start()
-	update_icon()
+	update_appearance(UPDATE_ICON_STATE)
 
 /obj/structure/fake_machine/musicbox/proc/stop_playing()
 	playing = FALSE
 	soundloop.stop()
-	update_icon()
+	update_appearance(UPDATE_ICON_STATE)
 
 /obj/structure/fake_machine/musicbox/attack_hand(mob/user)
 	. = ..()
@@ -219,4 +220,11 @@
 /obj/structure/fake_machine/musicbox/tavern/Initialize()
 	. = ..()
 	soundloop.extra_range = 12
-	soundloop.falloff = 6
+	soundloop.falloff_exponent = 6
+
+#undef MUSIC_TAVCAT_CHILL
+#undef MUSIC_TAVCAT_FUCK
+#undef MUSIC_TAVCAT_PARTY
+#undef MUSIC_TAVCAT_SCUM
+#undef MUSIC_TAVCAT_DAMN
+#undef MUSIC_TAVCAT_MISC

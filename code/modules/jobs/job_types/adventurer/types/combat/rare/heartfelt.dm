@@ -1,23 +1,22 @@
-/datum/advclass/combat/heartfeltlord
-	name = "Lord of Heartfelt"
+/datum/job/advclass/combat/heartfeltlord
+	title = "Lord of Heartfelt"
 	tutorial = "You are the proud lord of Heartfelt, \
 	but why have you come to Vanderlin?"
 	allowed_sexes = list(MALE)
-	allowed_races = list("Humen")
-	outfit = /datum/outfit/job/adventurer/heartfeltlord
+	allowed_races = list(SPEC_ID_HUMEN)
+	outfit = /datum/outfit/adventurer/heartfeltlord
 	min_pq = 2
-	maximum_possible_slots = 1
-	pickprob = 50
-	category_tags = list(CTAG_DISABLED)
+	total_positions = 1
+	roll_chance = 50
 
-/datum/outfit/job/adventurer/heartfeltlord/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/adventurer/heartfeltlord/pre_equip(mob/living/carbon/human/H)
 	..()
 	shirt = /obj/item/clothing/shirt/undershirt
 	belt = /obj/item/storage/belt/leather/black
 	neck = /obj/item/clothing/neck/gorget
 	head = /obj/item/clothing/head/helmet
 	shoes = /obj/item/clothing/shoes/nobleboot
-	pants = /obj/item/clothing/pants/tights/black
+	pants = /obj/item/clothing/pants/tights/colored/black
 	cloak = /obj/item/clothing/cloak/heartfelt
 	armor = /obj/item/clothing/armor/medium/surcoat/heartfelt
 	beltr = /obj/item/storage/belt/pouch/coins/rich

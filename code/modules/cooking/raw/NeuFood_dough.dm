@@ -40,6 +40,8 @@
 
 /obj/item/reagent_containers/food/snacks/dough_slice/attackby(obj/item/I, mob/living/user, params)
 	. = ..()
+	if(.)
+		return
 	if(user.mind)
 		short_cooktime = (50 - ((user.get_skill_level(/datum/skill/craft/cooking))*8))
 	var/found_table = locate(/obj/structure/table) in (loc)
@@ -85,7 +87,9 @@
 	w_class = WEIGHT_CLASS_NORMAL
 
 /obj/item/reagent_containers/food/snacks/butterdough_slice/attackby(obj/item/I, mob/living/user, params)
-	..()
+	. = ..()
+	if(.)
+		return
 	if(user.mind)
 		short_cooktime = (50 - ((user.get_skill_level(/datum/skill/craft/cooking))*8))
 	var/found_table = locate(/obj/structure/table) in (loc)
@@ -124,7 +128,7 @@
 
 /obj/item/reagent_containers/food/snacks/hardtack
 	name = "hardtack"
-	desc = "Very, very hard and dry."
+	desc = "Very, very hard and dry. Keeps well."
 	icon_state = "tack"
 	base_icon_state = "tack"
 	biting = TRUE
@@ -150,7 +154,7 @@
 /*	.................   Bread   ................... */
 /obj/item/reagent_containers/food/snacks/bread
 	name = "bread loaf"
-	desc = "One of the staple foods of commoners. With the decline of magic, the loss of bread-duplication has led to mass famines around Psydonia."
+	desc = "One of the staple foods of commoners. A simple meal, yet a luxury men will die for."
 	icon_state = "loaf"
 	base_icon_state = "loaf"
 	dropshrink = 0.8
@@ -171,21 +175,22 @@
 	. = ..()
 	if(. && !QDELETED(src))
 		bitecount++
-		update_icon()
+		update_appearance(UPDATE_ICON_STATE)
 
 /obj/item/reagent_containers/food/snacks/bread/on_consume(mob/living/eater)
 	..()
 	if(slices_num)
-		if(bitecount == 1)
-			slices_num = 5
-		if(bitecount == 2)
-			slices_num = 4
-		if(bitecount == 3)
-			slices_num = 3
-		if(bitecount == 4)
-			slices_num = 2
-		if(bitecount == 5)
-			changefood(slice_path, eater)
+		switch(bitecount)
+			if(1)
+				slices_num = 5
+			if(2)
+				slices_num = 4
+			if(3)
+				slices_num = 3
+			if(4)
+				slices_num = 2
+			if(5)
+				changefood(slice_path, eater)
 
 /*	.................   Breadslice & Toast   ................... */
 /obj/item/reagent_containers/food/snacks/breadslice
@@ -282,14 +287,14 @@
 /obj/item/reagent_containers/food/snacks/stale_bread
 	name = "stale bread"
 	desc = "Old. Is that mold? Not fit for slicing, just eating in sullen silence."
-	icon_state = "loaf6"
+	icon_state = "loaf"
 	color = "#92908a"
 	dropshrink = 0.8
 	list_reagents = list(/datum/reagent/consumable/nutriment = SNACK_DECENT)
 	drop_sound = 'sound/foley/dropsound/gen_drop.ogg'
 	w_class = WEIGHT_CLASS_NORMAL
 	tastes = list("stale bread" = 1)
-	faretype = FARE_NEUTRAL
+	faretype = FARE_POOR
 
 /obj/item/reagent_containers/food/snacks/stale_bread/raisin
 	icon_state = "raisinbread6"
@@ -371,8 +376,6 @@
 	base_icon_state = "grenzbun"
 	faretype = FARE_NEUTRAL
 	foodtype = GRAIN | MEAT
-	plateable = TRUE
-	foodbuff_skillcheck = TRUE
 	rotprocess = SHELFLIFE_DECENT
 	bitesize = 5
 
@@ -554,7 +557,7 @@
 	rotprocess = SHELFLIFE_LONG
 
 /obj/item/reagent_containers/food/snacks/zybcake
-	name = "zybantu cake base"
+	name = "zaladin cake base"
 	desc = "With this sweet thing, you shall make them sing. Lacking spider-honey glazing."
 	icon_state = "cake_filled"
 	dropshrink = 0.8
@@ -562,9 +565,9 @@
 	foodtype = GRAIN | DAIRY
 	rotprocess = SHELFLIFE_LONG
 
-// -------------- SPIDER-HONEY CAKE (Zybantu) -----------------
+// -------------- SPIDER-HONEY CAKE (Zaladin) -----------------
 /obj/item/reagent_containers/food/snacks/zybcake_ready
-	name = "unbaked zybantu cake"
+	name = "unbaked zaladin cake"
 	icon_state = "honeycakeuncook"
 	dropshrink = 0.8
 	slices_num = 0
@@ -572,8 +575,8 @@
 	rotprocess = SHELFLIFE_DECENT
 
 /obj/item/reagent_containers/food/snacks/zybcake_cooked
-	name = "zybantine cake"
-	desc = "Cake glazed with honey, in the famous Zybantu fashion, a delicious sweet treat. Said to be very hard to poison, perhaps the honey counteracting such malicious concotions."
+	name = "zalad cake"
+	desc = "Cake glazed with honey, in the famous Zaladin fashion, a delicious sweet treat. Said to be very hard to poison, perhaps the honey counteracting such malicious concotions."
 	icon_state = "honeycake"
 	dropshrink = 0.8
 	slices_num = 6
@@ -588,7 +591,7 @@
 	faretype = FARE_LAVISH
 
 /obj/item/reagent_containers/food/snacks/zybcake_slice
-	name = "zybantine cake slice"
+	name = "zalad cake slice"
 	icon_state = "hcake_slice"
 	base_icon_state = "hcake_slice"
 	dropshrink = 0.8
@@ -601,7 +604,6 @@
 	tastes = list("cake"=1, "pear" = 1, "delicious honeyfrosting"=1)
 	eat_effect = /datum/status_effect/buff/foodbuff
 	rotprocess = SHELFLIFE_DECENT
-	plateable = TRUE
 	faretype = FARE_FINE
 
 // -------------- CHEESECAKE -----------------
@@ -652,7 +654,6 @@
 	foodtype = GRAIN | DAIRY | SUGAR
 	eat_effect = /datum/status_effect/buff/foodbuff
 	rotprocess = SHELFLIFE_DECENT
-	plateable = TRUE
 	faretype = FARE_FINE
 
 /obj/item/reagent_containers/food/snacks/cheesecake_poison_cooked
@@ -686,7 +687,6 @@
 	w_class = WEIGHT_CLASS_NORMAL
 	foodtype = GRAIN | DAIRY | SUGAR
 	rotprocess = SHELFLIFE_DECENT
-	plateable = TRUE
 	faretype = FARE_FINE
 
 /*	.................   STRAWBERRY CAKE   ................... */

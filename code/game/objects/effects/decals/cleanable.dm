@@ -6,7 +6,6 @@
 	var/bloodiness = 0 //0-100, amount of blood in this decal, used for making footprints and affecting the alpha of bloody footprints
 	var/mergeable_decal = TRUE //when two of these are on a same tile or do we need to merge them into just one?
 	var/beauty = 0
-	obj_flags = CAN_BE_HIT
 	///The type of cleaning required to clean the decal. See __DEFINES/cleaning.dm for the options
 	var/clean_type = CLEAN_TYPE_LIGHT_DECAL
 
@@ -100,7 +99,7 @@
 			S.bloody_shoes[blood_state] = min(MAX_SHOE_BLOODINESS,S.bloody_shoes[blood_state]+add_blood)
 			S.add_blood_DNA(GET_ATOM_BLOOD_DNA(src))
 			S.blood_state = blood_state
-			update_icon()
+			update_appearance()
 			H.update_inv_shoes()
 
 /obj/effect/decal/cleanable/proc/can_bloodcrawl_in()

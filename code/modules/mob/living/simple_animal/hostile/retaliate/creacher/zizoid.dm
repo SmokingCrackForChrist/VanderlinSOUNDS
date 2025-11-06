@@ -34,12 +34,13 @@
 	del_on_deaggro = 99 SECONDS
 	retreat_health = 0
 	food_max = 250
-	food = 0
+
 	dodgetime = 20
 	aggressive = TRUE
 //	stat_attack = UNCONSCIOUS
 	remains_type = /obj/effect/decal/remains/troll // Placeholder until Troll remains are sprited.
 	body_eater = TRUE
+	dendor_taming_chance = DENDOR_TAME_PROB_NONE
 
 	ai_controller = /datum/ai_controller/zizoid
 
@@ -98,7 +99,7 @@
 
 /mob/living/simple_animal/hostile/retaliate/blood/death(gibbed)
 	..()
-	update_icon()
+	update_appearance()
 
 /mob/living/simple_animal/hostile/retaliate/blood/get_sound(input)
 	switch(input)

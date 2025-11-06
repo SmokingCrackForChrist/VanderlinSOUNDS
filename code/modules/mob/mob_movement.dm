@@ -1,8 +1,4 @@
-///Can the atom pass this mob (always true for /mob)
-/mob/CanPass(atom/movable/mover, turf/target)
-	return TRUE				//There's almost no cases where non /living mobs should be used in game as actual mobs, other than ghosts.
-
-/**
+w/**
  * If your mob is concious, drop the item in the active hand
  *
  * This is a hidden verb, likely for binding with winset for hotkeys
@@ -82,12 +78,16 @@
 		return FALSE
 	if(!n || !direct)
 		return FALSE
-	if(mob.notransform)
+	if(HAS_TRAIT(mob, TRAIT_NO_TRANSFORM))
 		return FALSE	//This is sota the goto stop mobs from moving var
 	if(mob.control_object)
 		return Move_object(direct)
 	if(!isliving(mob))
 		return mob.Move(n, direct)
+	else
+		if (HAS_TRAIT(mob, TRAIT_IN_FRENZY) || HAS_TRAIT(mob, TRAIT_MOVEMENT_BLOCKED))
+			return FALSE
+
 	if(mob.stat == DEAD)
 #ifdef TESTSERVER
 		mob.ghostize()
@@ -125,8 +125,6 @@
 		var/atom/O = mob.loc
 		return O.relaymove(mob, direct)
 
-	if(!mob.Process_Spacemove(direct))
-		return FALSE
 	//We are now going to move
 	var/add_delay = mob.cached_multiplicative_slowdown
 	//If the move was recent, count using old_move_delay
@@ -168,7 +166,7 @@
 	. = ..()
 
 	if((direct & (direct - 1)) && mob.loc == n) //moved diagonally successfully
-		add_delay *= 2
+		add_delay *= sqrt(2)
 
 	var/after_glide = 0
 	if(visual_delay)
@@ -222,32 +220,37 @@
  * Called by client/Move()
  */
 /client/proc/Process_Grab()
-	if(mob.pulledby)
-		if(mob.pulledby == mob)
-			return FALSE
-		if(mob.pulledby == mob.pulling)			//Don't autoresist grabs if we're grabbing them too.
-			move_delay = world.time + 10
-			to_chat(src, "<span class='warning'>I can't move!</span>")
-			return TRUE
-		else if(HAS_TRAIT(mob, TRAIT_INCAPACITATED))
-			move_delay = world.time + 10
-			to_chat(src, "<span class='warning'>I can't move!</span>")
+	if(mob.pulledby && mob.pulledby != mob)
+		if(HAS_TRAIT(mob, TRAIT_INCAPACITATED))
+			COOLDOWN_START(src, move_delay, 1 SECONDS)
+			to_chat(src, span_warning("I can't move!"))
 			return TRUE
 		else if(HAS_TRAIT(mob, TRAIT_RESTRAINED))
-			move_delay = world.time + 10
-			to_chat(src, "<span class='warning'>I'm restrained! I can't move!</span>")
+			COOLDOWN_START(src, move_delay, 1 SECONDS)
+			to_chat(src, span_warning("I'm restrained! I can't move!"))
 			return TRUE
-		else
+		else if(mob.pulledby != mob.pulling || mob.pulledby.grab_state > GRAB_PASSIVE || mob.cmode || mob.pulledby.cmode)	//Don't autoresist passive grabs if we're grabbing them too.
 			return mob.resist_grab(TRUE)
-			// move_delay = world.time + 10
-			// to_chat(src, "<span class='warning'>I can't move!</span>")
-			// return TRUE
+
+	if(mob.pulling && isliving(mob.pulling))
+		var/mob/living/L = mob.pulling
+		var/mob/living/M = mob
+		// If passive grab and trying to pull someone who doesn't want to be pulled
+		if(M.grab_state == GRAB_PASSIVE && !isanimal(L) && L.cmode && L.body_position != LYING_DOWN && !HAS_TRAIT(L, TRAIT_INCAPACITATED))
+			// Reuse shove check probability
+			if(!prob(clamp(30 + (M.stat_compare(L, STATKEY_STR, STATKEY_CON)*10),0,100)))
+				COOLDOWN_START(src, move_delay, 1 SECONDS)
+				to_chat(src, span_warning("[L]'s footing is too sturdy!"))
+				return TRUE
+
 	var/mob/living/simple_animal/bound = mob.pulling
 	if(istype(bound))
 		if(bound?.binded)
-			move_delay = world.time + 10
+			COOLDOWN_START(src, move_delay, 1 SECONDS)
 			to_chat(src, span_warning("[bound] is bound in a summoning circle. I can't move them!"))
 			return TRUE
+
+	return FALSE
 
 /**
  * Allows mobs to ignore density and phase through objects
@@ -321,7 +324,7 @@
 				for(var/obj/effect/decal/cleanable/food/salt/S in stepTurf)
 					to_chat(L, "<span class='warning'>[S] bars your passage!</span>")
 					return
-				if(stepTurf.flags_1 & NOJAUNT_1)
+				if(stepTurf.turf_flags & NO_JAUNT)
 					to_chat(L, "<span class='warning'>Some strange aura is blocking the way.</span>")
 					return
 				if (locate(/obj/effect/blessing, stepTurf))
@@ -332,67 +335,6 @@
 			L.setDir(direct)
 	return TRUE
 
-
-/**
- * Handles mob/living movement in space (or no gravity)
- *
- * Called by /client/Move()
- *
- * return TRUE for movement or FALSE for none
- *
- * You can move in space if you have a spacewalk ability
- */
-/mob/Process_Spacemove(movement_dir = 0)
-	if(spacewalk || ..())
-		return TRUE
-	var/atom/movable/backup = get_spacemove_backup()
-	if(backup)
-		if(istype(backup) && movement_dir && !backup.anchored)
-			if(backup.newtonian_move(turn(movement_dir, 180))) //You're pushing off something movable, so it moves
-				to_chat(src, "<span class='info'>I push off of [backup] to propel myself.</span>")
-		return TRUE
-	return FALSE
-
-/**
- * Find movable atoms? near a mob that are viable for pushing off when moving
- */
-/mob/get_spacemove_backup()
-	for(var/A in orange(1, get_turf(src)))
-		if(isarea(A))
-			continue
-		else if(isturf(A))
-			var/turf/turf = A
-			if(!turf.density && !mob_negates_gravity())
-				continue
-			return A
-		else
-			var/atom/movable/AM = A
-			if(AM == buckled)
-				continue
-			if(ismob(AM))
-				var/mob/M = AM
-				if(M.buckled)
-					continue
-			if(!AM.CanPass(src) || AM.density)
-				if(AM.anchored)
-					return AM
-				if(pulling == AM)
-					continue
-				. = AM
-
-/**
- * Returns true if a mob has gravity
- *
- * I hate that this exists
- */
-/mob/proc/mob_has_gravity()
-	return has_gravity()
-
-/**
- * Does this mob ignore gravity
- */
-/mob/proc/mob_negates_gravity()
-	return FALSE
 
 /// Called when this mob slips over, override as needed
 /mob/proc/slip(knockdown_amount, obj/O, lube, paralyze, force_drop)
@@ -588,11 +530,6 @@
 		m_intent = MOVE_INTENT_WALK
 	else
 		m_intent = MOVE_INTENT_RUN
-	if(hud_used && hud_used.static_inventory)
-		for(var/atom/movable/screen/mov_intent/selector in hud_used.static_inventory)
-			selector.update_icon()
-
-
 
 /mob/proc/update_sneak_invis(reset = FALSE)
 	return
@@ -640,13 +577,13 @@
 					return
 				if(ishuman(L))
 					var/mob/living/carbon/human/H = L
-					if(H.get_encumbrance() >= 0.7)
-						to_chat(H, span_info("Your armor is too heavy to run in!"))
+					if(H.get_encumbrance() >= 0.5)
+						to_chat(H, span_info("You are too heavy to run!"))
 						return
 			m_intent = MOVE_INTENT_RUN
 	if(hud_used && hud_used.static_inventory)
 		for(var/atom/movable/screen/rogmove/selector in hud_used.static_inventory)
-			selector.update_icon()
+			selector.update_appearance()
 	if(!silent)
 		playsound_local(src, 'sound/misc/click.ogg', 100)
 
@@ -654,13 +591,13 @@
 	if(fixedeye)
 		fixedeye = 0
 		if(!tempfixeye)
-			atom_flags &= ~NO_DIR_CHANGE
+			atom_flags &= ~NO_DIR_CHANGE_ON_MOVE
 	else
 		fixedeye = 1
-		atom_flags |= NO_DIR_CHANGE
+		atom_flags |= NO_DIR_CHANGE_ON_MOVE
 
 	for(var/atom/movable/screen/eye_intent/eyet in hud_used.static_inventory)
-		eyet.update_icon(src)
+		eyet.update_appearance(UPDATE_ICON)
 	playsound_local(src, 'sound/misc/click.ogg', 100)
 
 /client/proc/hearallasghost()

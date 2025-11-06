@@ -1,14 +1,14 @@
 /mob/living/carbon/get_item_by_slot(slot_id)
 	switch(slot_id)
-		if(SLOT_WEAR_MASK)
+		if(ITEM_SLOT_MASK)
 			return wear_mask
-		if(SLOT_NECK)
+		if(ITEM_SLOT_NECK)
 			return wear_neck
-		if(SLOT_HEAD)
+		if(ITEM_SLOT_HEAD)
 			return head
-		if(SLOT_HANDCUFFED)
+		if(ITEM_SLOT_HANDCUFFED)
 			return handcuffed
-		if(SLOT_LEGCUFFED)
+		if(ITEM_SLOT_LEGCUFFED)
 			return legcuffed
 	return null
 
@@ -51,58 +51,64 @@
 	return null
 
 //This is an UNSAFE proc. Use mob_can_equip() before calling this one! Or rather use equip_to_slot_if_possible() or advanced_equip_to_slot_if_possible()
-/mob/living/carbon/equip_to_slot(obj/item/I, slot, initial)
+/mob/living/carbon/equip_to_slot(obj/item/equipping, slot, initial = FALSE, redraw_mob = FALSE)
 	if(!slot)
 		return
-	if(!istype(I))
+	if(!istype(equipping))
 		return
 
-	var/index = get_held_index_of_item(I)
+	var/index = get_held_index_of_item(equipping)
 	if(index)
 		held_items[index] = null
 
-	if(I.pulledby)
-		I.pulledby.stop_pulling()
+	if(equipping.pulledby)
+		equipping.pulledby.stop_pulling()
 
-	I.screen_loc = null
+	equipping.screen_loc = null
 	if(client)
-		client.screen -= I
+		client.screen -= equipping
 	if(observers && observers.len)
-		for(var/M in observers)
-			var/mob/dead/observe = M
+		for(var/mob/dead/observe as anything in observers)
 			if(observe.client)
-				observe.client.screen -= I
-	I.forceMove(src)
-	I.layer = ABOVE_HUD_LAYER
-	I.plane = ABOVE_HUD_PLANE
-	I.appearance_flags |= NO_CLIENT_COLOR
+				observe.client.screen -= equipping
+	equipping.forceMove(src)
+	equipping.plane = ABOVE_HUD_PLANE
+	equipping.appearance_flags |= NO_CLIENT_COLOR
 	var/not_handled = FALSE
 	switch(slot)
-		if(SLOT_WEAR_MASK)
-			wear_mask = I
-			wear_mask_update(I, toggle_off = 0)
-		if(SLOT_HEAD)
-			head = I
-			head_update(I)
-		if(SLOT_NECK)
-			wear_neck = I
-			update_inv_neck(I)
-		if(SLOT_HANDCUFFED)
-			set_handcuffed(I)
+		if(ITEM_SLOT_MASK)
+			if(wear_mask)
+				return
+			wear_mask = equipping
+			wear_mask_update(equipping, toggle_off = 0)
+		if(ITEM_SLOT_HEAD)
+			if(head)
+				return
+			head = equipping
+			head_update(equipping)
+		if(ITEM_SLOT_NECK)
+			if(wear_neck)
+				return
+			wear_neck = equipping
+			update_inv_neck(equipping)
+		if(ITEM_SLOT_HANDCUFFED)
+			set_handcuffed(equipping)
 			update_handcuffed()
-		if(SLOT_LEGCUFFED)
-			legcuffed = I
+		if(ITEM_SLOT_LEGCUFFED)
+			if(legcuffed)
+				return
+			legcuffed = equipping
 			update_inv_legcuffed()
-		if(SLOT_HANDS)
-			put_in_hands(I)
+		if(ITEM_SLOT_HANDS)
+			put_in_hands(equipping)
 			update_inv_hands()
-		if(SLOT_IN_BACKPACK)
+		if(ITEM_SLOT_BACKPACK)
 			not_handled = TRUE
 			if(backr)
-				if(SEND_SIGNAL(backr, COMSIG_TRY_STORAGE_INSERT, I, src, TRUE, !initial)) // If inital is true, item is from job datum and should be silent
+				if(SEND_SIGNAL(backr, COMSIG_TRY_STORAGE_INSERT, equipping, src, TRUE, !initial)) // If inital is true, item is from job datum and should be silent
 					not_handled = FALSE
 			if(backl && not_handled)
-				if(SEND_SIGNAL(backl, COMSIG_TRY_STORAGE_INSERT, I, src, TRUE, !initial)) // If inital is true, item is from job datum and should be silent
+				if(SEND_SIGNAL(backl, COMSIG_TRY_STORAGE_INSERT, equipping, src, TRUE, !initial)) // If inital is true, item is from job datum and should be silent
 					not_handled = FALSE
 
 		else
@@ -112,11 +118,11 @@
 	//We cannot call it for items that have not been handled as they are not yet correctly
 	//in a slot (handled further down inheritance chain, probably living/carbon/human/equip_to_slot
 	if(!not_handled)
-		I.equipped(src, slot)
+		equipping.equipped(src, slot)
 
 	if(hud_used)
-		hud_used.throw_icon?.update_icon()
-		hud_used.give_intent?.update_icon()
+		hud_used.throw_icon?.update_appearance()
+		hud_used.give_intent?.update_appearance()
 
 	return not_handled
 

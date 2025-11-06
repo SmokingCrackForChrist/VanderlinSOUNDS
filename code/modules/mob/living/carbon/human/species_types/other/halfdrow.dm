@@ -9,34 +9,78 @@
 
 /datum/species/human/halfdrow
 	name = "Half-Drow"
-	id = "human"
+	id = SPEC_ID_HALF_DROW
+	multiple_accents = list(
+		"Humen Accent" = "Imperial",
+		"Dark Elf Accent" = "Elfish"
+	)
 	desc = "The child of a Dark Elf and Humen. \
 	\n\n\
 	The distinction between Half-Elves and 'Half-Drow' has been a subject of debate for centuries. \
 	While similar in physicality and longevity to their non-drow cousins, their origins cause them to face discrimination akin to their elven side. \
 	\n\n\
 	Groups of half-elves and half-drow have been known to congregate together and consider themselves one species. \
-	According to some radical academic scholars, they might be one species indeed- yet the people of Psydonia certainly do not believe the same at large. \
+	According to some radical academic scholars, they might be one and the same species indeed- yet the people of Psydonia certainly do not believe the same at large. \
 	\n\
 	THIS IS A DISCRIMINATED SPECIES. EXPECT A MORE DIFFICULT EXPERIENCE. <B>NOBLES EVEN MORE SO.</B> PLAY AT YOUR OWN RISK."
 
 	skin_tone_wording = "Half-Drow Identity"
-
 	default_color = "FFFFFF"
-	species_traits = list(EYECOLOR,HAIR,FACEHAIR,LIPS,STUBBLE,OLDGREY)
+
+	species_traits = list(EYECOLOR, HAIR, FACEHAIR, LIPS, STUBBLE, OLDGREY)
 	inherent_traits = list(TRAIT_NOMOBSWAP)
-	customizers = list(
-		/datum/customizer/organ/ears/elf,
-		/datum/customizer/organ/eyes/humanoid,
-		/datum/customizer/bodypart_feature/hair/head/humanoid,
-		/datum/customizer/bodypart_feature/hair/facial/humanoid,
-		/datum/customizer/bodypart_feature/accessory,
-		/datum/customizer/bodypart_feature/face_detail,
+
+	use_skintones = TRUE
+	possible_ages = NORMAL_AGES_LIST_CHILD
+
+	changesource_flags = WABBAJACK
+
+	limbs_icon_m = 'icons/roguetown/mob/bodies/m/mm.dmi'
+	limbs_icon_f = 'icons/roguetown/mob/bodies/f/fm.dmi'
+
+	offset_features_m = list(
+		OFFSET_RING = list(0,0),\
+		OFFSET_GLOVES = list(0,0),\
+		OFFSET_WRISTS = list(0,0),\
+		OFFSET_HANDS = list(0,0),\
+		OFFSET_CLOAK = list(0,0),\
+		OFFSET_FACEMASK = list(0,0),\
+		OFFSET_HEAD = list(0,0),\
+		OFFSET_FACE = list(0,0),\
+		OFFSET_BELT = list(0,0),\
+		OFFSET_BACK = list(0,0),\
+		OFFSET_NECK = list(0,0),\
+		OFFSET_MOUTH = list(0,0),\
+		OFFSET_PANTS = list(0,0),\
+		OFFSET_SHIRT = list(0,0),\
+		OFFSET_ARMOR = list(0,0),\
+		OFFSET_UNDIES = list(0,0),\
 	)
-	bodypart_features = list(
-		/datum/bodypart_feature/hair/head,
-		/datum/bodypart_feature/hair/facial,
+
+	offset_features_f = list(
+		OFFSET_RING = list(0,-1),\
+		OFFSET_GLOVES = list(0,0),\
+		OFFSET_WRISTS = list(0,0),\
+		OFFSET_HANDS = list(0,0),\
+		OFFSET_CLOAK = list(0,0),\
+		OFFSET_FACEMASK = list(0,-1),\
+		OFFSET_HEAD = list(0,-1),\
+		OFFSET_FACE = list(0,-1),\
+		OFFSET_BELT = list(0,-1),\
+		OFFSET_BACK = list(0,-1),\
+		OFFSET_NECK = list(0,-1),\
+		OFFSET_MOUTH = list(0,-1),\
+		OFFSET_PANTS = list(0,0),\
+		OFFSET_SHIRT = list(0,0),\
+		OFFSET_ARMOR = list(0,0),\
+		OFFSET_UNDIES = list(0,0),\
 	)
+
+	specstats_m = list(STATKEY_STR = 0, STATKEY_PER = 1, STATKEY_INT = 1, STATKEY_CON = 0, STATKEY_END = 0, STATKEY_SPD = 1, STATKEY_LCK = 0)
+	specstats_f = list(STATKEY_STR = 0, STATKEY_PER = 1, STATKEY_INT = 1, STATKEY_CON = 0, STATKEY_END = 0, STATKEY_SPD = 1, STATKEY_LCK = 0)
+
+	enflamed_icon = "widefire"
+
 	organs = list(
 		ORGAN_SLOT_BRAIN = /obj/item/organ/brain,
 		ORGAN_SLOT_HEART = /obj/item/organ/heart,
@@ -50,32 +94,19 @@
 		ORGAN_SLOT_GUTS = /obj/item/organ/guts,
 	)
 
-	use_skintones = 1
-	possible_ages = list(AGE_CHILD, AGE_ADULT, AGE_MIDDLEAGED, AGE_OLD)
-	disliked_food = NONE
-	liked_food = NONE
-	max_age = 500
-	changesource_flags = MIRROR_BADMIN | WABBAJACK | MIRROR_MAGIC | MIRROR_PRIDE | RACE_SWAP | SLIME_EXTRACT
-	limbs_icon_m = 'icons/roguetown/mob/bodies/m/mm.dmi'
-	limbs_icon_f = 'icons/roguetown/mob/bodies/f/fm.dmi'
-	dam_icon = 'icons/roguetown/mob/bodies/dam/dam_male.dmi'
-	dam_icon_f = 'icons/roguetown/mob/bodies/dam/dam_female.dmi'
-	hairyness = "t2"
-	soundpack_m = /datum/voicepack/male
-	soundpack_f = /datum/voicepack/female
-	offset_features = list(OFFSET_RING = list(0,0), OFFSET_GLOVES = list(0,0), OFFSET_WRISTS = list(0,0),\
-	OFFSET_CLOAK = list(0,0), OFFSET_FACEMASK = list(0,0), OFFSET_HEAD = list(0,0), \
-	OFFSET_FACE = list(0,0), OFFSET_BELT = list(0,0), OFFSET_BACK = list(0,0), \
-	OFFSET_NECK = list(0,0), OFFSET_MOUTH = list(0,0), OFFSET_PANTS = list(0,0), \
-	OFFSET_SHIRT = list(0,0), OFFSET_ARMOR = list(0,0), OFFSET_HANDS = list(0,0), OFFSET_UNDIES = list(0,0), \
-	OFFSET_RING_F = list(0,-1), OFFSET_GLOVES_F = list(0,0), OFFSET_WRISTS_F = list(0,0), OFFSET_HANDS_F = list(0,0), \
-	OFFSET_CLOAK_F = list(0,0), OFFSET_FACEMASK_F = list(0,-1), OFFSET_HEAD_F = list(0,-1), \
-	OFFSET_FACE_F = list(0,-1), OFFSET_BELT_F = list(0,-1), OFFSET_BACK_F = list(0,-1), \
-	OFFSET_NECK_F = list(0,-1), OFFSET_MOUTH_F = list(0,-1), OFFSET_PANTS_F = list(0,0), \
-	OFFSET_SHIRT_F = list(0,0), OFFSET_ARMOR_F = list(0,0), OFFSET_UNDIES_F = list(0,0))
-	specstats = list(STATKEY_STR = 0, STATKEY_PER = 1, STATKEY_INT = 1, STATKEY_CON = 0, STATKEY_END = 0, STATKEY_SPD = 1, STATKEY_LCK = 0)
-	specstats_f = list(STATKEY_STR = 0, STATKEY_PER = 1, STATKEY_INT = 1, STATKEY_CON = 0, STATKEY_END = 0, STATKEY_SPD = 1, STATKEY_LCK = 0)
-	enflamed_icon = "widefire"
+	customizers = list(
+		/datum/customizer/organ/ears/elf,
+		/datum/customizer/organ/eyes/humanoid,
+		/datum/customizer/bodypart_feature/hair/head/humanoid,
+		/datum/customizer/bodypart_feature/hair/facial/humanoid,
+		/datum/customizer/bodypart_feature/accessory,
+		/datum/customizer/bodypart_feature/face_detail,
+	)
+
+	bodypart_features = list(
+		/datum/bodypart_feature/hair/head,
+		/datum/bodypart_feature/hair/facial,
+	)
 
 	body_markings = list(
 		/datum/body_marking/tonage,
@@ -133,10 +164,16 @@
 
 /datum/species/human/halfdrow/after_creation(mob/living/carbon/human/C)
 	..()
+	//If a patreon user picks the Dark Elf Accent as a Half Drow, it will work the same as a non patreon user.
+	if(C.accent == ACCENT_DELF)
+		C.dna.species.native_language = "Elfish"
+		C.dna.species.accent_language = C.dna.species.get_accent(C.dna.species.native_language, 2)
+	if(!(C.accent in GLOB.accent_list))
+		C.dna.species.native_language = C.accent
+	C.dna.species.accent_language = C.dna.species.get_accent(C.dna.species.native_language, 2)
+
 	if(C.skin_tone == SKIN_COLOR_ZIZO_CURSED)
 		exotic_bloodtype = /datum/blood_type/human/cursed_elf
 	C.grant_language(/datum/language/elvish)
 	to_chat(C, "<span class='info'>I can speak Elvish with ,e before my speech.</span>")
 
-/datum/species/human/halfdrow/get_native_language()
-	return pick("Elfish", "Imperial")

@@ -30,13 +30,15 @@
 * in which the steward sails.
 */
 SUBSYSTEM_DEF(treasury)
-	name = "treasury"
+	name = "Treasury"
 	wait = 1
+	init_order = INIT_ORDER_TREASURY
 	priority = FIRE_PRIORITY_WATER_LEVEL
-	var/tax_value = 0.11
+	var/tax_value = 0.1
 	var/queens_tax = 0.15
 	var/treasury_value = 0
 	var/list/bank_accounts = list()
+	var/list/untaxed_deposits = list()
 	var/list/noble_incomes = list()
 	var/list/stockpile_datums = list()
 	var/multiple_item_penalty = 0.7
@@ -48,6 +50,7 @@ SUBSYSTEM_DEF(treasury)
 /datum/controller/subsystem/treasury/Initialize()
 	//Randomizes the roundstart amount of money and the queens tax.
 	treasury_value = rand(800,1200)
+	force_set_round_statistic(STATS_STARTING_TREASURY, treasury_value)
 	queens_tax = pick(0.09, 0.15, 0.21, 0.30)
 
 	//For the merchants import and export.
@@ -56,6 +59,8 @@ SUBSYSTEM_DEF(treasury)
 		stockpile_datums += D
 	for(var/path in subtypesof(/datum/stock/stockpile))
 		var/datum/D = new path
+		if(istype(D, /datum/stock/stockpile/custom))
+			continue
 		stockpile_datums += D
 	for(var/path in subtypesof(/datum/stock/import))
 		var/datum/D = new path
@@ -90,6 +95,8 @@ SUBSYSTEM_DEF(treasury)
 		amt_to_generate = amt_to_generate - (amt_to_generate * queens_tax)
 		amt_to_generate = round(amt_to_generate)
 		give_money_treasury(amt_to_generate, "Wealth Horde")
+		force_set_round_statistic(STATS_REGULAR_VAULT_INCOME, amt_to_generate)
+		record_round_statistic(STATS_VAULT_TOTAL_REVENUE, amt_to_generate)
 		for(var/mob/living/carbon/human/X in GLOB.human_list)
 			if(!X.mind)
 				continue
@@ -201,10 +208,10 @@ SUBSYSTEM_DEF(treasury)
 		// Player was fined
 		if(source)
 			send_ooc_note("<b>MEISTER:</b> Your account was fined [abs(amt)] mammon. ([source])", name = target_name)
-			log_to_steward("[name] was fined [target_name] ([source])")
+			log_to_steward("[abs(amt)] was fined from [target_name] ([source])")
 		else
 			send_ooc_note("<b>MEISTER:</b> Your account was fined [abs(amt)] mammon.", name = target_name)
-			log_to_steward("[name] was fined [target_name]")
+			log_to_steward("[abs(amt)] was fined from [target_name]")
 
 	return TRUE
 
@@ -217,23 +224,38 @@ SUBSYSTEM_DEF(treasury)
 		return FALSE
 	if(!character)
 		return FALSE
+
 	var/taxed_amount = 0
 	var/original_amt = amt
 	treasury_value += amt
+
 	if(character in bank_accounts)
 		if(HAS_TRAIT(character, TRAIT_NOBLE))
 			bank_accounts[character] += amt
 		else
-			taxed_amount = round(amt * tax_value)
-			amt -= taxed_amount
-			bank_accounts[character] += amt
+			if(!untaxed_deposits[character])
+				untaxed_deposits[character] = 0
+
+			var/previous_untaxed = untaxed_deposits[character]
+			untaxed_deposits[character] += amt
+
+			var/taxable_amount = untaxed_deposits[character]
+			var/potential_tax = round(taxable_amount * tax_value)
+
+			if(potential_tax >= 1)
+				taxed_amount = potential_tax
+				var/taxed_portion = round(taxed_amount / tax_value)
+				var/net_from_this_deposit = (taxable_amount - taxed_amount) - previous_untaxed
+				bank_accounts[character] += net_from_this_deposit
+				untaxed_deposits[character] = taxable_amount - taxed_portion
+			else
+				bank_accounts[character] += amt
 	else
 		return FALSE
 
 	log_to_steward("+[original_amt] deposited by [character.real_name] of which taxed [taxed_amount]")
 
 	return list(original_amt, taxed_amount)
-
 
 /datum/controller/subsystem/treasury/proc/withdraw_money_account(amt, target)
 	if(!amt)
@@ -260,7 +282,6 @@ SUBSYSTEM_DEF(treasury)
 	log_to_steward("-[amt] withdrawn by [target_name]")
 	return TRUE
 
-
 /datum/controller/subsystem/treasury/proc/log_to_steward(log)
 	log_entries += log
 	return
@@ -268,5 +289,6 @@ SUBSYSTEM_DEF(treasury)
 /datum/controller/subsystem/treasury/proc/distribute_estate_incomes()
 	for(var/mob/living/welfare_dependant in noble_incomes)
 		var/how_much = noble_incomes[welfare_dependant]
+		record_round_statistic(STATS_NOBLE_INCOME_TOTAL, how_much)
 		give_money_treasury(how_much, silent = TRUE)
 		give_money_account(how_much, welfare_dependant, "Vanderlin Noble Estate")

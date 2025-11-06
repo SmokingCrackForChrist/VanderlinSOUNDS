@@ -8,7 +8,6 @@
 	emote_hear = null
 	emote_see = null
 	speak_chance = 1
-	turns_per_move = 2
 	see_in_dark = 10
 	move_to_delay = 3
 	base_intents = list(/datum/intent/simple/minotaur_unarmed)
@@ -36,14 +35,14 @@
 	defprob = 40
 	defdrain = 10
 	retreat_health = 0
-	food = 0
+
 	attack_sound = list('sound/combat/wooshes/blunt/wooshhuge (1).ogg','sound/combat/wooshes/blunt/wooshhuge (2).ogg','sound/combat/wooshes/blunt/wooshhuge (3).ogg')
-	dodgetime = 0
+	dodgetime = 50
 	aggressive = 1
 //	stat_attack = UNCONSCIOUS
-	remains_type = /obj/item/weapon/axe/battle
 
 	ai_controller = /datum/ai_controller/minotaur
+	dendor_taming_chance = DENDOR_TAME_PROB_NONE
 
 
 /mob/living/simple_animal/hostile/retaliate/minotaur/Initialize()
@@ -62,6 +61,7 @@
 	base_intents = list(/datum/intent/simple/minotaur_axe)
 	melee_damage_lower = 65
 	melee_damage_upper = 85
+	loot = list(/obj/item/weapon/greataxe/steel/doublehead)
 
 /mob/living/simple_animal/hostile/retaliate/minotaur/axe/female
 	icon_state = "MinotaurFem_Axe"
@@ -70,7 +70,7 @@
 
 /mob/living/simple_animal/hostile/retaliate/minotaur/death(gibbed)
 	..()
-	update_icon()
+	update_appearance()
 
 /mob/living/simple_animal/hostile/retaliate/minotaur/taunted(mob/user)
 	emote("aggro")

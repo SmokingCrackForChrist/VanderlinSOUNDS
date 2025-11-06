@@ -1,7 +1,4 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
      "configurations": [
         {
@@ -26,6 +23,13 @@
             "dmb": "${workspaceFolder}/${command:CurrentDMB}"
         },
         {
+            "type": "byond",
+            "request": "launch",
+            "name": "Launch DreamSeeker (ABSOLUTE MINIMUM)",
+            "preLaunchTask": "Build All (ABSOLUTE MINIMUM)",
+            "dmb": "${workspaceFolder}/${command:CurrentDMB}"
+        },
+        {
 			"type": "byond",
 			"request": "launch",
 			"name": "Launch DreamDaemon",
@@ -36,10 +40,26 @@
         {
 			"type": "byond",
 			"request": "launch",
+			"name": "Launch DreamDaemon (low memory mode)",
+            "preLaunchTask": "Build All (low memory mode)",
+			"dmb": "${workspaceFolder}/${command:CurrentDMB}",
+			"dreamDaemon": true
+		},
+        {
+			"type": "byond",
+			"request": "launch",
+			"name": "Launch DreamDaemon (low memory mode) no dungeons",
+            "preLaunchTask": "Build All (low memory mode) no dungeons",
+			"dmb": "${workspaceFolder}/${command:CurrentDMB}",
+			"dreamDaemon": true
+		},
+        {
+			"type": "byond",
+			"request": "launch",
 			"name": "Launch DreamDaemon (unit tests)",
             "preLaunchTask": "Build All (unit tests)",
 			"dmb": "${workspaceFolder}/${command:CurrentDMB}",
 			"dreamDaemon": true
-		},
+		}
     ]
 }

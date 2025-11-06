@@ -1,6 +1,3 @@
-#define EMOTE_VISIBLE 1
-#define EMOTE_AUDIBLE 2
-
 /datum/emote
 	var/key = "" //What calls the emote
 	var/key_third_person = "" //This will also call the emote
@@ -97,6 +94,10 @@
 		tmp_sound = sound(get_sfx(tmp_sound))
 	tmp_sound.frequency = pitch
 	if(tmp_sound && (!only_forced_audio || !intentional))
+		if (ishuman(user))
+			var/mob/living/carbon/human/H = user
+			if(H.voice_type == VOICE_TYPE_ANDRO)
+				tmp_sound.frequency = pitch * 0.92
 		playsound(user, tmp_sound, snd_vol, FALSE, snd_range, soundping = soundping)
 	if(!nomsg)
 		for(var/mob/M in GLOB.dead_mob_list)
@@ -119,6 +120,8 @@
 /mob/living/carbon/human/get_emote_pitch()
 	var/final_pitch = ..()
 	var/pitch_modifier = 0
+	if(HAS_TRAIT(src, TRAIT_DECEIVING_MEEKNESS))
+		return final_pitch
 	if(STASTR > 10)
 		pitch_modifier -= (STASTR - 10) * 0.03
 	else if(STASTR < 10)
@@ -154,12 +157,21 @@
 			var/modifier
 			if(H.age == AGE_OLD)
 				modifier = "old"
-			if(!ignore_silent && (H.silent || !H.can_speak()))
+			if(!ignore_silent && (H.silent || !H.can_speak())|| (!ignore_silent && HAS_TRAIT(H, TRAIT_MUTE)) || (!ignore_silent && HAS_TRAIT(H, TRAIT_BAGGED)))
 				modifier = "silenced"
 			if(user.gender == FEMALE && H.dna.species.soundpack_f)
 				possible_sounds = H.dna.species.soundpack_f.get_sound(key,modifier)
 			else if(H.dna.species.soundpack_m)
 				possible_sounds = H.dna.species.soundpack_m.get_sound(key,modifier)
+			if(H.voice_type)
+				switch (H.voice_type)
+					if (VOICE_TYPE_MASC)
+						possible_sounds = H.dna.species.soundpack_m.get_sound(key, modifier)
+					if (VOICE_TYPE_FEM, VOICE_TYPE_ANDRO)
+						if (H.dna.species.soundpack_f)
+							possible_sounds = H.dna.species.soundpack_f.get_sound(key, modifier)
+						else
+							possible_sounds = H.dna.species.soundpack_m.get_sound(key, modifier)
 			if(possible_sounds)
 				if(islist(possible_sounds))
 					var/list/PS = possible_sounds
@@ -194,7 +206,12 @@
 		var/mob/living/carbon/C = user
 		if(C.silent || !C.can_speak_vocal())
 			. = message_muffled
-	if(!muzzle_ignore && user.is_muzzled() && emote_type == EMOTE_AUDIBLE)
+		if(!muzzle_ignore && C.mouth?.muteinmouth && emote_type == EMOTE_AUDIBLE)
+			. = message_muffled
+		if(!muzzle_ignore && emote_type == EMOTE_AUDIBLE && HAS_TRAIT(C, TRAIT_BAGGED))
+			. = message_muffled
+
+	if(!muzzle_ignore && HAS_TRAIT(user, TRAIT_MUTE) && emote_type == EMOTE_AUDIBLE)
 		return "makes a [pick("strong ", "weak ", "")]noise."
 	if(user.mind && user.mind.miming && message_mime)
 		. = message_mime

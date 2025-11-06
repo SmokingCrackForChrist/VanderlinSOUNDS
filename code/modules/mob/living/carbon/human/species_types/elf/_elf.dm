@@ -3,10 +3,10 @@
 
 /datum/species/elf
 	name = "Elfb"
-	id = "elf"
-	max_age = 850
-	changesource_flags = MIRROR_BADMIN | WABBAJACK | MIRROR_MAGIC | MIRROR_PRIDE | RACE_SWAP | SLIME_EXTRACT
-
+	id = SPEC_ID_ELF
+	changesource_flags = WABBAJACK
+	native_language = "Elfish"
+	exotic_bloodtype = /datum/blood_type/human/elf
 	bodypart_features = list(
 		/datum/bodypart_feature/hair/head,
 		/datum/bodypart_feature/hair/facial,
@@ -23,7 +23,7 @@
 
 /datum/species/elf/after_creation(mob/living/carbon/C)
 	..()
-//	if(!C.has_language(/datum/language/elvish))
+	C.dna.species.accent_language = C.dna.species.get_accent(native_language, 1)
 	C.grant_language(/datum/language/elvish)
 	to_chat(C, "<span class='info'>I can speak Elfish with ,e before my speech.</span>")
 
@@ -49,5 +49,3 @@
 	"red - autumn" = "a34332"
 	))
 
-/datum/species/elf/get_native_language()
-	return "Elfish"

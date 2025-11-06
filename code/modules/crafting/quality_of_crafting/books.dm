@@ -1,12 +1,12 @@
 /obj/item/recipe_book
-	icon = 'icons/roguetown/items/books.dmi'
 
+	icon = 'icons/roguetown/items/books.dmi'
+	w_class = WEIGHT_CLASS_SMALL
 	grid_width = 32
 	grid_height = 64
+	slot_flags = ITEM_SLOT_HIP
 	var/list/types = list()
-	var/mob/current_reader
 	var/open
-	var/base_icon_state
 	var/can_spawn = TRUE
 	var/list/categories = list("All") // Default categories
 	var/current_category = "All"      // Default selected category
@@ -55,13 +55,13 @@
 			temp_recipe = new path()
 			var/datum/orderless_slapcraft/r = temp_recipe
 			category = r.category
-		else if(ispath(path, /datum/slapcraft_recipe))
+		else if(ispath(path, /datum/blueprint_recipe))
 			temp_recipe = new path()
-			var/datum/slapcraft_recipe/r = temp_recipe
+			var/datum/blueprint_recipe/r = temp_recipe
 			category = r.category
-		else if(ispath(path, /datum/crafting_recipe))
+		else if(ispath(path, /datum/blueprint_recipe))
 			temp_recipe = new path()
-			var/datum/crafting_recipe/r = temp_recipe
+			var/datum/blueprint_recipe/r = temp_recipe
 			category = r.category
 		else if(ispath(path, /datum/container_craft))
 			temp_recipe = new path()
@@ -74,6 +74,10 @@
 		else if(ispath(path, /datum/anvil_recipe))
 			temp_recipe = new path()
 			var/datum/anvil_recipe/r = temp_recipe
+			category = r.category
+		else if(ispath(path, /datum/artificer_recipe))
+			temp_recipe = new path()
+			var/datum/artificer_recipe/r = temp_recipe
 			category = r.category
 		else if(ispath(path, /datum/pottery_recipe))
 			temp_recipe = new path()
@@ -107,6 +111,24 @@
 			temp_recipe = new path()
 			var/datum/essence_infusion_recipe/r = temp_recipe
 			category = r.category
+		else if(ispath(path, /datum/plant_def))
+			temp_recipe = new path()
+			var/datum/plant_def/r = temp_recipe
+			category = r.get_family_name()
+		else if(ispath(path, /datum/surgery))
+			temp_recipe = new path()
+			var/datum/surgery/r = temp_recipe
+			category = r.category
+		else if(ispath(path, /datum/wound))
+			temp_recipe = new path()
+			var/datum/wound/r = temp_recipe
+			category = r.category
+		else if(ispath(path, /datum/chimeric_node))
+			category = "Chimeric Node"
+		else if(ispath(path, /datum/chimeric_table))
+			category = "Chimeric Dossier"
+		else if(ispath(path, /obj/item/reagent_containers/food/snacks/fish))
+			category = "Fish"
 
 		// Clean up our temporary instance
 		if(temp_recipe)
@@ -116,14 +138,11 @@
 
 /obj/item/recipe_book/dropped(mob/user, silent)
 	. = ..()
-	if(current_reader)
-		current_reader << browse(null,"window=recipe")
-		current_reader = null
+	user << browse(null,"window=recipe")
 
-/obj/item/recipe_book/attack_self(mob/user)
+/obj/item/recipe_book/attack_self(mob/user, params)
 	. = ..()
-	current_reader = user
-	current_reader << browse(generate_html(user),"window=recipe;size=800x810")
+	user << browse(generate_html(user),"window=recipe;size=800x810")
 
 /obj/item/recipe_book/proc/generate_html(mob/user)
 	var/client/client = user
@@ -285,13 +304,13 @@
 		</style>
 
 		<body>
-			<h1>Recipe Book</h1>
+			<h1>[capitalize(name)]</h1>
 
 			<div class="book-content">
 				<div class="sidebar">
-					<!-- Search box (now with live filtering) -->
+					<!-- Search box -->
 					<input type="text" class="search-box" id="searchInput"
-						placeholder="Search recipes..." value="[search_query]">
+						placeholder="Search recipes..." value="[html_encode(search_query)]">
 
 					<!-- Categories -->
 					<div class="categories">
@@ -323,6 +342,10 @@
 					var/datum/repeatable_crafting_recipe/craft = sub_path
 					if(initial(craft.hides_from_books))
 						continue
+				if(ispath(sub_path, /datum/wound))
+					var/datum/wound/wound = sub_path
+					if(!initial(wound.show_in_book))
+						continue
 
 				var/recipe_name = initial(sub_path.name)
 				if(ispath(sub_path, /datum/alch_cauldron_recipe))
@@ -339,15 +362,20 @@
 				// Default display style - will be changed by JS if searching
 				var/display_style = should_show ? "" : "display: none;"
 
-				// In the recipe list generation section, modify the recipe link to include essence data:
-				var/essence_data = ""
+				var/search_data = ""
 				if(ispath(sub_path, /datum/natural_precursor))
 					var/datum/natural_precursor/temp = new sub_path()
 					for(var/datum/thaumaturgical_essence/essence_type as anything in temp.essence_yields)
-						essence_data += "[initial(essence_type.name)],"
+						search_data += "[initial(essence_type.name)],"
 					qdel(temp)
 
-				html += "<a class='recipe-link' href='byond://?src=\ref[src];action=view_recipe&recipe=[sub_path]' style='[display_style]' data-essences='[essence_data]'>[recipe_name]</a>"
+				if(ispath(sub_path, /datum/surgery))
+					var/datum/surgery/temp = new sub_path()
+					for(var/datum/surgery_step/step_type as anything in temp.steps)
+						search_data += "[initial(step_type.name)],"
+					qdel(temp)
+
+				html += "<a class='recipe-link' href='byond://?src=\ref[src];action=view_recipe&recipe=[sub_path]' style='[display_style]' data-search='[search_data]'>[recipe_name]</a>"
 		else
 			var/recipe_name = initial(path.name)
 
@@ -401,7 +429,7 @@
 
 					recipeLinks.forEach(function(link) {
 						const recipeName = link.textContent.toLowerCase();
-						const essences = (link.getAttribute('data-essences') || "").toLowerCase();
+						const essences = (link.getAttribute('data-search') || "").toLowerCase();
 
 						// Check if it matches either the recipe name or any of the essences
 						const matchesQuery = query === '' ||
@@ -454,15 +482,15 @@
 		var/datum/orderless_slapcraft/r = temp_recipe
 		recipe_name = initial(r.name)
 		recipe_html = get_recipe_specific_html(r, user)
-	else if(ispath(path, /datum/slapcraft_recipe))
+	else if(ispath(path, /datum/blueprint_recipe))
 		temp_recipe = new path()
-		var/datum/slapcraft_recipe/r = temp_recipe
+		var/datum/blueprint_recipe/r = temp_recipe
 		recipe_name = initial(r.name)
 		recipe_description = r.desc || recipe_description
 		recipe_html = get_recipe_specific_html(r, user)
-	else if(ispath(path, /datum/crafting_recipe))
+	else if(ispath(path, /datum/blueprint_recipe))
 		temp_recipe = new path()
-		var/datum/crafting_recipe/r = temp_recipe
+		var/datum/blueprint_recipe/r = temp_recipe
 		recipe_name = initial(r.name)
 		recipe_html = get_recipe_specific_html(r, user)
 	else if(ispath(path, /datum/container_craft))
@@ -478,6 +506,11 @@
 	else if(ispath(path, /datum/anvil_recipe))
 		temp_recipe = new path()
 		var/datum/anvil_recipe/r = temp_recipe
+		recipe_name = initial(r.name)
+		recipe_html = get_recipe_specific_html(r, user)
+	else if(ispath(path, /datum/artificer_recipe))
+		temp_recipe = new path()
+		var/datum/artificer_recipe/r = temp_recipe
 		recipe_name = initial(r.name)
 		recipe_html = get_recipe_specific_html(r, user)
 	else if(ispath(path, /datum/pottery_recipe))
@@ -520,7 +553,36 @@
 		var/datum/essence_infusion_recipe/r = temp_recipe
 		recipe_name = initial(r.name)
 		recipe_html = get_recipe_specific_html(r, user)
-
+	else if(ispath(path, /datum/plant_def))
+		temp_recipe = new path()
+		var/datum/plant_def/r = temp_recipe
+		recipe_name = initial(r.name)
+		recipe_html = get_recipe_specific_html(r, user)
+	else if(ispath(path, /datum/surgery))
+		temp_recipe = new path()
+		var/datum/surgery/r = temp_recipe
+		recipe_name = initial(r.name)
+		recipe_html = get_recipe_specific_html(r, user)
+	else if(ispath(path, /datum/wound))
+		temp_recipe = new path()
+		var/datum/wound/r = temp_recipe
+		recipe_name = initial(r.name)
+		recipe_html = get_recipe_specific_html(r, user)
+	else if(ispath(path, /datum/chimeric_node))
+		temp_recipe = new path()
+		var/datum/chimeric_node/r = temp_recipe
+		recipe_name = initial(r.name)
+		recipe_html = get_recipe_specific_html(r, user)
+	else if(ispath(path, /datum/chimeric_table))
+		temp_recipe = new path()
+		var/datum/chimeric_table/r = temp_recipe
+		recipe_name = initial(r.name)
+		recipe_html = get_recipe_specific_html(r, user)
+	else if(ispath(path, /obj/item/reagent_containers/food/snacks/fish))
+		temp_recipe = new path()
+		var/obj/item/reagent_containers/food/snacks/fish/r = temp_recipe
+		recipe_name = initial(r.name)
+		recipe_html = get_recipe_specific_html(r, user)
 	if(temp_recipe)
 		qdel(temp_recipe)
 
@@ -557,14 +619,14 @@
 			var/category = href_list["category"]
 			if(category)
 				current_category = category
-				current_reader << browse(generate_html(current_reader), "window=recipe;size=800x810")
+				usr << browse(generate_html(usr), "window=recipe;size=800x810")
 			return
 
 		if("search")
 			var/query = href_list["query"]
 			if(query)
 				search_query = query
-				current_reader << browse(generate_html(current_reader), "window=recipe;size=800x810")
+				usr << browse(generate_html(usr), "window=recipe;size=800x810")
 			return
 
 		if("remember_query")
@@ -578,39 +640,39 @@
 			if(recipe_path)
 				var/datum/path = text2path(recipe_path)
 				current_recipe = path
-				current_reader << browse(generate_html(current_reader), "window=recipe;size=800x810")
+				usr << browse(generate_html(usr), "window=recipe;size=800x810")
 			return
 
 		if("clear_recipe")
 			current_recipe = null
-			current_reader << browse(generate_html(current_reader), "window=recipe;size=800x810")
+			usr << browse(generate_html(usr), "window=recipe;size=800x810")
 			return
 
 	if(href_list["set_category"])
 		current_category = href_list["set_category"]
-		current_reader << browse(generate_html(current_reader), "window=recipe;size=800x810")
+		usr << browse(generate_html(usr), "window=recipe;size=800x810")
 		return
 
 	if(href_list["search"])
 		search_query = href_list["search"]
-		current_reader << browse(generate_html(current_reader), "window=recipe;size=800x810")
+		usr << browse(generate_html(usr), "window=recipe;size=800x810")
 		return
 
 	if(href_list["view_recipe"])
 		var/datum/path = text2path(href_list["view_recipe"])
 		current_recipe = path
-		current_reader << browse(generate_html(current_reader), "window=recipe;size=800x810")
+		usr << browse(generate_html(usr), "window=recipe;size=800x810")
 		return
 
 	if(href_list["clear_recipe"])
 		current_recipe = null
-		current_reader << browse(generate_html(current_reader), "window=recipe;size=800x810")
+		usr << browse(generate_html(usr), "window=recipe;size=800x810")
 		return
 
 	if(href_list["pick_recipe"])
 		var/datum/path = text2path(href_list["pick_recipe"])
 		current_recipe = path
-		current_reader << browse(generate_html(current_reader), "window=recipe;size=800x810")
+		usr << browse(generate_html(usr), "window=recipe;size=800x810")
 
 /obj/item/recipe_book/getonmobprop(tag)
 	. = ..()
@@ -671,7 +733,7 @@
 
 /obj/item/recipe_book/leatherworking
 	name = "The Tanned Hide Tome: Mastery of Leather and Craft"
-	desc = "Penned by Orym Vaynore, fourth generation leatherworker"
+	desc = "Penned by Orym Vaynore, Fourth Generation Leatherworker."
 	icon_state ="book8_0"
 	base_icon_state = "book8"
 
@@ -679,18 +741,30 @@
 
 /obj/item/recipe_book/sewing
 	name = "Threads of Destiny: A Tailor's Codex"
-	desc = "Penned by Elise Heiran, second generation court tailor"
+	desc = "Penned by Elise Heiran, Second Generation Court Tailor."
 	icon_state ="book7_0"
 	base_icon_state = "book7"
 
 	types = list(
 		/datum/repeatable_crafting_recipe/sewing,
-		/datum/orderless_slapcraft/flowercrown,
+		/datum/orderless_slapcraft/bouquet,
+		)
+
+/obj/item/recipe_book/sewing_leather
+	can_spawn = FALSE
+	name = "High Fashion Encyclopedia"
+	desc = "The combined works of famed Elise Heiran and Orym Vayore."
+	icon_state ="book7_0"
+	base_icon_state = "book7"
+	types = list(
+		/datum/repeatable_crafting_recipe/sewing,
+		/datum/orderless_slapcraft/bouquet,
+		/datum/repeatable_crafting_recipe/leather,
 		)
 
 /obj/item/recipe_book/cooking
 	name = "The Hearthstone Grimoire: Culinary Secrets of the Realm"
-	desc = "Penned by Aric Dunswell, Head Court Chef, Third Generation"
+	desc = "Penned by Aric Dunswell, Head Court Chef, Third Generation."
 	icon_state ="book6_0"
 	base_icon_state = "book6"
 
@@ -706,16 +780,17 @@
 		/datum/repeatable_crafting_recipe/salo,
 		/datum/repeatable_crafting_recipe/saltfish,
 		/datum/repeatable_crafting_recipe/raisins,
-		/datum/orderless_slapcraft/pie,
+		/datum/orderless_slapcraft/food/pie,
 	)
 
 /obj/item/recipe_book/survival
 	name = "The Wilderness Guide: Secrets of Survival"
-	desc = "Penned by Kaelen Stormrider, Fourth Generation Trailblazer"
+	desc = "Penned by Kaelen Stormrider, Fourth Generation Trailblazer."
 	icon_state ="book5_0"
 	base_icon_state = "book5"
 
 	types = list(
+		/obj/item/reagent_containers/food/snacks/fish,
 		/datum/repeatable_crafting_recipe/survival,
 		/datum/repeatable_crafting_recipe/cooking/soap,
 		/datum/repeatable_crafting_recipe/cooking/soap/bath,
@@ -731,11 +806,12 @@
 		/datum/repeatable_crafting_recipe/raisins,
 		/datum/repeatable_crafting_recipe/parchment,
 		/datum/repeatable_crafting_recipe/crafting,
+		/datum/repeatable_crafting_recipe/projectile,
 	)
 
 /obj/item/recipe_book/underworld
 	name = "The Smuggler’s Guide: A Treatise on Elixirs of the Guild"
-	desc = "Penned by Thorne Ashveil, Thieves Guild's Alchemist, Second Generation"
+	desc = "Penned by Thorne Ashveil, Thieves Guild's Alchemist, Second Generation."
 	icon_state ="book4_0"
 	base_icon_state = "book4"
 	can_spawn = FALSE
@@ -748,17 +824,17 @@
 
 /obj/item/recipe_book/carpentry
 	name = "The Woodwright's Codex: Crafting with Timber and Grain"
-	desc = "Penned by Eadric Hollowell, Master Carpenter, Fourth Generation"
+	desc = "Penned by Eadric Hollowell, Master Carpenter, Fourth Generation."
 	icon_state ="book3_0"
 	base_icon_state = "book3"
 
 	types = list(
-		/datum/slapcraft_recipe/carpentry,
+		/datum/blueprint_recipe/carpentry,
 	)
 
 /obj/item/recipe_book/engineering
 	name = "The Engineer’s Primer: Machines, Mechanisms, and Marvels"
-	desc = "Penned by Liora Brasslock, Chief Engineer, Second Generation"
+	desc = "Penned by Liora Brasslock, Chief Engineer, Second Generation."
 	icon_state ="book2_0"
 	base_icon_state = "book2"
 
@@ -766,23 +842,25 @@
 		/datum/book_entry/rotation_stress,
 		/datum/book_entry/water_pressure,
 		/datum/repeatable_crafting_recipe/engineering,
-		/datum/slapcraft_recipe/engineering,
+		/datum/blueprint_recipe/engineering,
+		/datum/artificer_recipe,
 	)
 
 /obj/item/recipe_book/masonry
 	name = "The Stonebinder’s Manual: Foundations of Craft and Fortitude"
-	desc = "Penned by Garrin Ironvein, Master Mason, Third Generation"
+	desc = "Penned by Garrin Ironvein, Master Mason, Third Generation."
 	icon_state ="book_0"
 	base_icon_state = "book"
 
 	types = list(
 		/datum/pottery_recipe,
+		/datum/blueprint_recipe/masonry,
 		/datum/slapcraft_recipe/masonry,
 	)
 
 /obj/item/recipe_book/art
 	name = "The Artisan's Palette"
-	desc = "Created by Elara Moondance, Visionary Painter and Culinary Alchemist"
+	desc = "Created by Elara Moondance, Visionary Painter and Esteemed Tutor."
 	icon_state ="book3_0"
 	base_icon_state = "book3"
 
@@ -790,12 +868,15 @@
 		/datum/repeatable_crafting_recipe/canvas,
 		/datum/repeatable_crafting_recipe/paint_palette,
 		/datum/repeatable_crafting_recipe/paintbrush,
-		/datum/slapcraft_recipe/carpentry/structure/easel,
+		/datum/blueprint_recipe/carpentry/easel,
+		/datum/repeatable_crafting_recipe/parchment,
+		/datum/repeatable_crafting_recipe/crafting/scroll,
+		/datum/repeatable_crafting_recipe/reading/guide,
 	)
 
 /obj/item/recipe_book/blacksmithing
 	name = "The Smith’s Legacy"
-	desc = "Penned by Aldric Forgeheart, Master Blacksmith and Keeper of the Ancestral Flame"
+	desc = "Penned by Aldric Forgeheart, Master Blacksmith and Keeper of the Ancestral Flame."
 	icon_state ="book3_0"
 	base_icon_state = "book3"
 
@@ -806,7 +887,7 @@
 
 /obj/item/recipe_book/arcyne
 	name = "The Arcanum of Arcyne"
-	desc = "Penned by Elyndor Starforge, Grand Arcanist and Keeper of the Ethereal Crucible"
+	desc = "Penned by Elyndor Starforge, Grand Arcanist and Keeper of the Ethereal Crucible."
 	icon_state ="book4_0"
 	base_icon_state = "book4"
 
@@ -815,7 +896,7 @@
 		/datum/book_entry/attunement,
 		/datum/book_entry/mana_sources,
 		/datum/repeatable_crafting_recipe/arcyne,
-		/datum/slapcraft_recipe/arcyne,
+		/datum/blueprint_recipe/arcyne,
 		/datum/container_craft/cooking/arcyne,
 		/datum/runerituals,
 	)
@@ -823,7 +904,7 @@
 
 /obj/item/recipe_book/alchemy
 	name = "Codex Virellia"
-	desc = "Transcribed by Maerion Duskwind, avid hater of gnomes."
+	desc = "Transcribed by Maerion Duskwind, Avid Hater of Gnomes."
 	icon_state ="book4_0"
 	base_icon_state = "book4"
 
@@ -837,6 +918,46 @@
 		/datum/container_craft/cooking/herbal_salve,
 		/datum/container_craft/cooking/herbal_tea,
 		/datum/container_craft/cooking/herbal_oil,
-		/datum/slapcraft_recipe/alchemy,
+		/datum/blueprint_recipe/alchemy,
 		/datum/repeatable_crafting_recipe/alchemy,
+	)
+
+// Shown when MMBing the /atom/movable/screen/craft "craft" HUD element
+/obj/item/recipe_book/always_known
+	name = "Survival"
+	can_spawn = FALSE
+	types = list(
+		/datum/repeatable_crafting_recipe/survival)
+
+/obj/item/recipe_book/agriculture
+	name = "The Farmers Almanac: Principles of Growth and Harvest"
+	desc = "Compiled by Elira Greenshade."
+	icon_state = "book_0"
+	base_icon_state = "book"
+
+	types = list(
+		/datum/book_entry/farming_basics,
+		/datum/book_entry/soil_management,
+		/datum/book_entry/plant_families,
+		/datum/book_entry/plant_genetics,
+		/datum/plant_def,
+		/datum/repeatable_crafting_recipe/bee_treatment,
+		/datum/repeatable_crafting_recipe/bee_treatment/antiviral,
+		/datum/repeatable_crafting_recipe/bee_treatment/miticide,
+		/datum/repeatable_crafting_recipe/bee_treatment/insecticide,
+		/datum/blueprint_recipe/carpentry/apiary,
+	)
+
+/obj/item/recipe_book/medical
+	name = "The Feldsher's Handbook: Field Medicine and Improvised Care"
+	desc = "Compiled by Grim the fickle."
+	icon_state ="book4_0"
+	base_icon_state = "book4"
+
+	types = list(
+		/datum/book_entry/grims_guide,
+		/datum/chimeric_table,
+		/datum/chimeric_node,
+		/datum/wound,
+		/datum/surgery,
 	)

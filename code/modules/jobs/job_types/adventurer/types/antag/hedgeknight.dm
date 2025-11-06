@@ -1,17 +1,16 @@
-/datum/advclass/hedgeknight //heavy knight class - just like black knight adventurer class. starts with heavy armor training and plate, but less weapon skills than brigand, sellsword and knave
-	name = "Hedge Knight"
+/datum/job/advclass/hedgeknight //heavy knight class - just like black knight adventurer class. starts with heavy armor training and plate, but less weapon skills than brigand, sellsword and knave
+	title = "Hedge Knight"
 	tutorial = "A noble fallen from grace, your tarnished armor sits upon your shoulders as a heavy reminder of the life you've lost. Take back what is rightfully yours."
-	allowed_sexes = list(MALE, FEMALE)
-	outfit = /datum/outfit/job/bandit/hedgeknight
+	outfit = /datum/outfit/bandit/hedgeknight
 	category_tags = list(CTAG_BANDIT)
 	cmode_music = 'sound/music/cmode/antag/CombatBandit1.ogg'
 
-/datum/outfit/job/bandit/hedgeknight/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/bandit/hedgeknight/pre_equip(mob/living/carbon/human/H)
 	..()
 	head = /obj/item/clothing/head/helmet/heavy/rust
 	neck = /obj/item/clothing/neck/gorget
 	armor = /obj/item/clothing/armor/plate/rust
-	shirt = /obj/item/clothing/armor/gambeson/heavy/dark
+	shirt = /obj/item/clothing/armor/gambeson/heavy/colored/dark
 	wrists = /obj/item/clothing/wrists/bracers
 	gloves = /obj/item/clothing/gloves/plate/rust
 	pants = /obj/item/clothing/pants/platelegs/rust

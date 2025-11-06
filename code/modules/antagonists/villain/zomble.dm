@@ -1,5 +1,6 @@
 /datum/antagonist/zombie
 	name = "Zombie"	// Deadite plague of Zizo
+	roundend_category = "Deadites"
 	antagpanel_category = "Zombie"
 	antag_hud_type = ANTAG_HUD_HIDDEN
 	antag_hud_name = "zombie"
@@ -61,8 +62,7 @@
 
 /datum/antagonist/zombie/examine_friendorfoe(datum/antagonist/examined_datum, mob/examiner, mob/examined)
 	if(istype(examined_datum, /datum/antagonist/vampire))
-		var/datum/antagonist/vampire/V = examined_datum
-		if(!V.disguised)
+		if(!SEND_SIGNAL(examined_datum.owner, COMSIG_DISGUISE_STATUS))
 			return "<span class='boldnotice'>Another kind of deadite.</span>"
 	if(istype(examined_datum, /datum/antagonist/zombie))
 		return "<span class='boldnotice'>Another deadite. My ally.</span>"
@@ -95,11 +95,14 @@
 	owner.current.skills?.known_skills = list()
 	owner.current.skills?.skill_experience = list()
 	zombie.cmode_music ='sound/music/cmode/combat_weird.ogg'
-	zombie.vitae_pool = 0 // Deadites have no vitae to drain from
+	zombie.bloodpool = 0 // Deadites have no vitae to drain from
 	var/datum/language_holder/mob_language = zombie.get_language_holder()
 	prev_language = mob_language.copy()
 	zombie.remove_all_languages()
-	zombie.grant_language(/datum/language/hellspeak)
+	zombie.grant_language(/datum/language/undead)
+	if(zombie.dna?.species)
+		zombie.dna.species.native_language = "Zizo Chant"
+		zombie.dna.species.accent_language = zombie.dna.species.get_accent(zombie.dna.species.native_language)
 
 	zombie.ai_controller = new /datum/ai_controller/zombie(zombie)
 	zombie.AddComponent(/datum/component/ai_aggro_system)
@@ -141,7 +144,7 @@
 		if(!was_i_undead)
 			zombie.mob_biotypes &= ~MOB_UNDEAD
 		zombie.faction -= FACTION_UNDEAD
-		zombie.faction += FACTION_STATION
+		zombie.faction += FACTION_TOWN
 		zombie.faction += FACTION_NEUTRAL
 		zombie.regenerate_organs()
 		if(has_turned)
@@ -200,7 +203,7 @@
 		zombie.charflaw.ephemeral = TRUE
 	zombie.mob_biotypes |= MOB_UNDEAD
 	zombie.faction += FACTION_UNDEAD
-	zombie.faction -= FACTION_STATION
+	zombie.faction -= FACTION_TOWN
 	zombie.faction -= FACTION_NEUTRAL
 	zombie.verbs |= /mob/living/carbon/human/proc/zombie_seek
 	for(var/obj/item/bodypart/zombie_part as anything in zombie.bodyparts)
@@ -223,7 +226,7 @@
 	zombie.set_stat_modifier("[type]", STATKEY_INT, offset_intelligence)
 	zombie.set_stat_modifier("[type]", STATKEY_CON, offset_constitution)
 
-	zombie.vitae_pool = 0 // Again, just in case.
+	zombie.bloodpool = 0 // Again, just in case.
 
 	// zombies cant rp, thus shouldnt be playable for most people
 	zombie.ghostize()
@@ -258,7 +261,7 @@
 		qdel(src)
 		return
 
-	GLOB.vanderlin_round_stats[STATS_DEADITES_WOKEN_UP]++
+	record_round_statistic(STATS_DEADITES_WOKEN_UP)
 	zombie.blood_volume = BLOOD_VOLUME_MAXIMUM
 	zombie.setOxyLoss(0, updating_health = FALSE, forced = TRUE) //zombles dont breathe
 	zombie.setToxLoss(0, updating_health = FALSE, forced = TRUE) //zombles are immune to poison
@@ -268,7 +271,6 @@
 		zombie.heal_wounds(INFINITY) //Heal every wound that is not permanent
 	zombie.set_stat(UNCONSCIOUS) //Start unconscious
 	zombie.updatehealth() //then we check if the mob should wake up
-	// zombie.update_mobility()
 	zombie.update_sight()
 	zombie.reload_fullscreen()
 	transform_zombie()

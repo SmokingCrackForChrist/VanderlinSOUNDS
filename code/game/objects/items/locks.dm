@@ -5,6 +5,7 @@
 	icon_state = "lock"
 	w_class = WEIGHT_CLASS_SMALL
 	dropshrink = 0.75
+	can_unlock = FALSE // :D
 
 /obj/item/customlock/examine()
 	. = ..()
@@ -44,21 +45,27 @@
 		return
 	to_chat(user, span_notice("[I] twists cleanly in [src]."))
 
-/obj/item/customlock/attack_right(mob/user)
-	var/held = user.get_active_held_item()
-	if(istype(held, /obj/item/weapon/hammer))
+/obj/item/customlock/attackby_secondary(obj/item/I, mob/user, params)
+	. = ..()
+	if(. == SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN)
+		return
+	. = SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
+	if(istype(I, /obj/item/weapon/hammer))
 		if(!length(lockids))
 			to_chat(user, span_notice("[src] is not ready, its pins are not set!"))
 			return
 		var/obj/item/customlock/finished/F = new (get_turf(src))
 		F.lockids = lockids
 		to_chat(user, span_notice("You finish [F]."))
+		var/old_loc = loc
 		qdel(src)
+		if(user == old_loc)
+			user.put_in_hands(F)
 		return
-	if(!copy_access(held))
-		to_chat(user, span_warning("I cannot base the pins on [held]!"))
+	if(!copy_access(I))
+		to_chat(user, span_warning("I cannot base the pins on [I]!"))
 		return
-	to_chat(user, span_notice("I set the pins based on [held]."))
+	to_chat(user, span_notice("I set the pins based on [I]."))
 
 //finished lock
 /obj/item/customlock/finished
@@ -69,18 +76,24 @@
 /obj/item/customlock/finished/attackby(obj/item/I, mob/user, params)
 	if(!istype(I, /obj/item/weapon/hammer))
 		..()
-	holdname = input(user, "What would you like to name this?", "", "") as text
+	holdname = browser_input_text(user, "What would you like to name this?", "", max_length = MAX_CHARTER_LEN)
 	if(holdname)
 		to_chat(user, span_notice("You label the [name] with [holdname]."))
 
-/obj/item/customlock/finished/attack_right(mob/user)//does nothing. probably better ways to do this but whatever
+/obj/item/customlock/finished/attackby_secondary(obj/item/I, mob/user, params)
+	return // Keep crashing until we fix this
 
-/obj/item/customlock/finished/attack_obj(obj/O, mob/living/user)
+/obj/item/customlock/finished/attack_atom(atom/attacked_atom, mob/living/user)
+	if(!isobj(attacked_atom))
+		return ..()
+
+	var/obj/O = attacked_atom
+	. = TRUE
 	if(!O.can_add_lock)
-		to_chat(user, span_notice("There is no place for a lock on [O]."))
+		to_chat(user, span_warning("There is no place for a lock on [O]."))
 		return
 	if(O.lock)
-		to_chat(user, span_notice("[O] already has a lock."))
+		to_chat(user, span_warning("[O] already has a lock."))
 		return
 	if(holdname)
 		O.name = holdname

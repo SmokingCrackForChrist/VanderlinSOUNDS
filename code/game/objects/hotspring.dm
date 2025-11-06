@@ -19,10 +19,11 @@
 ///the issue is they would need atleast a 2x2 to smooth proper.
 /obj/structure/hotspring
 	abstract_type = /obj/structure/hotspring
-	nomouseover = TRUE
-	plane = FLOOR_PLANE
+	name = "hot spring"
 	icon = 'icons/obj/structures/hotspring.dmi'
 	icon_state = "hotspring"
+	no_over_text = TRUE
+	plane = FLOOR_PLANE
 	object_slowdown = 5
 
 	var/edge = FALSE
@@ -162,6 +163,7 @@
 	icon = 'icons/obj/structures/hotspring.dmi'
 	icon_state = "stonelantern1"
 	base_state = "stonelantern"
+	shows_empty = FALSE
 
 /obj/machinery/light/fueled/torchholder/hotspring/standing
 	name = "standing stone lantern"
@@ -185,6 +187,7 @@
 	icon = 'icons/obj/structures/hotspring.dmi'
 	buildstackamount = 1
 	item_chair = null
+	anchored = TRUE
 
 /obj/structure/chair/hotspring_bench/left
 	icon_state = "parkbench_sofaend_left"

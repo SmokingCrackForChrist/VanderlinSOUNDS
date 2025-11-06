@@ -1,6 +1,6 @@
 /obj/machinery/essence/reservoir
 	name = "essence reservoir"
-	desc = "A large crystalline tank for storing massive quantities of thaumaturgical essences."
+	desc = "A large glass sphere for storing massive quantities of alchemical essences."
 	icon = 'icons/roguetown/misc/alchemy.dmi'
 	icon_state = "essence_tank"
 	density = TRUE
@@ -26,31 +26,23 @@
 		qdel(storage)
 	return ..()
 
-/obj/machinery/essence/reservoir/update_icon()
+/obj/machinery/essence/reservoir/update_overlays()
 	. = ..()
-	cut_overlays()
 
 	var/essence_percent = (storage.get_total_stored()) / (storage.max_total_capacity)
 	if(!essence_percent)
 		return
 	var/level = clamp(CEILING(essence_percent * 5, 1), 1, 5)
 
-	var/mutable_appearance/MA = mutable_appearance(icon, "liquid_[level]")
-	MA.color = calculate_mixture_color()
-	overlays += MA
-
-	var/mutable_appearance/emissive = mutable_appearance(icon, "liquid_[level]")
-	emissive.plane = EMISSIVE_PLANE
-	overlays += emissive
-
+	. += mutable_appearance(icon, "liquid_[level]", color = calculate_mixture_color())
+	. += emissive_appearance(icon, "liquid_[level]", alpha = src.alpha)
 
 /obj/machinery/essence/reservoir/return_storage()
 	return storage
 
-
 /obj/machinery/essence/reservoir/process()
 	// Handle void mode processing
-	if(void_mode && GLOB.thaumic_research && GLOB.thaumic_research.can_use_machine("resevoir_void"))
+	if(void_mode && GLOB.thaumic_research?.has_research(/datum/thaumic_research_node/resevoir_decay))
 		if(storage.get_total_stored() > 0)
 			var/total_voided = 0
 			var/remaining_void_capacity = void_rate
@@ -73,7 +65,7 @@
 					essence_types_to_void -= essence_type
 
 			if(total_voided > 0)
-				update_icon()
+				update_appearance(UPDATE_OVERLAYS)
 				// Create void effect
 				var/datum/effect_system/spark_spread/quantum/void_effect = new
 				void_effect.set_up(3, 0, src)
@@ -160,7 +152,7 @@
 	var/list/options = list()
 	options["Toggle Filter Mode ([filter_mode ? "ON" : "OFF"])"] = "toggle_filter"
 
-	if(GLOB.thaumic_research && GLOB.thaumic_research.can_use_machine("resevoir_void"))
+	if(GLOB.thaumic_research?.has_research(/datum/thaumic_research_node/resevoir_decay))
 		options["Toggle Void Mode ([void_mode ? "ON" : "OFF"])"] = "toggle_void"
 		if(void_mode)
 			options["Adjust Void Rate ([void_rate]/cycle)"] = "adjust_void"
@@ -284,7 +276,7 @@
 			if(extracted > 0)
 				vial.contained_essence = new essence_type
 				vial.essence_amount = extracted
-				vial.update_icon()
+				vial.update_appearance(UPDATE_OVERLAYS)
 				to_chat(user, span_info("You extract [extracted] units of essence from the reservoir."))
 			return
 		var/essence_type = vial.contained_essence.type
@@ -301,7 +293,7 @@
 		to_chat(user, span_info("You pour the [vial.contained_essence.name] into the reservoir."))
 		vial.contained_essence = null
 		vial.essence_amount = 0
-		vial.update_icon()
+		vial.update_appearance(UPDATE_OVERLAYS)
 		return TRUE
 	..()
 
@@ -337,7 +329,7 @@
 
 
 /obj/machinery/essence/reservoir/proc/toggle_void_mode(mob/user)
-	if(!GLOB.thaumic_research || !GLOB.thaumic_research.can_use_machine("resevoir_void"))
+	if(!GLOB.thaumic_research || !GLOB.thaumic_research.has_research(/datum/thaumic_research_node/resevoir_decay))
 		to_chat(user, span_warning("You lack the knowledge to operate this reservoir in void mode."))
 		return FALSE
 
@@ -348,7 +340,7 @@
 	else
 		to_chat(user, span_info("Void mode disabled. Normal operation resumed."))
 
-	update_icon()
+	update_appearance(UPDATE_OVERLAYS)
 	return TRUE
 
 /obj/machinery/essence/reservoir/proc/adjust_void_rate(mob/user)

@@ -1,10 +1,20 @@
+/datum/container_craft/cooking/drugs
+	abstract_type = /datum/container_craft/cooking/drugs
+	category = "Boiling"
+
+/datum/container_craft/cooking/arcyne
+	abstract_type = /datum/container_craft/cooking/arcyne
+	category = "Boiling"
+
 /datum/container_craft/cooking/sugar
 	name = "Sugar"
+	category = "Boiling"
 	created_reagent = /datum/reagent/consumable/sugar
 	requirements = list(/obj/item/reagent_containers/food/snacks/sugar = 1)
 	max_optionals = 0
 	finished_smell = /datum/pollutant/food/sugar
-	crafting_time = 90 SECONDS
+	crafting_time = 10 SECONDS
+	required_chem_temp = 300 // it's sugar water
 
 /datum/container_craft/cooking/drugs/drukqs
 	name = "Drukqs"

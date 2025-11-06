@@ -1,39 +1,47 @@
 
 GLOBAL_LIST_INIT(character_flaws, list(
-	"Alcoholic"=/datum/charflaw/addiction/alcoholic,
-	"Devout Follower"=/datum/charflaw/addiction/godfearing,
-	"Pacifist"=/datum/charflaw/pacifist,
-	"Smoker"=/datum/charflaw/addiction/smoker,
-	"Junkie"=/datum/charflaw/addiction/junkie,
-	"Cyclops (R)"=/datum/charflaw/noeyer,
-	"Cyclops (L)"=/datum/charflaw/noeyel,
-	"Tongueless"=/datum/charflaw/tongueless,
-	"Greedy"=/datum/charflaw/greedy,
-	"Narcoleptic"=/datum/charflaw/narcoleptic,
-	"Masochist"=/datum/charflaw/masochist,
-	"Wooden Arm (R)"=/datum/charflaw/limbloss/arm_r,
-	"Wooden Arm (L)"=/datum/charflaw/limbloss/arm_l,
-	"Bad Sight"=/datum/charflaw/badsight,
-	"Paranoid"=/datum/charflaw/paranoid,
-	"Clingy"=/datum/charflaw/clingy,
-	"Isolationist"=/datum/charflaw/isolationist,
-	"Fire Servant"=/datum/charflaw/addiction/pyromaniac,
-	"Thief-Borne"=/datum/charflaw/addiction/kleptomaniac,
-	"Hunted"=/datum/charflaw/hunted,
+	"Alcoholic" = /datum/charflaw/addiction/alcoholic,
+	"Devout Follower" = /datum/charflaw/addiction/godfearing,
+	"Pacifist" = /datum/charflaw/pacifist,
+	"Smoker" = /datum/charflaw/addiction/smoker,
+	"Junkie" = /datum/charflaw/addiction/junkie,
+	"Cyclops (R)" = /datum/charflaw/noeyer,
+	"Cyclops (L)" = /datum/charflaw/noeyel,
+	"Tongueless" = /datum/charflaw/tongueless,
+	"Greedy" = /datum/charflaw/greedy,
+	"Narcoleptic" = /datum/charflaw/narcoleptic,
+	"Masochist" = /datum/charflaw/masochist,
+	"Wooden Arm (R)" = /datum/charflaw/limbloss/arm_r,
+	"Wooden Arm (L)" = /datum/charflaw/limbloss/arm_l,
+	"Bad Sight" = /datum/charflaw/badsight,
+	"Paranoid" = /datum/charflaw/paranoid,
+	"Clingy" = /datum/charflaw/clingy,
+	"Isolationist" = /datum/charflaw/isolationist,
+	"Fire Servant" = /datum/charflaw/addiction/pyromaniac,
+	"Thief-Borne" = /datum/charflaw/addiction/kleptomaniac,
+	"Hunted" = /datum/charflaw/hunted,
 	"Chronic Migraines" = /datum/charflaw/chronic_migraine,
 	"Chronic Back Pain" = /datum/charflaw/chronic_back_pain,
 	"Old War Wound" = /datum/charflaw/old_war_wound,
 	"Chronic Arthritis" = /datum/charflaw/chronic_arthritis,
+	"Luxless" = /datum/charflaw/lux_taken,
+	"Witless Pixie" = /datum/charflaw/witless_pixie,
 	"Random Flaw or No Flaw"=/datum/charflaw/randflaw,
-	"Guaranteed No Flaw (3 TRI)"=/datum/charflaw/noflaw,))
+	"Guaranteed No Flaw (3 TRI)"=/datum/charflaw/noflaw,
+))
 
 /datum/charflaw
+	abstract_type = /datum/charflaw
+	/// Fluff name
 	var/name
+	/// Fluff desc
 	var/desc
 	/// This flaw is currently disabled and will not process
 	var/ephemeral = FALSE
 	/// The mob affected by the character flaw
 	var/mob/owner
+	/// Flaw is exempt from random picks
+	var/random_exempt = FALSE
 
 /datum/charflaw/New(mob/new_owner)
 	. = ..()
@@ -41,17 +49,17 @@ GLOBAL_LIST_INIT(character_flaws, list(
 		owner = new_owner
 		on_mob_creation(owner)
 
+/datum/charflaw/Destroy()
+	on_remove()
+	return ..()
+
 /// Applies when the user mob is created without mind
 /datum/charflaw/proc/on_mob_creation(mob/user)
 	return
 
 /// Aplies after the user mob is fully spawned and has mind
-/datum/charflaw/proc/after_spawn(mob/user)
+/datum/charflaw/proc/after_spawn(mob/user, client/mob_client)
 	return
-
-/datum/charflaw/Destroy()
-	on_remove()
-	return ..()
 
 /// Applies when the flaw is deleted
 /datum/charflaw/proc/on_remove()
@@ -79,65 +87,66 @@ GLOBAL_LIST_INIT(character_flaws, list(
 	if(istype(charflaw, flaw))
 		return TRUE
 
-/// Replaces mob's flaw with a random one excluding no flaw
-/mob/proc/get_random_flaw()
-	return
+/// Replaces humans's flaw with a random one excluding no flaw
+/mob/living/carbon/human/proc/get_random_flaw()
+	var/list/flaws = list()
+	for(var/datum/charflaw/flaw as anything in subtypesof(/datum/charflaw))
+		if(is_abstract(flaw))
+			continue
+		if(initial(flaw.random_exempt))
+			continue
+		flaws += flaw
 
-/mob/living/carbon/human/get_random_flaw()
-	var/list/flaws = GLOB.character_flaws.Copy() - list(/datum/charflaw/randflaw, /datum/charflaw/noflaw)
-	var/new_charflaw = pick_n_take(flaws)
-	new_charflaw = GLOB.character_flaws[new_charflaw]
+	set_flaw(pick(flaws))
+
+/mob/living/carbon/human/proc/set_flaw(datum/charflaw/flaw, after_spawn = TRUE)
+	if(!flaw)
+		return
+
 	if(charflaw)
 		QDEL_NULL(charflaw)
-	charflaw = new new_charflaw(src)
+
+	charflaw = new flaw(src)
+
+	if(after_spawn)
+		charflaw.after_spawn(src)
 
 /datum/charflaw/randflaw
 	name = "Random Flaw"
 	desc = "Chooses a random flaw (50% chance for no flaw)"
-	var/nochekk = TRUE
+	random_exempt = TRUE
 
-/datum/charflaw/randflaw/flaw_on_life(mob/user)
-	if(!nochekk)
+/datum/charflaw/randflaw/after_spawn(mob/user)
+	. = ..()
+	if(!ishuman(user))
 		return
-	if(ishuman(user))
-		var/mob/living/carbon/human/H = user
-		if(H.ckey)
-			nochekk = FALSE
-			if(prob(50))
-				H.get_random_flaw()
-			else
-				H.charflaw = new /datum/charflaw/eznoflaw(H)
+	var/mob/living/carbon/human/H = user
+	if(prob(50))
+		H.get_random_flaw()
+	else
+		H.set_flaw(/datum/charflaw/eznoflaw)
 
 /datum/charflaw/eznoflaw
 	name = "No Flaw"
 	desc = "I'm a normal person, how rare!"
+	random_exempt = TRUE
 
 /datum/charflaw/noflaw
 	name = "No Flaw (3 TRI)"
 	desc = "I'm a normal person, how rare! (Consumes 3 triumphs or randomizes)"
-	var/nochekk = TRUE
+	random_exempt = TRUE
 
-/datum/charflaw/noflaw/flaw_on_life(mob/user)
-	if(!nochekk)
+/datum/charflaw/noflaw/after_spawn(mob/user, client/mob_client)
+	. = ..()
+	if(!ishuman(user))
 		return
-	if(ishuman(user))
-		var/mob/living/carbon/human/H = user
-		if(H.ckey)
-			if(H.get_triumphs() < 3)
-				nochekk = FALSE
-				var/flawz = GLOB.character_flaws.Copy()
-				var/charflaw = pick_n_take(flawz)
-				charflaw = GLOB.character_flaws[charflaw]
-				if((charflaw == type) || (charflaw == /datum/charflaw/randflaw))
-					charflaw = pick_n_take(flawz)
-					charflaw = GLOB.character_flaws[charflaw]
-				if((charflaw == type) || (charflaw == /datum/charflaw/randflaw))
-					charflaw = pick_n_take(flawz)
-					charflaw = GLOB.character_flaws[charflaw]
-				H.charflaw = new charflaw(H)
-			else
-				nochekk = FALSE
-				H.adjust_triumphs(-3)
+	var/mob/living/carbon/human/H = user
+	var/triumphs = get_triumph_amount(mob_client.ckey)
+	if(triumphs >= 3)
+		adjust_triumphs(mob_client.ckey, -3)
+		H.set_flaw(/datum/charflaw/eznoflaw)
+		return
+	H.get_random_flaw()
 
 /datum/charflaw/badsight
 	name = "Bad Eyesight"
@@ -145,9 +154,7 @@ GLOBAL_LIST_INIT(character_flaws, list(
 
 /datum/charflaw/badsight/after_spawn(mob/user)
 	. = ..()
-	var/mob/living/carbon/human/H = user
-	if(H.mind)
-		H.adjust_skillrank(/datum/skill/misc/reading, 1, TRUE)
+	user.adjust_skillrank(/datum/skill/misc/reading, 1, TRUE)
 
 /datum/charflaw/badsight/flaw_on_life(mob/user)
 	if(!ishuman(user))
@@ -177,11 +184,11 @@ GLOBAL_LIST_INIT(character_flaws, list(
 		var/type = H.wear_mask.type
 		QDEL_NULL(H.wear_mask)
 		H.put_in_hands(new type(get_turf(H)))
-	H.equip_to_slot_or_del(new /obj/item/clothing/face/spectacles(H), SLOT_WEAR_MASK)
+	H.equip_to_slot_or_del(new /obj/item/clothing/face/spectacles(H), ITEM_SLOT_MASK)
 
 /datum/charflaw/paranoid
 	name = "Paranoid"
-	desc = "I'm even more anxious than most towners. I'm extra paranoid of other races, the price of higher intelligence."
+	desc = "I'm even more anxious than most towners. I'm extra paranoid of other species, the price of higher intelligence."
 	var/last_check = 0
 
 /datum/charflaw/paranoid/flaw_on_life(mob/user)
@@ -205,14 +212,14 @@ GLOBAL_LIST_INIT(character_flaws, list(
 			break
 	var/mob/living/carbon/P = user
 	if(cnt > 2)
-		P.add_stress(/datum/stressevent/paracrowd)
+		P.add_stress(/datum/stress_event/paracrowd)
 	cnt = 0
 	for(var/obj/effect/decal/cleanable/blood/B in view(7, user))
 		cnt++
 		if(cnt > 3)
 			break
 	if(cnt > 6)
-		P.add_stress(/datum/stressevent/parablood)
+		P.add_stress(/datum/stress_event/parablood)
 
 /datum/charflaw/isolationist
 	name = "Isolationist"
@@ -238,7 +245,7 @@ GLOBAL_LIST_INIT(character_flaws, list(
 			break
 	var/mob/living/carbon/P = user
 	if(cnt > 2)
-		P.add_stress(/datum/stressevent/crowd)
+		P.add_stress(/datum/stress_event/crowd)
 
 /datum/charflaw/clingy
 	name = "Clingy"
@@ -264,14 +271,14 @@ GLOBAL_LIST_INIT(character_flaws, list(
 			break
 	var/mob/living/carbon/P = user
 	if(cnt < 2)
-		P.add_stress(/datum/stressevent/nopeople)
+		P.add_stress(/datum/stress_event/nopeople)
 
 /datum/charflaw/noeyer
 	name = "Cyclops (R)"
 	desc = "I lost my right eye long ago. But it made me great at noticing things."
 
 /datum/charflaw/noeyer/after_spawn(mob/user)
-	..()
+	. = ..()
 	if(!ishuman(user))
 		return
 	var/mob/living/carbon/human/H = user
@@ -279,7 +286,7 @@ GLOBAL_LIST_INIT(character_flaws, list(
 		var/type = H.wear_mask.type
 		QDEL_NULL(H.wear_mask)
 		H.put_in_hands(new type(get_turf(H)))
-	H.equip_to_slot_or_del(new /obj/item/clothing/face/eyepatch(H), SLOT_WEAR_MASK)
+	H.equip_to_slot_or_del(new /obj/item/clothing/face/eyepatch(H), ITEM_SLOT_MASK)
 
 	var/obj/item/bodypart/head/head = H.get_bodypart(BODY_ZONE_HEAD)
 	head?.add_wound(/datum/wound/facial/eyes/right/permanent)
@@ -290,16 +297,15 @@ GLOBAL_LIST_INIT(character_flaws, list(
 	desc = "I lost my left eye long ago. But it made me great at noticing things."
 
 /datum/charflaw/noeyel/after_spawn(mob/user)
-	..()
+	. = ..()
 	if(!ishuman(user))
 		return
 	var/mob/living/carbon/human/H = user
-
 	if(H.wear_mask)
 		var/type = H.wear_mask.type
 		QDEL_NULL(H.wear_mask)
 		H.put_in_hands(new type(get_turf(H)))
-	H.equip_to_slot_or_del(new /obj/item/clothing/face/eyepatch/left(H), SLOT_WEAR_MASK)
+	H.equip_to_slot_or_del(new /obj/item/clothing/face/eyepatch/left(H), ITEM_SLOT_MASK)
 
 	var/obj/item/bodypart/head/head = H.get_bodypart(BODY_ZONE_HEAD)
 	head?.add_wound(/datum/wound/facial/eyes/left/permanent)
@@ -313,16 +319,15 @@ GLOBAL_LIST_INIT(character_flaws, list(
 	. = ..()
 	if(ishuman(user))
 		var/mob/living/carbon/human/H = user
-		switch(rand(1,2))
-			if(1)
-				H.charflaw = new /datum/charflaw/noeyel(H)
-			else
-				H.charflaw = new /datum/charflaw/noeyer(H)
-	qdel(src)
+		if(prob(50))
+			H.set_flaw(/datum/charflaw/noeyel)
+		else
+			H.set_flaw(/datum/charflaw/noeyer)
 
 /datum/charflaw/tongueless
 	name = "Tongueless"
-	desc = "I was too annoying. (Being mute is not an excuse to forego roleplay. Use of custom emotes is recommended.)"
+	desc = "I said one word too many to a noble, they cut out my tongue.\n\
+	(Being mute is not an excuse to forego roleplay. Use of custom emotes is recommended.)"
 
 /datum/charflaw/tongueless/on_mob_creation(mob/user)
 	. = ..()
@@ -335,7 +340,7 @@ GLOBAL_LIST_INIT(character_flaws, list(
 /datum/charflaw/hunted
 	name = "Hunted"
 	desc = "Something in my past has made me a target. I'm always looking over my shoulder.	\
-	THIS IS A DIFFICULT FLAW, YOU WILL BE HUNTED AND HAVE ASSASINATION ATTEMPTS MADE AGAINST YOU WITHOUT ANY ESCALATION. \
+	\nTHIS IS A DIFFICULT FLAW, YOU WILL BE HUNTED AND HAVE ASSASINATION ATTEMPTS MADE AGAINST YOU WITHOUT ANY ESCALATION. \
 	EXPECT A MORE DIFFICULT EXPERIENCE. PLAY AT YOUR OWN RISK."
 	var/logged = FALSE
 
@@ -400,15 +405,15 @@ GLOBAL_LIST_INIT(character_flaws, list(
 	var/do_update_msg = TRUE
 	if(new_mammon_amount >= required_mammons)
 		// Feel better
-		if(user.has_stress(/datum/stressevent/vice))
+		if(user.has_stress_type(/datum/stress_event/vice))
 			to_chat(user, span_blue("[new_mammon_amount] mammons... That's more like it.."))
-		user.remove_stress(/datum/stressevent/vice)
+		user.remove_stress(/datum/stress_event/vice)
 		user.remove_status_effect(/datum/status_effect/debuff/addiction)
 		last_passed_check = world.time
 		do_update_msg = FALSE
 	else
 		// Feel bad
-		user.add_stress(/datum/stressevent/vice)
+		user.add_stress(/datum/stress_event/vice)
 		user.apply_status_effect(/datum/status_effect/debuff/addiction)
 
 	if(new_mammon_amount == last_checked_mammons)
@@ -498,7 +503,7 @@ GLOBAL_LIST_INIT(character_flaws, list(
 	if(next_paincrave > world.time)
 		last_pain_threshold = NONE
 		return
-	user.add_stress(/datum/stressevent/vice)
+	user.add_stress(/datum/stress_event/vice)
 	user.apply_status_effect(/datum/status_effect/debuff/addiction)
 	var/current_pain = user.get_complex_pain()
 	// Bloodloss makes the pain count as extra large to allow people to bloodlet themselves with cutting weapons to satisfy vice
@@ -523,7 +528,7 @@ GLOBAL_LIST_INIT(character_flaws, list(
 	if(new_pain_threshold == MASO_THRESHOLD_FOUR)
 		to_chat(user, span_blue("<b>That's more like it...</b>"))
 		next_paincrave = world.time + rand(35 MINUTES, 45 MINUTES)
-		user.remove_stress(/datum/stressevent/vice)
+		user.remove_stress(/datum/stress_event/vice)
 		user.remove_status_effect(/datum/status_effect/debuff/addiction)
 
 
@@ -582,7 +587,7 @@ GLOBAL_LIST_INIT(character_flaws, list(
 			var/affected_parts = min(rand(1, 3), joint_parts.len)
 			for(var/i = 1 to affected_parts)
 				var/obj/item/bodypart/BP = pick_n_take(joint_parts)
-				BP.chronic_pain = rand(30, 60)
+				BP.chronic_pain = rand(10, 20)
 				BP.chronic_pain_type = CHRONIC_ARTHRITIS
 
 		to_chat(user, span_warning("Your joints feel stiff and painful - a reminder of your chronic arthritis."))
@@ -602,7 +607,7 @@ GLOBAL_LIST_INIT(character_flaws, list(
 
 		if(arthritic_parts.len)
 			var/obj/item/bodypart/affected = pick(arthritic_parts)
-			affected.lingering_pain += rand(15, 25)
+			affected.lingering_pain += rand(7.5, 12.5)
 			var/pain_msg = pick("Your [affected.name] throbs with arthritic pain!",
 							   "A sharp ache shoots through your [affected.name]!",
 							   "Your [affected.name] feels stiff and painful!")
@@ -632,7 +637,7 @@ GLOBAL_LIST_INIT(character_flaws, list(
 
 		if(major_parts.len)
 			var/obj/item/bodypart/wounded = pick(major_parts)
-			wounded.chronic_pain = rand(40, 70)
+			wounded.chronic_pain = rand(10, 17.5)
 			wounded.chronic_pain_type = pick(CHRONIC_OLD_FRACTURE, CHRONIC_SCAR_TISSUE, CHRONIC_NERVE_DAMAGE)
 			wounded.brute_dam += rand(3, 8) // Some permanent damage
 
@@ -651,7 +656,7 @@ GLOBAL_LIST_INIT(character_flaws, list(
 		if(prob(3))
 			for(var/obj/item/bodypart/BP in H.bodyparts)
 				if(BP.chronic_pain > 30)
-					BP.lingering_pain += rand(20, 30)
+					BP.lingering_pain += rand(5, 6)
 					to_chat(H, span_warning("Your old war wound flares up from the stress!"))
 					break
 
@@ -659,7 +664,7 @@ GLOBAL_LIST_INIT(character_flaws, list(
 	if(prob(1.5))
 		for(var/obj/item/bodypart/BP in H.bodyparts)
 			if(BP.chronic_pain > 0)
-				BP.lingering_pain += rand(10, 20)
+				BP.lingering_pain += rand(5, 10)
 				var/pain_type = pick("sharp", "throbbing", "burning", "aching")
 				to_chat(H, span_warning("A [pain_type] pain shoots through your old wound."))
 				break
@@ -674,7 +679,7 @@ GLOBAL_LIST_INIT(character_flaws, list(
 		// Apply chronic pain to head
 		for(var/obj/item/bodypart/BP in H.bodyparts)
 			if(BP.body_zone == BODY_ZONE_HEAD)
-				BP.chronic_pain = rand(35, 55)
+				BP.chronic_pain = rand(17.5, 27.5)
 				BP.chronic_pain_type = CHRONIC_NERVE_DAMAGE
 				break
 
@@ -723,7 +728,7 @@ GLOBAL_LIST_INIT(character_flaws, list(
 		// Apply chronic pain to chest/torso area
 		for(var/obj/item/bodypart/BP in H.bodyparts)
 			if(BP.body_zone == BODY_ZONE_CHEST)
-				BP.chronic_pain = rand(40, 65)
+				BP.chronic_pain = rand(20, 32.5)
 				BP.chronic_pain_type = pick(CHRONIC_OLD_FRACTURE, CHRONIC_SCAR_TISSUE)
 				break
 
@@ -739,7 +744,7 @@ GLOBAL_LIST_INIT(character_flaws, list(
 	if(H.m_intent == MOVE_INTENT_RUN && prob(5))
 		for(var/obj/item/bodypart/BP in H.bodyparts)
 			if(BP.body_zone == BODY_ZONE_CHEST)
-				BP.lingering_pain += rand(15, 25)
+				BP.lingering_pain += rand(3, 5)
 				to_chat(H, span_warning("Running aggravates your chronic back pain!"))
 				break
 
@@ -757,3 +762,46 @@ GLOBAL_LIST_INIT(character_flaws, list(
 						to_chat(H, span_warning("The weight of your equipment aggravates your chronic back pain!"))
 					BP.lingering_pain += pain_amount
 					break
+
+/datum/charflaw/lux_taken
+	name = "Lux-less"
+	desc = "Through some grand misfortune, or heroic sacrifice- you have given up your link to Psydon, and with it- your soul. A putrid, horrid thing, you cosign yourself to an eternity of nil after death. Perhaps you are fine with this. \
+	\n\n EXPECT A DIFFICULT, MECHANICALLY UNFAIR EXPERIENCE. \n Rakshari, Hollowkin and Kobolds do not apply, given they already have no lux. "
+
+/datum/charflaw/lux_taken/after_spawn(mob/user)
+	if(!ishuman(user))
+		return
+
+	var/mob/living/carbon/human/H = user
+
+	// If they don't have lux randomize them
+	if(H.dna?.species?.id in RACES_PLAYER_LUXLESS)
+		H.get_random_flaw()
+		return
+	H.apply_status_effect(/datum/status_effect/debuff/flaw_lux_taken)
+
+/datum/charflaw/witless_pixie
+	name = "Witless Pixie"
+	desc = "By some cruel twist of fate, you have been born a dainty-minded, dim-witted klutz. Yours is a life of constant misdirection, confusion and general incompetence. \
+	\nIt is no small blessing your dazzling looks make up for this, sometimes. \n\nSometimes... they do you no favours at all."
+
+/datum/charflaw/witless_pixie/on_mob_creation(mob/user)
+	if(!ishuman(user))
+		return
+	var/mob/living/L = user
+
+	L.adjust_stat_modifier("[REF(src)]", STATKEY_INT, rand(-2, -5)) //this would probably make the average manorc a vegetable
+
+/datum/charflaw/witless_pixie/after_spawn(mob/user)
+	if(!ishuman(user))
+		return
+
+	//solves edgecases with inbred princes and eoran hand-holders. Yes, you can be an ugly Eoran templar. You are not safe.
+	REMOVE_TRAIT(user, TRAIT_BEAUTIFUL, TRAIT_GENERIC)
+	REMOVE_TRAIT(user, TRAIT_UGLY, TRAIT_GENERIC)
+	REMOVE_TRAIT(user, TRAIT_FISHFACE, TRAIT_GENERIC)
+
+	if(prob(50))
+		ADD_TRAIT(user, TRAIT_BEAUTIFUL, TRAIT_GENERIC)
+	else if(prob(30))
+		ADD_TRAIT(user, TRAIT_UGLY, TRAIT_GENERIC)

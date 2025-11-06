@@ -77,7 +77,7 @@
 /datum/component/riding/proc/ride_check(mob/living/M)
 	var/atom/movable/AM = parent
 	var/mob/AMM = AM
-	if((ride_check_rider_restrained && HAS_TRAIT(M, TRAIT_RESTRAINED)) || (ride_check_rider_incapacitated && M.incapacitated(FALSE, TRUE)) || (ride_check_ridden_incapacitated && istype(AMM) && AMM.incapacitated(FALSE, TRUE)))
+	if((ride_check_rider_restrained && HAS_TRAIT(M, TRAIT_RESTRAINED)) || (ride_check_rider_incapacitated && M.incapacitated(IGNORE_GRAB)) || (ride_check_ridden_incapacitated && istype(AMM) && AMM.incapacitated(IGNORE_GRAB)))
 		M.visible_message("<span class='warning'>[M] falls off of [AM]!</span>", \
 						"<span class='warning'>I fall off of [AM]!</span>")
 		AM.unbuckle_mob(M)
@@ -111,7 +111,7 @@
 							buckled_mob.layer = diroffsets[3]
 						buckled_mob.set_mob_offsets("riding", _x = x2off, _y = y2off)
 						break dir_loop
-	var/list/static/default_vehicle_pixel_offsets = list(TEXT_NORTH = list(0, 0), TEXT_SOUTH = list(0, 0), TEXT_EAST = list(0, 0), TEXT_WEST = list(0, 0))
+	var/static/list/default_vehicle_pixel_offsets = list(TEXT_NORTH = list(0, 0), TEXT_SOUTH = list(0, 0), TEXT_EAST = list(0, 0), TEXT_WEST = list(0, 0))
 /*	var/px = default_vehicle_pixel_offsets[AM_dir]
 	var/py = default_vehicle_pixel_offsets[AM_dir]
 	if(directional_vehicle_offsets[AM_dir])
@@ -151,7 +151,7 @@
 	if(buckled_mob)
 		buckled_mob.reset_offsets("riding")
 		if(buckled_mob.client)
-			buckled_mob.client.change_view(CONFIG_GET(string/default_view))
+			buckled_mob.client.view_size.resetToDefault()
 
 //MOVEMENT
 /datum/component/riding/proc/turf_check(turf/next, turf/current)
@@ -163,7 +163,7 @@
 
 /datum/component/riding/proc/handle_ride(mob/user, direction)
 	var/atom/movable/AM = parent
-	if(user.incapacitated(ignore_grab = TRUE))
+	if(user.incapacitated(IGNORE_GRAB))
 		Unbuckle(user)
 		return
 
@@ -178,7 +178,7 @@
 	if(!turf_check(next, current))
 		to_chat(user, "<span class='warning'>My \the [AM] can not go onto [next]!</span>")
 		return
-	if(!Process_Spacemove(direction) || !isturf(AM.loc))
+	if(!isturf(AM.loc))
 		return
 	step(AM, direction)
 
@@ -196,9 +196,6 @@
 /datum/component/riding/proc/Unbuckle(atom/movable/M)
 	addtimer(CALLBACK(parent, TYPE_PROC_REF(/atom/movable, unbuckle_mob), M), 0, TIMER_UNIQUE)
 
-/datum/component/riding/proc/Process_Spacemove(direction)
-	var/atom/movable/AM = parent
-	return override_allow_spacemove || AM.has_gravity()
 
 /datum/component/riding/proc/account_limbs(mob/living/M)
 	if(M.usable_legs < 2 && !slowed)

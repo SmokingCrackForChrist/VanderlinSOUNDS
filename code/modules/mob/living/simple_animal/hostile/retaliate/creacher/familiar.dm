@@ -2,7 +2,7 @@
 /mob/living/simple_animal/hostile/retaliate/wolf/familiar
 	icon = 'icons/roguetown/mob/monster/vol.dmi'
 	name = "familiar"
-	desc = "A spectral volf familiar created by arcane magicks."
+	desc = "A spectral volf familiar created by arcyne magicks."
 	icon_state = "spiritw"
 	icon_living = "spiritw"
 	icon_dead = null
@@ -27,19 +27,8 @@
 	botched_butcher_results = null
 	butcher_results = null
 	perfect_butcher_results = null
-	var/summoner = null
-	var/despawn_timer
-	var/timeleft = 5 MINUTES
+	head_butcher = null
 	del_on_death = TRUE
+	dendor_taming_chance = DENDOR_TAME_PROB_NONE
 
 	ai_controller = /datum/ai_controller/summon
-
-/mob/living/simple_animal/hostile/retaliate/wolf/familiar/Initialize(mapload, mob/user)
-	. = ..()
-	if(timeleft)
-		despawn_timer = QDEL_IN(src, timeleft) //delete after it runs out, see code/modules/mob/living/simple_animal/rogue/creacher/familiar.dm for timeleft var
-	summoner = user
-
-/mob/living/simple_animal/hostile/retaliate/wolf/familiar/Destroy()
-	deltimer(despawn_timer)
-	. = ..()

@@ -16,16 +16,17 @@
 	faction = list("leyline")
 	emote_hear = null
 	emote_see = null
-	turns_per_move = 8
 	see_in_dark = 9
 	move_to_delay = 1
 	vision_range = 9
 	aggro_vision_range = 9
 
 	butcher_results = list()
+	animal_type = /datum/blood_type/lycan
 
 	health = 240
 	maxHealth = 240
+	food_max = 0
 	food_type = list()
 
 	base_intents = list(/datum/intent/simple/bite)
@@ -44,28 +45,25 @@
 	defprob = 35
 	defdrain = 5
 	retreat_health = 0.4
-	food = 0
+
 	dodgetime = 30
 	aggressive = 1
 	body_eater = FALSE
 
-
-
 	ai_controller = /datum/ai_controller/lycan
-
+	dendor_taming_chance = DENDOR_TAME_PROB_NONE
+	del_on_death = TRUE
 
 /mob/living/simple_animal/hostile/retaliate/leylinelycan/simple_add_wound(datum/wound/wound, silent = FALSE, crit_message = FALSE)	//No wounding the lycan.
 	return
 
 /mob/living/simple_animal/hostile/retaliate/leylinelycan/death(gibbed)
-	..()
 	var/obj/structure/leyline/source = ai_controller.blackboard[BB_LEYLINE_SOURCE]
 	source?.guardian = null
 	var/turf/deathspot = get_turf(src)
 	new /obj/item/natural/leyline(deathspot)
 	spill_embedded_objects()
-	update_icon()
-	qdel(src)
+	return ..()
 
 /obj/effect/temp_visual/lycan
 	icon = 'icons/effects/effects.dmi'

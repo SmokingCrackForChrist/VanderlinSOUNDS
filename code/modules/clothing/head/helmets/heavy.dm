@@ -8,13 +8,15 @@
 	equip_delay_self = 3 SECONDS
 	unequip_delay_self = 3 SECONDS
 	emote_environment = 3		// Unknown if this actually works and what it does
-	smeltresult = /obj/item/ingot/steel
+	melt_amount = 75
+	melting_material = /datum/material/steel
 	sellprice = VALUE_STEEL_HELMET
 
 	armor = ARMOR_PLATE
 	body_parts_covered = FULL_HEAD
 	prevent_crits = ALL_EXCEPT_STAB
 	max_integrity = INTEGRITY_STRONGEST // no moving parts, steel
+	abstract_type = /obj/item/clothing/head/helmet/heavy
 
 /obj/item/clothing/head/helmet/heavy/necked		// includes a coif or gorget part to cover neck. Why? So templars can wear their cross on their neck basically, also special thing for Temple
 	name = "bastion helm"
@@ -26,6 +28,17 @@
 	prevent_crits = ALL_EXCEPT_BLUNT
 	block2add = FOV_BEHIND
 
+/obj/item/clothing/head/helmet/heavy/psydonbarbute
+	name = "psydonian barbute"
+	desc = "A barbute styled with Psydonian Imagery."
+	icon_state = "psydonbarbute"
+	item_state = "psydonbarbute"
+
+/obj/item/clothing/head/helmet/heavy/psydonhelm
+	name ="grenzelhoftian armet"
+	desc = "Headwear commonly worn by Templars in service to the Oratorium Throni Vacui. PSYDON Endures."
+	icon_state = "psydonarmet"
+	item_state = "psydonarmet"
 
 //................ Iron Plate Helmet ............... //
 /obj/item/clothing/head/helmet/heavy/ironplate
@@ -35,6 +48,7 @@
 	flags_inv = HIDEEARS
 	smeltresult = /obj/item/ingot/iron
 	sellprice = VALUE_CHEAP_IRON_HELMET
+	block2add = FOV_BEHIND
 
 	armor = ARMOR_PLATE_BAD
 	max_integrity = INTEGRITY_STRONG //isn't the same as a steel helmet but is better than a skullcap, costs 2 bars and protects the mouth
@@ -71,17 +85,16 @@
 	item_weight = 9 * GOLD_MULITPLIER
 
 // Vampire Lord is no longer as OP, but the armor should protect against dreaded stabs or it makes the vitae spent on it pointless.
-/obj/item/clothing/head/helmet/heavy/savoyard
+/obj/item/clothing/head/helmet/heavy/vampire
 	name = "savoyard"
-	desc = "A terrifying yet crude iron helmet shaped like a humen skull. Commands the inspiring terror of inhumen tyrants from yils past."
+	desc = "A terrifying yet crude helmet shaped like a humen skull. Commands the inspiring terror of inhumen tyrants from yils past."
 	icon_state = "savoyard"
 	flags_inv = HIDEEARS|HIDEFACE|HIDEHAIR
-	smeltresult = /obj/item/ingot/iron
-	sellprice = VALUE_IRON_HELMET + BONUS_VALUE_MODEST
 
 	prevent_crits = ALL_CRITICAL_HITS_VAMP
-	max_integrity = INTEGRITY_STRONG
-	item_weight = 6 * IRON_MULTIPLIER
+	max_integrity = INTEGRITY_STRONGEST // steel
+	body_parts_covered = HEAD_NECK
+	block2add = FOV_BEHIND
 
 //............... Frog Helmet ............... //
 /obj/item/clothing/head/helmet/heavy/frog
@@ -96,6 +109,19 @@
 	armor = ARMOR_PLATE_GOOD
 	prevent_crits = ALL_CRITICAL_HITS
 	item_weight = 9 * IRON_MULTIPLIER
+
+//............... Black Knight Helmet ............... //
+/obj/item/clothing/head/helmet/heavy/blkknight
+	name = "blacksteel helmet"
+	desc = "A helmet black as nite. Instills fear upon those that gaze upon it."
+	icon_state = "bkhelm"
+	icon = 'icons/roguetown/clothing/special/blkknight.dmi'
+	mob_overlay_icon = 'icons/roguetown/clothing/special/onmob/blkknight.dmi'
+	armor_class = AC_MEDIUM
+	armor = ARMOR_PLATE_GOOD
+	prevent_crits = ALL_CRITICAL_HITS
+	item_weight = 9 * BLACKSTEEL_MULTIPLIER
+	sellprice = VALUE_SILVER_ITEM * 2
 
 //............... Zizo Frog Helmet ............... //
 
@@ -130,6 +156,20 @@
 	bloody_icon_state = "helmetblood_big"
 	worn_x_dimension = 64
 	worn_y_dimension = 64
+
+//............... Graggar Helmet ............... //
+
+/obj/item/clothing/head/helmet/graggar
+	name = "vicious helmet"
+	desc = "A rugged and horrifying helmet. A violent aura emanates from it."
+	icon_state = "graggarplatehelm"
+	icon = 'icons/roguetown/clothing/special/evilarmor.dmi'
+	mob_overlay_icon = 'icons/roguetown/clothing/special/onmob/evilarmor.dmi'
+	armor = ARMOR_PLATE
+	prevent_crits = ALL_CRITICAL_HITS
+	item_weight = 5 * STEEL_MULTIPLIER
+	block2add = FOV_BEHIND
+	sellprice = 0 // See above comment
 
 //............... Spangenhelm ............... //
 /obj/item/clothing/head/helmet/heavy/viking
@@ -166,6 +206,10 @@
 	icon_state = "nochelm"
 	item_weight = 6 * SILVER_MULTIPLIER
 	flags_inv = HIDEEARS
+
+/obj/item/clothing/head/helmet/heavy/necked/noc/Initialize(mapload)
+	. = ..()
+	enchant(/datum/enchantment/silver)
 
 //............... Necra Helmet ............... //
 /obj/item/clothing/head/helmet/heavy/necked/necra
@@ -214,6 +258,26 @@
 	item_state = "ravoxhelm"
 	item_weight = 6 * IRON_MULTIPLIER
 
+//................ Xylix Helmet ............. //
+/obj/item/clothing/head/helmet/heavy/necked/xylix
+	name = "xylix helmet"
+	desc = "A great helmet forged from steel, and fashioned in the visage of a jester, jingling bells and all. Commonly worn by Templars in service to Xylix"
+	icon_state = "xylixhelm"
+	item_state = "xylixhelm"
+	item_weight = 6 * IRON_MULTIPLIER
+
+/obj/item/clothing/head/helmet/heavy/necked/xylix/Initialize()
+	. = ..()
+	AddComponent(/datum/component/item_equipped_movement_rustle, custom_sounds = list(SFX_JINGLE_BELLS))
+
+//................ Abyssor Helmet ............. //
+/obj/item/clothing/head/helmet/heavy/necked/abyssor
+	name = "abyssor helmet"
+	desc = "A great helmet crafted from bronze. The visor is slitted and ridged, evoking the gills of a great sea-beast."
+	icon_state = "abyssorhelm"
+	item_state = "abyssorhelm"
+	item_weight = 6 * IRON_MULTIPLIER
+
 //............... Sinistar (Graggar) Helmet ............... //
 /obj/item/clothing/head/helmet/heavy/sinistar
 	name = "sinistar helmet"
@@ -226,7 +290,8 @@
 	icon_state = "sinistarhelm"
 	dropshrink = 0.9
 	flags_inv = HIDEEARS|HIDEFACE|HIDEHAIR
-	smeltresult = /obj/item/ingot/iron
+	melt_amount = 75
+	melting_material = /datum/material/steel
 	item_weight = 7 * IRON_MULTIPLIER
 
 /obj/item/clothing/head/helmet/heavy/decorated	// template
@@ -241,16 +306,17 @@
 	var/picked = FALSE
 
 	prevent_crits = ALL_CRITICAL_HITS
+	abstract_type = /obj/item/clothing/head/helmet/heavy/decorated
 
-/obj/item/clothing/head/helmet/heavy/decorated/update_icon()
-	cut_overlays()
-	if(get_detail_tag())
-		var/mutable_appearance/pic = mutable_appearance(icon(icon, "[icon_state][detail_tag]"))
-		pic.appearance_flags = RESET_COLOR
-		if(get_detail_color())
-			pic.color = get_detail_color()
-		add_overlay(pic)
-
+/obj/item/clothing/head/helmet/heavy/decorated/update_overlays()
+	. = ..()
+	if(!get_detail_tag())
+		return
+	var/mutable_appearance/pic = mutable_appearance(icon, "[icon_state][detail_tag]")
+	pic.appearance_flags = RESET_COLOR
+	if(get_detail_color())
+		pic.color = get_detail_color()
+	. += pic
 
 //............... Decorated Knight Helmet ............... //
 /obj/item/clothing/head/helmet/heavy/decorated/knight
@@ -259,8 +325,10 @@
 	icon_state = "decorated_knight"
 	item_weight = 9 * IRON_MULTIPLIER
 
-/obj/item/clothing/head/helmet/heavy/decorated/knight/attack_right(mob/user)
-	..()
+/obj/item/clothing/head/helmet/heavy/decorated/knight/attack_hand_secondary(mob/user, params)
+	. = ..()
+	if(. == SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN)
+		return
 	if(!picked)
 		var/list/icons = HELMET_KNIGHT_DECORATIONS
 		var/choice = input(user, "Choose a crest.", "Knightly crests") as anything in icons
@@ -268,10 +336,11 @@
 		picked = TRUE
 		icon_state = playerchoice
 		item_state = playerchoice
-		update_icon()
+		update_appearance(UPDATE_ICON)
 		if(loc == user && ishuman(user))
 			var/mob/living/carbon/H = user
 			H.update_inv_head()
+		return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
 
 //............... Decorated Hounskull ............... //
 /obj/item/clothing/head/helmet/heavy/decorated/hounskull
@@ -284,8 +353,10 @@
 	item_weight = 9 * IRON_MULTIPLIER
 
 
-/obj/item/clothing/head/helmet/heavy/decorated/hounskull/attack_right(mob/user)
-	..()
+/obj/item/clothing/head/helmet/heavy/decorated/hounskull/attack_hand_secondary(mob/user, params)
+	. = ..()
+	if(. == SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN)
+		return
 	if(!picked)
 		var/list/icons = HELMET_HOUNSKULL_DECORATIONS
 		var/choice = input(user, "Choose a crest.", "Knightly crests") as anything in icons
@@ -293,10 +364,11 @@
 		picked = TRUE
 		icon_state = playerchoice
 		item_state = playerchoice
-		update_icon()
+		update_appearance(UPDATE_ICON)
 		if(loc == user && ishuman(user))
 			var/mob/living/carbon/H = user
 			H.update_inv_head()
+		return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
 
 //............... Decorated Great Helm ............... //
 /obj/item/clothing/head/helmet/heavy/decorated/bucket
@@ -306,8 +378,10 @@
 	prevent_crits = ALL_CRITICAL_HITS
 	item_weight = 9 * IRON_MULTIPLIER
 
-/obj/item/clothing/head/helmet/heavy/decorated/bucket/attack_right(mob/user)
-	..()
+/obj/item/clothing/head/helmet/heavy/decorated/bucket/attack_hand_secondary(mob/user, params)
+	. = ..()
+	if(. == SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN)
+		return
 	if(!picked)
 		var/list/icons = HELMET_BUCKET_DECORATIONS
 		var/choice = input(user, "Choose a crest.", "Knightly crests") as anything in icons
@@ -315,10 +389,11 @@
 		picked = TRUE
 		icon_state = playerchoice
 		item_state = playerchoice
-		update_icon()
+		update_appearance(UPDATE_ICON)
 		if(loc == user && ishuman(user))
 			var/mob/living/carbon/H = user
 			H.update_inv_head()
+		return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
 
 //............... Decorated Gold Helm ............... //
 /obj/item/clothing/head/helmet/heavy/decorated/golden
@@ -328,8 +403,10 @@
 	prevent_crits = ALL_CRITICAL_HITS
 	item_weight = 7 * GOLD_MULITPLIER
 
-/obj/item/clothing/head/helmet/heavy/decorated/golden/attack_right(mob/user)
-	..()
+/obj/item/clothing/head/helmet/heavy/decorated/golden/attack_hand_secondary(mob/user, params)
+	. = ..()
+	if(. == SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN)
+		return
 	if(!picked)
 		var/list/icons = HELMET_GOLD_DECORATIONS
 		var/choice = input(user, "Choose a crest.", "Knightly crests") as anything in icons
@@ -337,10 +414,11 @@
 		picked = TRUE
 		icon_state = playerchoice
 		item_state = playerchoice
-		update_icon()
+		update_appearance(UPDATE_ICON)
 		if(loc == user && ishuman(user))
 			var/mob/living/carbon/H = user
 			H.update_inv_head()
+		return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
 
 /obj/item/clothing/head/helmet/heavy/decorated/bascinet
 	name = "bascinet"
@@ -355,8 +433,10 @@
 	body_parts_covered = HEAD|HAIR|EARS
 	item_weight = 9 * STEEL_MULTIPLIER
 
-/obj/item/clothing/head/helmet/heavy/decorated/bascinet/attack_right(mob/user)
-	..()
+/obj/item/clothing/head/helmet/heavy/decorated/bascinet/attack_hand_secondary(mob/user, params)
+	. = ..()
+	if(. == SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN)
+		return
 	if(!picked)
 		var/list/icons = BASCINET_DECORATIONS
 		var/choice = input(user, "Choose a crest.", "Knightly crests") as anything in icons
@@ -364,7 +444,79 @@
 		picked = TRUE
 		icon_state = playerchoice
 		item_state = playerchoice
-		update_icon()
+		update_appearance(UPDATE_OVERLAYS)
 		if(loc == user && ishuman(user))
 			var/mob/living/carbon/H = user
 			H.update_inv_head()
+		return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
+
+/obj/item/clothing/head/helmet/heavy/ordinatorhelm
+	name = "inquisitorial ordinator's helmet"
+	desc = "A design suggested by a Grenzelhoftian smith, inspired by an eccentric count who insisted on sleeping in a coffin. A steel casket with thin slits that allow for deceptively clear vision. The tainted will drown in the blood you bring their way, while this high helm keeps it out of your face."
+	icon_state = "ordinatorhelm"
+	item_state = "ordinatorhelm"
+	worn_x_dimension = 64
+	worn_y_dimension = 64
+	mob_overlay_icon = 'icons/roguetown/clothing/onmob/64x64/head.dmi'
+	bloody_icon = 'icons/effects/blood64x64.dmi'
+	flags_inv = HIDEEARS|HIDEFACE|HIDEHAIR
+	adjustable = CAN_CADJUST
+	max_integrity = 350
+	var/plumed = FALSE
+
+/obj/item/clothing/head/helmet/heavy/ordinatorhelm/attackby(obj/item/W, mob/living/user, params)
+	..()
+	if(istype(W, /obj/item/natural/feather))
+		user.visible_message(span_warning("[user] starts to fashion plumage using [W] for [src]."))
+		if(do_after(user, 4 SECONDS))
+			var/obj/item/clothing/head/helmet/heavy/ordinatorhelm/plume/P = new /obj/item/clothing/head/helmet/heavy/ordinatorhelm/plume(get_turf(src.loc))
+			if(user.is_holding(src))
+				user.dropItemToGround(src)
+				user.put_in_hands(P)
+			qdel(src)
+			qdel(W)
+		else
+			user.visible_message(span_warning("[user] stops fashioning plumage for [src]."))
+		return
+
+/obj/item/clothing/head/helmet/heavy/ordinatorhelm/plume
+	icon_state = "ordinatorhelmplume"
+	item_state = "ordinatorhelmplume"
+
+/obj/item/clothing/head/helmet/heavy/ordinatorhelm/plume/attackby(obj/item/W, mob/living/user, params)
+	if(istype(W, /obj/item/natural/feather))
+		return
+
+/obj/item/clothing/head/helmet/heavy/absolver
+	name = "psydonian conical helm"
+	desc = "Its shape confounds and confuses the enemies of Psydon. Offering unfound protection in its visage, the gaze is horrific to those without understanding."
+	icon_state = "absolutionisthelm"
+	item_state = "absolutionisthelm"
+	emote_environment = 3
+	body_parts_covered = FULL_HEAD|NECK
+	block2add = FOV_RIGHT|FOV_LEFT
+	max_integrity = 450 // Worst vision. Yes.
+	worn_x_dimension = 64
+	worn_y_dimension = 64
+	mob_overlay_icon = 'icons/roguetown/clothing/onmob/64x64/head.dmi'
+	bloody_icon = 'icons/effects/blood64x64.dmi'
+	flags_inv = HIDEEARS|HIDEFACE|HIDEHAIR
+	clothing_flags = NONE
+
+/obj/item/clothing/head/helmet/heavy/psybucket
+	name = "psydonian bucket helmet"
+	desc = "Originally just a bucket with a psycross nailed on, it proved surprisingly effective, making its way into common use for inquisitorial templars. Steel encapsulates your head, and His cross facing enemies reminds them that you will endure until they meet oblivion. Only then may you rest."
+	icon_state = "psybucket"
+	item_state = "psybucket"
+	flags_inv = HIDEEARS|HIDEFACE|HIDEHAIR
+	adjustable = CAN_CADJUST
+	max_integrity = 400
+
+/obj/item/clothing/head/helmet/heavy/psysallet
+	name = "psydonian sallet"
+	desc = "A boiled leather cap, crowned with steel and veiled with His cross. Fear not - He will show you the way, and He will see your blows well-struck."
+	icon_state = "psysallet"
+	item_state = "psysallet"
+	flags_inv = HIDEEARS|HIDEFACE|HIDEHAIR
+	adjustable = CAN_CADJUST
+	max_integrity = 400

@@ -80,18 +80,21 @@
 	eye_blurry = max(amount, 0)
 	update_eye_blur()
 
+/mob/proc/psydo_nyte()
+	sleep(2)
+	overlay_fullscreen("LYVES", /atom/movable/screen/fullscreen/zezuspsyst)
+	sleep(2)
+	clear_fullscreen("LYVES")
+
 ///Apply the blurry overlays to a mobs clients screen
 /mob/proc/update_eye_blur()
 	if(!client)
 		return
-	var/atom/movable/screen/plane_master/floor/OT = locate(/atom/movable/screen/plane_master/floor) in client.screen
-	var/atom/movable/screen/plane_master/game_world/GW = locate(/atom/movable/screen/plane_master/game_world) in client.screen
-	GW?.backdrop(src)
-	OT?.backdrop(src)
-	GW = locate(/atom/movable/screen/plane_master/game_world_fov_hidden) in client.screen
-	GW?.backdrop(src)
-	GW = locate(/atom/movable/screen/plane_master/game_world_above) in client.screen
-	GW?.backdrop(src)
+	var/atom/movable/plane_master_controller/game_plane_master_controller = hud_used.plane_master_controllers[PLANE_MASTERS_GAME]
+	if(eye_blurry)
+		game_plane_master_controller.add_filter("eye_blur", 1, gauss_blur_filter(clamp(eye_blurry * 0.1, 0.6, 3)))
+	else
+		game_plane_master_controller.remove_filter("eye_blur")
 
 ///Adjust the drugginess of a mob
 /mob/proc/adjust_drugginess(amount)

@@ -64,47 +64,10 @@
 
 	var/obj/effect/fog_parter/fog_parter_effect = /obj/effect/fog_parter // set to null to remove fog parter
 
-/obj/machinery/light/broken
-	status = LIGHT_BROKEN
-	icon_state = "tube-broken"
-
-// the smaller bulb light fixture
-
-/obj/machinery/light/small
-	icon_state = "bulb"
-	base_state = "bulb"
-	fitting = "bulb"
-	brightness = 4
-	desc = ""
-
-/obj/machinery/light/small/broken
-	status = LIGHT_BROKEN
-	icon_state = "bulb-broken"
-
 /obj/machinery/light/Move()
 	if(status != LIGHT_BROKEN)
 		break_light_tube(1)
 	return ..()
-
-/obj/machinery/light/built
-	icon_state = "tube-empty"
-	start_with_cell = FALSE
-
-/obj/machinery/light/built/Initialize()
-	. = ..()
-	status = LIGHT_EMPTY
-	update(0)
-
-/obj/machinery/light/small/built
-	icon_state = "bulb-empty"
-	start_with_cell = FALSE
-
-/obj/machinery/light/small/built/Initialize()
-	. = ..()
-	status = LIGHT_EMPTY
-	update(0)
-
-
 
 // create a new lighting fixture
 /obj/machinery/light/Initialize(mapload)
@@ -123,27 +86,27 @@
 		on = FALSE
 	return ..()
 
-/obj/machinery/light/update_icon()
-	cut_overlays()
-	switch(status)		// set icon_states
-		if(LIGHT_OK)
-			if(emergency_mode)
-				icon_state = "[base_state]_emergency"
-				icon_state = null
-			else
-				icon_state = "[base_state]"
-				icon_state = null
-				if(on)
-					var/mutable_appearance/glowybit = mutable_appearance(overlayicon, base_state, ABOVE_LIGHTING_LAYER, ABOVE_LIGHTING_PLANE)
-					glowybit.alpha = CLAMP(light_power*250, 30, 200)
-					add_overlay(glowybit)
-		if(LIGHT_EMPTY)
-			icon_state = "[base_state]-empty"
-		if(LIGHT_BURNED)
-			icon_state = "[base_state]-burned"
-		if(LIGHT_BROKEN)
-			icon_state = "[base_state]-broken"
-	return
+// /obj/machinery/light/update_icon()
+// 	cut_overlays()
+// 	switch(status)		// set icon_states
+// 		if(LIGHT_OK)
+// 			if(emergency_mode)
+// 				icon_state = "[base_state]_emergency"
+// 				icon_state = null
+// 			else
+// 				icon_state = "[base_state]"
+// 				icon_state = null
+// 				if(on)
+// 					var/mutable_appearance/glowybit = mutable_appearance(overlayicon, base_state, ABOVE_LIGHTING_LAYER, ABOVE_LIGHTING_PLANE)
+// 					glowybit.alpha = CLAMP(light_power*250, 30, 200)
+// 					add_overlay(glowybit)
+// 		if(LIGHT_EMPTY)
+// 			icon_state = "[base_state]-empty"
+// 		if(LIGHT_BURNED)
+// 			icon_state = "[base_state]-burned"
+// 		if(LIGHT_BROKEN)
+// 			icon_state = "[base_state]-broken"
+// 	return
 
 // update the icon_state and luminosity of the light depending on its state
 /obj/machinery/light/proc/update(trigger = TRUE)
@@ -155,7 +118,7 @@
 		var/CO = bulb_colour
 		if(color)
 			CO = color
-		if (nightshift_enabled)
+		if(nightshift_enabled)
 			switch(nightshift_enabled)
 				if("night")
 					BR = nightshift_brightness
@@ -191,8 +154,7 @@
 		START_PROCESSING(SSmachines, src)
 	if(should_update_light)
 		update_light()
-	update_icon()
-
+	update_appearance(UPDATE_ICON_STATE)
 	broken_sparks(start_only=TRUE)
 
 /obj/machinery/light/update_atom_colour()
@@ -221,7 +183,7 @@
 	if(on)
 		on = FALSE
 		update()
-		update_icon()
+		update_appearance(UPDATE_ICON_STATE)
 
 // attempt to set the light's on/off status
 // will not switch on if broken/burned/empty
@@ -238,27 +200,10 @@
 		if(prob(damage_amount * 5))
 			break_light_tube()
 
-
-
-
-/obj/machinery/light/play_attack_sound(damage_amount, damage_type = BRUTE, damage_flag = 0)
-	switch(damage_type)
-		if(BRUTE)
-			switch(status)
-				if(LIGHT_EMPTY)
-					playsound(loc, 'sound/blank.ogg', 50, TRUE)
-				if(LIGHT_BROKEN)
-					playsound(loc, 'sound/blank.ogg', 90, TRUE)
-				else
-					playsound(loc, 'sound/blank.ogg', 90, TRUE)
-		if(BURN)
-			playsound(src.loc, 'sound/blank.ogg', 100, TRUE)
-
 // returns whether this light has power
 // true if area has power and lightswitch is on
 /obj/machinery/light/proc/has_power()
 	return TRUE
-
 
 /obj/machinery/light/proc/flicker(amount = rand(10, 20))
 	set waitfor = 0
@@ -285,7 +230,6 @@
 		return
 	user.changeNext_move(CLICK_CD_MELEE)
 	add_fingerprint(user)
-
 
 // break the light and make sparks if was on
 
@@ -325,15 +269,6 @@
 	explosion(T, 0, 0, 2, 2)
 	sleep(1)
 	qdel(src)
-
-/obj/machinery/light/floor
-	name = "floor light"
-	icon = 'icons/obj/lighting.dmi'
-	base_state = "floor"		// base description and icon_state
-	icon_state = "floor"
-	brightness = 4
-	layer = 2.5
-	fitting = "bulb"
 
 // FOG RELATED PROC OVERRIDES
 

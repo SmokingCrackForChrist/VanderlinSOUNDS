@@ -12,7 +12,7 @@
 	. = list()
 	var/list/checked_turfs = list()
 	var/list/found_turfs = list(origin)
-	while(found_turfs.len)
+	while(length(found_turfs))
 		var/turf/sourceT = found_turfs[1]
 		found_turfs.Cut(1, 2)
 		var/dir_flags = checked_turfs[sourceT]
@@ -47,15 +47,15 @@
 	if(!turfs)
 		to_chat(creator, "<span class='warning'>The new area must be completely airtight.</span>")
 		return
-	if(turfs.len > BP_MAX_ROOM_SIZE)
-		to_chat(creator, "<span class='warning'>The room you're in is too big. It is [turfs.len >= BP_MAX_ROOM_SIZE *2 ? "more than 100" : ((turfs.len / BP_MAX_ROOM_SIZE)-1)*100]% larger than allowed.</span>")
+	if(length(turfs) > BP_MAX_ROOM_SIZE)
+		to_chat(creator, "<span class='warning'>The room you're in is too big. It is [length(turfs) >= BP_MAX_ROOM_SIZE *2 ? "more than 100" : ((length(turfs) / BP_MAX_ROOM_SIZE)-1)*100]% larger than allowed.</span>")
 		return
 	var/list/areas = list("New Area" = /area)
-	for(var/i in 1 to turfs.len)
+	for(var/i in 1 to length(turfs))
 		var/area/place = get_area(turfs[i])
 		if(blacklisted_areas[place.type])
 			continue
-		if(place.noteleport || place.hidden)
+		if(place.area_flags & (NO_TELEPORT|HIDDEN_AREA))
 			continue // No expanding powerless rooms etc
 		areas[place.name] = place
 	var/area_choice = browser_input_list(creator, "Choose an area to expand or make a new area.", "Area Expansion", areas)
@@ -65,7 +65,6 @@
 		to_chat(creator, "<span class='warning'>No choice selected. The area remains undefined.</span>")
 		return
 	var/area/newA
-	var/area/oldA = get_area(get_turf(creator))
 	if(!isarea(area_choice))
 		var/str = stripped_input(creator,"New area name:", "Blueprint Editing", "", MAX_NAME_LEN)
 		if(!str || !length(str)) //cancel
@@ -76,7 +75,6 @@
 		newA = new area_choice
 		newA.setup(str)
 		newA.set_dynamic_lighting()
-		newA.has_gravity = oldA.has_gravity
 	else
 		newA = area_choice
 

@@ -3,42 +3,35 @@
 	tutorial = "Yours was a marriage of political convenience rather than love, \
 	yet you have remained the ruling monarch's good friend and confidant throughout your marriage. \
 	But your love and loyalty will be tested, for daggers are equally pointed at your throat."
-	flag = CONSORT
 	department_flag = NOBLEMEN
 	job_flags = (JOB_ANNOUNCE_ARRIVAL | JOB_SHOW_IN_CREDITS | JOB_EQUIP_RANK | JOB_NEW_PLAYER_JOINABLE)
 	display_order = JDO_CONSORT
-	faction = FACTION_STATION
+	faction = FACTION_TOWN
 	total_positions = 0
 	spawn_positions = 1
 	min_pq = 6
 	bypass_lastclass = TRUE
 
-	spells = list(/obj/effect/proc_holder/spell/self/convertrole/servant)
-	allowed_races = list(
-		"Humen",
-		"Half-Elf",
-		"Elf",
-		"Dwarf"
-	)
-	outfit = /datum/outfit/job/consort
+	spells = list(/datum/action/cooldown/spell/undirected/list_target/convert_role/servant)
+	allowed_races = RACES_PLAYER_ROYALTY
+	outfit = /datum/outfit/consort
 	advclass_cat_rolls = list(CTAG_CONSORT = 20)
 	give_bank_account = 500
 	apprentice_name = "Servant"
 	cmode_music = 'sound/music/cmode/nobility/combat_noble.ogg'
 	noble_income = 22
 
-/datum/job/consort/after_spawn(mob/living/spawned, client/player_client)
-	..()
-	var/mob/living/carbon/human/H = spawned
-	SSfamilytree.AddRoyal(H, (H.gender == FEMALE) ? FAMILY_MOTHER : FAMILY_FATHER)
-	if(GLOB.keep_doors.len > 0)
-		addtimer(CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(know_keep_door_password), H), 50)
-	ADD_TRAIT(H, TRAIT_KNOWKEEPPLANS, TRAIT_GENERIC)
-
-/datum/outfit/job/consort
 	job_bitflag = BITFLAG_ROYALTY
 
-/datum/outfit/job/consort // Default equipment regardless of class.
+/datum/job/consort/after_spawn(mob/living/spawned, client/player_client)
+	. = ..()
+	var/mob/living/carbon/human/H = spawned
+	addtimer(CALLBACK(SSfamilytree, TYPE_PROC_REF(/datum/controller/subsystem/familytree, AddRoyal), H, (H.gender == FEMALE) ? FAMILY_MOTHER : FAMILY_FATHER), 7 SECONDS)
+	if(GLOB.keep_doors.len > 0)
+		addtimer(CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(know_keep_door_password), H), 5 SECONDS)
+	ADD_TRAIT(H, TRAIT_KNOWKEEPPLANS, TRAIT_GENERIC)
+
+/datum/outfit/consort // Default equipment regardless of class.
 	head = /obj/item/clothing/head/crown/nyle/consortcrown
 	shoes = /obj/item/clothing/shoes/boots
 	ring = /obj/item/clothing/ring/silver
@@ -51,24 +44,24 @@
 - Courtesan: Ex-classy or not-so-classy prostitute. Concerningly good with that knife and sneaking around. A little dumb.
 - Lowborn: A good wholesome peasant spouse. Can cook and swing a pitchfork good. Not so smart or perceptive.
 */
-/datum/advclass/consort
-	displays_adv_job = FALSE
+/datum/job/advclass/consort
+	inherit_parent_title = TRUE
 
-/datum/advclass/consort/highborn
-	name = "Highborn Consort"
+/datum/job/advclass/consort/highborn
+	title = "Highborn Consort"
 	tutorial = "Of a minor noble house, yours is a rather typical tale; you were trained in manners, literature, and intrigue, all to be married off to the next ruler of this damned peninsula."
-	outfit = /datum/outfit/job/consort/highborn
+	outfit = /datum/outfit/consort/highborn
 
 	category_tags = list(CTAG_CONSORT)
 
-/datum/outfit/job/consort/highborn/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/consort/highborn/pre_equip(mob/living/carbon/human/H)
 	. = ..()
 	if(H.gender == MALE)
-		pants = /obj/item/clothing/pants/tights/black
-		shirt = /obj/item/clothing/shirt/undershirt/black
+		pants = /obj/item/clothing/pants/tights/colored/black
+		shirt = /obj/item/clothing/shirt/undershirt/colored/black
 		armor = /obj/item/clothing/armor/leather/vest/winterjacket
 	else
-		pants = /obj/item/clothing/pants/tights/random
+		pants = /obj/item/clothing/pants/tights/colored/random
 		armor = /obj/item/clothing/armor/leather/vest/winterjacket
 		shirt = /obj/item/clothing/armor/gambeson/heavy/winterdress
 
@@ -91,6 +84,7 @@
 	H.change_stat(STATKEY_PER, 3)
 	H.change_stat(STATKEY_SPD, 1)
 	H.change_stat(STATKEY_LCK, 5)
+	H.add_spell(/datum/action/cooldown/spell/undirected/call_bird)
 	ADD_TRAIT(H, TRAIT_SEEPRICES, TRAIT_GENERIC)
 	ADD_TRAIT(H, TRAIT_NOBLE, TRAIT_GENERIC)
 	ADD_TRAIT(H, TRAIT_NUTCRACKER, TRAIT_GENERIC)
@@ -98,21 +92,21 @@
 		if(/datum/patron/inhumen/baotha)
 			H.cmode_music = 'sound/music/cmode/antag/CombatBaotha.ogg'
 
-/datum/advclass/consort/courtesan
-	name = "Courtesan Consort"
+/datum/job/advclass/consort/courtesan
+	title = "Courtesan Consort"
 	tutorial = "Though initially none envied your lot in life, it's certain that your midnight talents haven't gone to waste. Your honeyed words and charm have brought you right to being a ruler's beloved consort."
-	outfit = /datum/outfit/job/consort/courtesan
+	outfit = /datum/outfit/consort/courtesan
 
 	category_tags = list(CTAG_CONSORT)
 
-/datum/outfit/job/consort/courtesan/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/consort/courtesan/pre_equip(mob/living/carbon/human/H)
 	. = ..()
 	if(H.gender == MALE)
-		pants = /obj/item/clothing/pants/tights/black
-		shirt = /obj/item/clothing/shirt/undershirt/black
+		pants = /obj/item/clothing/pants/tights/colored/black
+		shirt = /obj/item/clothing/shirt/undershirt/colored/black
 		armor = /obj/item/clothing/armor/leather/vest/winterjacket // this is kind of stupid but i love it anyway
 	else
-		pants = /obj/item/clothing/pants/tights/random
+		pants = /obj/item/clothing/pants/tights/colored/random
 		shirt = /obj/item/clothing/armor/gambeson/heavy/winterdress
 		armor = /obj/item/clothing/armor/leather/vest/winterjacket
 		cloak = /obj/item/clothing/cloak/raincloak/furcloak
@@ -142,21 +136,21 @@
 		if(/datum/patron/inhumen/baotha)
 			H.cmode_music = 'sound/music/cmode/antag/CombatBaotha.ogg'
 
-/datum/advclass/consort/lowborn
-	name = "Lowborn Consort"
+/datum/job/advclass/consort/lowborn
+	title = "Lowborn Consort"
 	tutorial = "You never could have dreamed your life would be like this. Though your origins are humble, something special about you - whether it was your good looks, your kind heart, or your bravery - has brought you into Vanderlin Keep."
-	outfit = /datum/outfit/job/consort/lowborn
+	outfit = /datum/outfit/consort/lowborn
 
 	category_tags = list(CTAG_CONSORT)
 
-/datum/outfit/job/consort/lowborn/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/consort/lowborn/pre_equip(mob/living/carbon/human/H)
 	. = ..()
 	if(H.gender == MALE)
-		pants = /obj/item/clothing/pants/tights/green
-		shirt = /obj/item/clothing/shirt/undershirt/black
-		armor = /obj/item/clothing/shirt/tunic/green
+		pants = /obj/item/clothing/pants/tights/colored/green
+		shirt = /obj/item/clothing/shirt/undershirt/colored/black
+		armor = /obj/item/clothing/shirt/tunic/colored/green
 	else
-		shirt = /obj/item/clothing/shirt/dress/silkdress/princess
+		shirt = /obj/item/clothing/shirt/dress/silkdress/colored/princess
 		armor = /obj/item/clothing/armor/leather/jacket/silk_coat
 
 	H.adjust_skillrank(/datum/skill/combat/wrestling, 3, TRUE)
@@ -185,35 +179,24 @@
 		if(/datum/patron/inhumen/baotha)
 			H.cmode_music = 'sound/music/cmode/antag/CombatBaotha.ogg'
 
-/datum/advclass/consort/courtesan/night_spy
-	name = "Night-Mother's Spy Consort"
+/datum/job/advclass/consort/courtesan/night_spy
+	title = "Night-Mother's Spy Consort"
 	tutorial = "Raised by the guild to report on all the Monarch's action. Using your honeyed words and charm have brought you right to being a ruler's beloved consort."
-	outfit = /datum/outfit/job/consort/courtesan/spy
+	outfit = /datum/outfit/consort/courtesan/spy
 
 	category_tags = list(CTAG_CONSORT)
 
 /datum/job/exlady //just used to change the consort title
 	title = "Ex-Consort"
-	flag = CONSORT
 	department_flag = NOBLEMEN
-	faction = FACTION_STATION
+	faction = FACTION_TOWN
 	total_positions = 0
 	spawn_positions = 0
 	display_order = JDO_CONSORT
 
-/datum/outfit/job/consort/courtesan/spy/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/consort/courtesan/spy/pre_equip(mob/living/carbon/human/H)
 	. = ..()
 	H.grant_language(/datum/language/thievescant)
 	to_chat(H, "<span class='info'>I can gesture in thieves' cant with ,t before my speech.</span>")
 	ADD_TRAIT(H, TRAIT_THIEVESGUILD, TRAIT_GENERIC)
 	ADD_TRAIT(H, TRAIT_NUTCRACKER, TRAIT_GENERIC)
-
-/obj/effect/proc_holder/spell/self/convertrole/servant
-	name = "Recruit Servant"
-	new_role = "Servant"
-	overlay_state = "recruit_servant"
-	recruitment_faction = "Servants"
-	recruitment_message = "Join the keep's servants, %RECRUIT!"
-	accept_message = "I serve the Crown!"
-	refuse_message = "I refuse."
-	recharge_time = 100

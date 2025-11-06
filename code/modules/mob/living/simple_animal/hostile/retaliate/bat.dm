@@ -5,7 +5,6 @@
 	icon_living = "bat"
 	icon_dead = "bat_dead"
 	icon_gib = "bat_dead"
-	turns_per_move = 1
 	response_help_continuous = "brushes aside"
 	response_help_simple = "brush aside"
 	response_disarm_continuous = "flails at"
@@ -29,7 +28,7 @@
 	environment_smash = ENVIRONMENT_SMASH_NONE
 	ventcrawler = VENTCRAWLER_ALWAYS
 	mob_size = MOB_SIZE_TINY
-	movement_type = FLYING
+	is_flying_animal = TRUE
 	speak_emote = list("squeaks")
 
 //this is literally a shapeshift and ai can't actually use it

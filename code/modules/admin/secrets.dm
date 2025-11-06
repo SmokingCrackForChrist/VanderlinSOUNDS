@@ -243,13 +243,13 @@
 		if("anime")
 			if(!check_rights(R_FUN))
 				return
-			SSblackbox.record_feedback("nested tally", "admin_secrets_fun_used", 1, list("Chinese Cartoons"))
-			message_admins("[key_name_admin(usr)] made everything kawaii.")
+			SSblackbox.record_feedback("nested tally", "admin_secrets_fun_used", 1, list("Pawsitively Purrfect"))
+			message_admins("[key_name_admin(usr)] made everyone purrfect.")
 			for(var/i in GLOB.human_list)
 				var/mob/living/carbon/human/H = i
 				SEND_SOUND(H, sound('sound/blank.ogg'))
 
-				if(H.dna.species.id == "human")
+				if(H.dna.species.id == SPEC_ID_HUMEN)
 					if(H.dna.features["tail_human"] == "None" || H.dna.features["ears"] == "None")
 						var/obj/item/organ/ears/cat/ears = new
 						var/obj/item/organ/tail/cat/tail = new
@@ -261,7 +261,7 @@
 					var/newname = "[forename]-[pick(honorifics["[H.gender]"])]"
 					H.fully_replace_character_name(H.real_name,newname)
 				else
-					to_chat(H, "<span class='warning'>You're not kawaii enough for this!</span>")
+					to_chat(H, "<span class='warning'>You're not purrfect enough for this!</span>")
 
 		if("whiteout")
 			if(!check_rights(R_FUN))

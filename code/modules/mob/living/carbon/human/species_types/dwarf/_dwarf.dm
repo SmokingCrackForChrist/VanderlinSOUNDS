@@ -3,9 +3,10 @@
 
 /datum/species/dwarf
 	name = "Dwarfb"
-	id = "dwarf"
-	max_age = 200
-	changesource_flags = MIRROR_BADMIN | WABBAJACK | MIRROR_MAGIC | MIRROR_PRIDE | RACE_SWAP | SLIME_EXTRACT
+	id = SPEC_ID_DWARF
+	changesource_flags = WABBAJACK
+	native_language = "Dwarfish"
+	exotic_bloodtype = /datum/blood_type/human/dwarf
 	bodypart_features = list(
 		/datum/bodypart_feature/hair/head,
 		/datum/bodypart_feature/hair/facial,
@@ -47,6 +48,4 @@
 	"red - autumn" = "a34332"
 	))
 
-/datum/species/dwarf/get_native_language()
-	return "Dwarfish"
 

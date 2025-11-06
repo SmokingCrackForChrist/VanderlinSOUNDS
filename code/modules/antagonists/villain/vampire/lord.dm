@@ -2,7 +2,6 @@
 	name = "Vampire Lord"
 	antag_hud_type = ANTAG_HUD_VAMPIRE
 	antag_hud_name = "vamplord"
-	autojoin_team = TRUE
 	confess_lines = list(
 		"I AM ANCIENT!",
 		"I AM THE LAND!",
@@ -10,52 +9,19 @@
 	)
 
 	var/ascended = FALSE
-	var/obj/effect/proc_holder/spell/targeted/shapeshift/bat/batform //attached to the datum itself to avoid cloning memes, and other duplicates
-	var/obj/effect/proc_holder/spell/targeted/shapeshift/gaseousform/gas
-	var/obj/effect/proc_holder/spell/targeted/mansion_portal/portal
-
-/datum/antagonist/vampire/lord/apply_innate_effects(mob/living/mob_override)
-	. = ..()
-	var/mob/living/M = mob_override || owner.current
-	ADD_TRAIT(M, TRAIT_HEAVYARMOR, "[type]")
-
-/datum/antagonist/vampire/lord/remove_innate_effects(mob/living/mob_override)
-	. = ..()
-	var/mob/living/M = mob_override || owner.current
-	REMOVE_TRAIT(M, TRAIT_HEAVYARMOR, "[type]")
 
 /datum/antagonist/vampire/lord/on_gain()
-	var/mob/living/carbon/vampire = owner.current
-	remove_job()
-	owner.current?.roll_mob_stats()
-	owner.purge_combat_knowledge()
+	var/mob/living/carbon/human/vampire = owner?.current
+	if(SSmapping.config.map_name != "Voyage")
+		remove_job()
+		vampire.delete_equipment()
+		vampire.reset_and_reroll_stats()
+		vampire.purge_combat_knowledge()
+		vampire.remove_all_traits()
 	. = ..()
-	portal = new()
-	owner.current.AddSpell(portal)
-	addtimer(CALLBACK(owner.current, TYPE_PROC_REF(/mob/living/carbon/human, choose_name_popup), "[name]"), 5 SECONDS)
+	if(SSmapping.config.map_name != "Voyage")
+		addtimer(CALLBACK(owner.current, TYPE_PROC_REF(/mob/living/carbon/human, choose_name_popup), "[name]"), 5 SECONDS)
 	vampire.grant_undead_eyes()
-
-/datum/antagonist/vampire/lord/after_gain()
-	owner.current.verbs |= /mob/living/carbon/human/proc/demand_submission
-	owner.current.verbs |= /mob/living/carbon/human/proc/vamp_regenerate
-	owner.current.verbs |= /mob/living/carbon/human/proc/punish_spawn
-
-
-/datum/antagonist/vampire/lord/on_removal()
-	if(!isnull(batform))
-		owner.current.RemoveSpell(batform)
-		QDEL_NULL(batform)
-
-	if(!isnull(portal))
-		owner.current.RemoveSpell(portal)
-		QDEL_NULL(portal)
-
-	owner.current.verbs -= /mob/living/carbon/human/proc/demand_submission
-	owner.current.verbs |= /mob/living/carbon/human/proc/vamp_regenerate
-	owner.current.verbs -= /mob/living/carbon/human/proc/punish_spawn
-
-
-	. = ..()
 
 /datum/antagonist/vampire/lord/greet()
 	to_chat(owner.current, span_userdanger("I am ancient. I am the Land. And I am now awoken to trespassers upon my domain."))
@@ -74,58 +40,38 @@
 		owner.i_know_person(MF)
 		owner.person_knows_me(MF)
 
-
 	var/mob/living/carbon/human/H = owner.current
-	H.equipOutfit(/datum/outfit/job/vamplord)
-	H.set_patron(/datum/patron/godless)
+	H.equipOutfit(/datum/outfit/vamplord)
+	H.set_patron(/datum/patron/godless/autotheist)
 
 	return TRUE
 
-/datum/antagonist/vampire/lord/on_life(mob/user)
-	if(ascended)
-		return
-	vitae = team.vitae_pool.current
-	. = ..()
-
-/datum/antagonist/vampire/lord/exposed_to_sunlight()
-	var/mob/living/carbon/human/H = owner.current
-	to_chat(H, span_warning("ASTRATA spurns me! I must get out of Her rays!")) // VLord is more punished for daylight excursions.
-	var/turf/N = H.loc
-	if(N.can_see_sky())
-		if(N.get_lumcount() > 0.15)
-			H.fire_act(3)
-			adjust_vitae(-500)
-
-/datum/antagonist/vampire/lord/adjust_vitae(change, tribute)
-	team.vitae_pool.update_pool(change)
-
-/datum/antagonist/vampire/lord/handle_vitae()
-	. = ..()
-	vitae = team.vitae_pool.current
-
 /datum/antagonist/vampire/lord/move_to_spawnpoint()
-	owner.current.forceMove(pick(GLOB.vlord_starts))
+	if(SSmapping.config.map_name != "Voyage")
+		owner.current.forceMove(pick(GLOB.vlord_starts))
 
-/datum/outfit/job/vamplord/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/vamplord/pre_equip(mob/living/carbon/human/H)
 	..()
 	H.adjust_skillrank(/datum/skill/magic/blood, 1, TRUE)
 	H.adjust_skillrank(/datum/skill/combat/wrestling, 5, TRUE)
-	H.adjust_skillrank(/datum/skill/combat/unarmed, 4, TRUE)
+	H.clamped_adjust_skillrank(/datum/skill/combat/unarmed, 4, 4, TRUE)
 	H.adjust_skillrank(/datum/skill/combat/swords, 4, TRUE)
 	H.adjust_skillrank(/datum/skill/combat/axesmaces, 4, TRUE)
 	H.adjust_skillrank(/datum/skill/combat/polearms, 4, TRUE)
 	H.adjust_skillrank(/datum/skill/combat/whipsflails, 4, TRUE)
 	H.adjust_skillrank(/datum/skill/misc/reading, 5, TRUE)
 	H.adjust_skillrank(/datum/skill/misc/climbing, 5, TRUE)
-	pants = /obj/item/clothing/pants/tights/black
+	pants = /obj/item/clothing/pants/tights/colored/black
 	shirt = /obj/item/clothing/shirt/vampire
 	belt = /obj/item/storage/belt/leather/plaquegold
 	head  = /obj/item/clothing/head/vampire
 	beltl = /obj/item/key/vampire
+	beltr = /obj/item/storage/belt/pouch/coins/veryrich
 	cloak = /obj/item/clothing/cloak/cape/puritan
 	shoes = /obj/item/clothing/shoes/boots
 	backl = /obj/item/storage/backpack/satchel/black
-
+	if(!(HAS_TRAIT(H, TRAIT_FOREIGNER)))
+		ADD_TRAIT(H, TRAIT_FOREIGNER, TRAIT_GENERIC)
 /*------VERBS-----*/
 
 // NEW VERBS
@@ -158,19 +104,20 @@
 	set category = "VAMPIRE"
 
 	var/list/possible = list()
-	for(var/datum/mind/V in SSmapping.retainer.vampires)
-		if(V.special_role == "Vampire Spawn")
+	for(var/mob/living/carbon/human/member in clan?.clan_members)
+		if(member.stat != DEAD && member != src)
+			var/datum/mind/V = member.mind
 			possible[V.current.real_name] = V.current
 	for(var/datum/mind/D in SSmapping.retainer.death_knights)
 		possible[D.current.real_name] = D.current
-	var/name_choice = input(src, "Who to punish?", "PUNISHMENT") as null|anything in possible
+	var/name_choice = browser_input_list(src, "Who to punish?", "PUNISHMENT", possible)
 	if(!name_choice)
 		return
 	var/mob/living/carbon/human/choice = possible[name_choice]
 	if(!choice || QDELETED(choice))
 		return
 	var/punishmentlevels = list("Pause", "Pain", "DESTROY")
-	var/punishment = input(src, "Severity?", "PUNISHMENT") as null|anything in punishmentlevels
+	var/punishment = browser_input_list(src, "Select punishment severity.", "PUNISHMENT", punishmentlevels)
 	if(!punishment)
 		return
 	switch(punishment)

@@ -1,20 +1,20 @@
-/datum/advclass/pilgrimminer
-	name = "Miner"
+/datum/job/advclass/pilgrimminer
+	title = "Miner"
 	tutorial = "Hardy people who ceaselessly toil at the mines for ores and salt, \
 				who will ever know what they'll find beneath?"
 	allowed_sexes = list(MALE, FEMALE)
 
-	outfit = /datum/outfit/job/adventurer/miner
+	outfit = /datum/outfit/adventurer/miner
 	category_tags = list(CTAG_PILGRIM)
 	apprentice_name = "Miner Apprentice"
-	cmode_music = 'sound/music/cmode/towner/CombatTowner2.ogg'
+	cmode_music = 'sound/music/cmode/towner/CombatBeggar.ogg'//pilgrims aren't towners, this fits them more for a combat on the woods
 
-/datum/outfit/job/adventurer/miner/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/adventurer/miner/pre_equip(mob/living/carbon/human/H)
 	..()
-	head = /obj/item/clothing/head/armingcap
+	head =  pick(/obj/item/clothing/head/armingcap, /obj/item/clothing/head/headband/colored/red, /obj/item/clothing/head/roguehood/colored/random)
 	pants = /obj/item/clothing/pants/trou
 	armor = /obj/item/clothing/armor/gambeson/light/striped
-	shirt = /obj/item/clothing/shirt/undershirt/random
+	shirt = pick(/obj/item/clothing/shirt/undershirt/colored/random, /obj/item/clothing/shirt/shortshirt/colored/random)
 	shoes = /obj/item/clothing/shoes/boots/leather
 	belt = /obj/item/storage/belt/leather
 	neck = /obj/item/storage/belt/pouch/coins/poor
@@ -41,7 +41,7 @@
 		H.change_stat(STATKEY_END, 1)
 		H.change_stat(STATKEY_CON, 1)
 
-	if(H.dna.species.id == "dwarf")
+	if(H.dna.species.id == SPEC_ID_DWARF)
 		head = /obj/item/clothing/head/helmet/leather/minershelm
 		H.cmode_music = 'sound/music/cmode/combat_dwarf.ogg'
 	else

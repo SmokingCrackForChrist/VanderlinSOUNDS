@@ -14,8 +14,7 @@
 			return TRUE
 	if(!has_language(language))
 		if(has_flaw(/datum/charflaw/paranoid))
-			V.add_stress(/datum/stressevent/paratalk)
-
+			V.add_stress(/datum/stress_event/paratalk)
 
 /mob/living/carbon/human/canBeHandcuffed()
 	if(num_hands < 2)
@@ -108,24 +107,35 @@
 	if(QDELETED(src) || !ishuman(src))
 		return
 
-	var/damage = 12
+	var/damage
+	if(STASTR > 12 || STASTR < 10)
+		damage = STASTR
+	else
+		damage = 12
+
 	var/used_str = STASTR
 
 	if(mind?.has_antag_datum(/datum/antagonist/werewolf))
-		return 30
+		return damage * 2
 
 	if(domhand)
 		used_str = get_str_arms(used_hand)
 
+	var/obj/G = get_item_by_slot(ITEM_SLOT_GLOVES)
+	if(istype(G, /obj/item/clothing/gloves))
+		var/obj/item/clothing/gloves/GL = G
+		damage = (damage * GL.unarmed_bonus)
+
 	if(used_str >= 11)
-		damage = max(damage + (damage * ((used_str - 10) * 0.3)), 1)
+		damage = max(damage * (1 + ((used_str - 10) * 0.03)), 1)
 	if(used_str <= 9)
-		damage = max(damage - (damage * ((10 - used_str) * 0.1)), 1)
+		damage = max(damage * (1 - ((10 - used_str) * 0.05)), 1)
 
 	var/obj/item/bodypart/BP = has_hand_for_held_index(used_hand)
 	if(istype(BP))
 		damage *= BP.punch_modifier
 
+	damage += dna.species.punch_damage
 	return damage
 
 /mob/living/carbon/human/proc/get_kick_damage(multiplier = 1)
@@ -150,28 +160,41 @@
 
 /// Fully randomizes everything in the character.
 // Reflect changes in [datum/preferences/proc/randomise_appearance_prefs]
-/mob/living/carbon/human/proc/randomize_human_appearance(randomise_flags = ALL)
+/mob/living/carbon/human/proc/randomize_human_appearance(randomise_flags = ALL, include_patreon = TRUE)
+	if(!dna)
+		return
+
 	if(randomise_flags & RANDOMIZE_SPECIES)
-		set_species(GLOB.species_list[pick(GLOB.roundstart_races)], FALSE)
+		var/rando_race = GLOB.species_list[pick(get_selectable_species(include_patreon))]
+		set_species(new rando_race(), FALSE)
+
 	var/datum/species/species = dna.species
+
+	if(NOEYESPRITES in species?.species_traits)
+		randomise_flags &= ~RANDOMIZE_EYE_COLOR
+
 	if(randomise_flags & RANDOMIZE_GENDER)
 		gender = species.sexes ? pick(MALE, FEMALE) : PLURAL
+
 	if(randomise_flags & RANDOMIZE_AGE)
 		age = pick(species.possible_ages)
+
 	if(randomise_flags & RANDOMIZE_NAME)
 		real_name = species.random_name(gender, TRUE)
+
 	if(randomise_flags & RANDOMIZE_UNDERWEAR)
 		underwear = species.random_underwear(gender)
 
-	if(randomise_flags & RANDOMIZE_UNDERWEAR_COLOR)
-		underwear_color = random_short_color()
-	if(randomise_flags & RANDOMIZE_UNDERSHIRT)
-		undershirt = random_undershirt(gender)
 	if(randomise_flags & RANDOMIZE_SKIN_TONE)
 		var/list/skin_list = species.get_skin_list()
-		skin_tone = skin_list[pick(skin_list)]
-	if(randomise_flags & RANDOMIZE_FEATURES)
-		dna.features = random_features()
+		skin_tone = pick_assoc(skin_list)
+
+	if(randomise_flags & RANDOMIZE_EYE_COLOR)
+		var/obj/item/organ/eyes/eyes = getorganslot(ORGAN_SLOT_EYES)
+		eyes.eye_color = random_eye_color()
+
+	// if(randomise_flags & RANDOMIZE_FEATURES)
+	// 	dna.features = random_features()
 
 /*
 * Family Tree subsystem helpers
@@ -246,3 +269,20 @@
 //Perspective stranger looks at --> src
 /mob/living/carbon/human/proc/ReturnRelation(mob/living/carbon/human/stranger)
 	return family_datum.ReturnRelation(src, stranger)
+
+/mob/living/carbon/human/proc/configure_npc_mind(list/skill_map)
+	// Ensure the mob has a mind
+	if(!mind)
+		mind = new /datum/mind(src)
+	mind.current = src
+
+	// Validate input
+	if(!islist(skill_map) || !length(skill_map))
+		return
+
+	// Loop through the skill map and set each skill’s rank
+	for(var/skill_path in skill_map)
+		var/rank = skill_map[skill_path]
+		if(!isnum(rank))
+			continue // skip invalid entries
+		adjust_skillrank(skill_path, rank, TRUE)

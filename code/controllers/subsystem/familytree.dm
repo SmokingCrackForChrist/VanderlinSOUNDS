@@ -31,17 +31,18 @@ SUBSYSTEM_DEF(familytree)
 	var/list/viable_spouses = list()
 	//These jobs are excluded from AddLocal()
 	var/excluded_jobs = list(
-		"Prince",
-		"Princess",
-		"Consort",
-		"Monarch",
-		"Hand",
-		"Inquisitor",
-		"Adept",
-		"Jailor",
-		"Orphan",
-		"Innkeepers Son",
-		"Churchling",
+		/datum/job/prince,
+		/datum/job/advclass/heir,
+		/datum/job/consort,
+		/datum/job/advclass/consort,
+		/datum/job/lord,
+		/datum/job/hand,
+		/datum/job/advclass/hand,
+		/datum/job/adept,
+		/datum/job/advclass/adept,
+		/datum/job/orphan,
+		/datum/job/innkeep_son,
+		/datum/job/churchling,
 		)
 	//This creates 2 families for each race roundstart so that siblings dont fail to be added to a family.
 	var/list/preset_family_species = list(
@@ -156,7 +157,7 @@ SUBSYSTEM_DEF(familytree)
 	if(!H || !status || istype(H, /mob/living/carbon/human/dummy))
 		return
 	//Exclude princes and princesses from having their parentage calculated.
-	if(H.job in excluded_jobs)
+	if(H.mind?.assigned_role && is_type_in_list(H.mind.assigned_role, excluded_jobs))
 		return
 	switch(status)
 		if(FAMILY_PARTIAL)
@@ -187,6 +188,7 @@ SUBSYSTEM_DEF(familytree)
 	// If this is the first royal, generate a historical lineage
 	if(!ruling_family.founder)
 		GenerateRoyalLineage(member, status)
+		H.ShowFamilyUI(TRUE)
 		return
 
 	// Handle adding new royals to existing family
@@ -212,10 +214,12 @@ SUBSYSTEM_DEF(familytree)
 		if(FAMILY_OMMER)  // Hand - sibling or cousin of monarch
 			CreateBranchFamily(member)
 
+	H.ShowFamilyUI(TRUE)
+
 /datum/controller/subsystem/familytree/proc/GetCurrentMonarch()
 	// Find the monarch at generation 12 (current ruling generation)
 	for(var/datum/family_member/member in ruling_family.members)
-		if(member.generation == 12)
+		if(member.generation == 12 && member.person.job == "Monarch")
 			return member
 	return null
 
@@ -224,15 +228,16 @@ SUBSYSTEM_DEF(familytree)
 	if(!monarch)
 		return
 
-	// Make the hand a sibling of the monarch's parent (so uncle/aunt to any princes/princesses)
+	hand_member.generation = monarch.generation
+
+	// Make the hand a sibling of the monarch (so uncle/aunt to any princes/princesses)
 	if(monarch.parents.len)
 		var/datum/family_member/monarch_parent = monarch.parents[1]
-		hand_member.generation = monarch_parent.generation
-
-		// Add the hand as child of the monarch's grandparents
-		if(monarch_parent.parents.len)
-			for(var/datum/family_member/grandparent in monarch_parent.parents)
-				hand_member.AddParent(grandparent)
+		var/datum/family_member/monarch_parent_second = monarch.parents[2]
+		if(monarch_parent)
+			hand_member.AddParent(monarch_parent)
+		if(monarch_parent_second)
+			hand_member.AddParent(monarch_parent_second)
 
 		// Create a spouse for the hand
 		var/mob/living/carbon/human/dummy/spouse = new()
@@ -243,9 +248,6 @@ SUBSYSTEM_DEF(familytree)
 		var/datum/family_member/hand_spouse = ruling_family.CreateFamilyMember(spouse)
 		hand_spouse.generation = hand_member.generation
 		ruling_family.MarryMembers(hand_member, hand_spouse)
-	else
-		// Fallback: make them a cousin at the same generation as monarch
-		hand_member.generation = monarch.generation
 
 /datum/controller/subsystem/familytree/proc/GenerateRoyalLineage(datum/family_member/current_royal, status)
 	// Set as current generation
@@ -404,6 +406,26 @@ SUBSYSTEM_DEF(familytree)
 			if(!house.housename)
 				house.housename = house.SurnameFormatting(person)
 
+
+/// Human Helper proc to check gender choice based on pronouns
+
+/mob/living/carbon/human/proc/pronouns_match(mob/living/carbon/human/H, mob/living/carbon/human/other)
+	// ANY_GENDER always passes
+	if(H.gender_choice_pref == ANY_GENDER)
+		return TRUE
+
+	// Neutral pronouns can only match ANY_GENDER
+	if((H.pronouns == THEY_THEM || H.pronouns == IT_ITS) || (other.pronouns == THEY_THEM || other.pronouns == IT_ITS))
+		return (H.gender_choice_pref == ANY_GENDER)
+
+	if(H.gender_choice_pref == SAME_GENDER)
+		return (H.pronouns == other.pronouns)
+
+	if(H.gender_choice_pref == DIFFERENT_GENDER)
+		return (H.pronouns != other.pronouns)
+
+	return FALSE
+
 /datum/controller/subsystem/familytree/proc/AssignToFamily(mob/living/carbon/human/H)
 	if(!H)
 		return
@@ -424,10 +446,18 @@ SUBSYSTEM_DEF(familytree)
 					eligible_houses.Insert(1, house) // High priority
 					has_single_adult = TRUE
 					break
-				else if(!H.setspouse && (!member.person.setspouse || member.person.setspouse == H.real_name))
-					eligible_houses += house
-					has_single_adult = TRUE
-					break
+				else if(!H.setspouse)
+
+					if(!member.person.setspouse || member.person.setspouse == H.real_name)
+						// Pronouns matching according to Gender Preference
+						var/ok_gender_H = H.pronouns_match(H, member.person)
+						var/ok_gender_M = member.person.pronouns_match(member.person, H)
+
+						if(ok_gender_H && ok_gender_M)
+							eligible_houses += house
+							has_single_adult = TRUE
+							break
+
 
 		if(!has_single_adult && !house.housename)
 			eligible_houses += house // Empty house for founding
@@ -441,8 +471,14 @@ SUBSYSTEM_DEF(familytree)
 				var/compatible = FALSE
 				if(H.setspouse && member.person.real_name == H.setspouse)
 					compatible = TRUE
-				else if(!H.setspouse && (!member.person.setspouse || member.person.setspouse == H.real_name))
-					compatible = TRUE
+				else if(!H.setspouse)
+					if(!member.person.setspouse || member.person.setspouse == H.real_name)
+						// Pronouns matching according to Gender Preference
+						var/ok_gender_H = H.pronouns_match(H, member.person)
+						var/ok_gender_M = member.person.pronouns_match(member.person, H)
+
+						if(ok_gender_H && ok_gender_M)
+							compatible = TRUE
 
 				if(compatible)
 					var/datum/family_member/new_member = house.CreateFamilyMember(H)
@@ -471,10 +507,14 @@ SUBSYSTEM_DEF(familytree)
 	for(var/mob/living/carbon/human/potential_spouse in viable_spouses)
 		if(!potential_spouse || potential_spouse == H || potential_spouse.spouse_mob)
 			continue
-
+		// Check if they are mutually setspouse
+		var/mutual_setspouse = (H.setspouse == potential_spouse.real_name) && (potential_spouse.setspouse == H.real_name)
+		if(!mutual_setspouse)
+			if(!H.pronouns_match(H, potential_spouse) || !potential_spouse.pronouns_match(potential_spouse, H))
+				continue // skip if gender preferences incompatible
 		// Check setspouse compatibility
 		var/priority = 0
-		if(H.setspouse == potential_spouse.real_name && potential_spouse.setspouse == H.real_name)
+		if(mutual_setspouse)
 			priority = 3 // Perfect match
 		else if(H.setspouse == potential_spouse.real_name && !potential_spouse.setspouse)
 			priority = 2 // Good match

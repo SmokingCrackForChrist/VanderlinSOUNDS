@@ -9,40 +9,84 @@
 
 /datum/species/human/halfelf
 	name = "Half-Elf"
-	id = "human"
-	desc = "The child of Elf and Humen. \
+	id = SPEC_ID_HALF_ELF
+	multiple_accents = list(
+		"Humen Accent" = "Imperial",
+		"Elf Accent" = "Elfish"
+	)
+	desc = "The child of an Elf and a Humen. \
 	\n\n\
 	Half-Elves are generally frowned upon by more conservative peoples, \
-	although as species tensions lower, more and more half-elves are being born. \
-	To the point that some scholars worry that someday, \
+	although as species tensions lower, more and more half-elves are being born- \
+	to the point that some scholars worry someday \
 	it may be impossible to distinguish the two species. \
 	\n\n\
 	Half-Elves are extraordinarily diverse, as they combine both Humen and Elvish culture. \
 	It is widely considered that Half-Elf culture is simply a melting pot of \
 	various others condensing into one vibrant entity. \
 	\n\n\
-	Their longevity spanning too long for a human and short for an elf lead them to congregate together. \
-	Due to their heritage, Half-Elves tend to gain species traits \
+	With their longevity spanning too long for a human and too short for an elf, they tend to congregate together. \
+	Depending on their heritage, Half-Elves tend to gain species traits \
 	depending on how strong their fathers, or mothers, genes were. \
-	Half-Elves also typically try to find identity."
+	Half-Elves typically struggle to find their own identity."
 
 	skin_tone_wording = "Half-Elven Identity"
 
 	default_color = "FFFFFF"
-	species_traits = list(EYECOLOR,HAIR,FACEHAIR,LIPS,STUBBLE,OLDGREY)
+	species_traits = list(EYECOLOR, HAIR, FACEHAIR, LIPS, STUBBLE, OLDGREY)
 	inherent_traits = list(TRAIT_NOMOBSWAP)
-	customizers = list(
-		/datum/customizer/organ/ears/elf,
-		/datum/customizer/organ/eyes/humanoid,
-		/datum/customizer/bodypart_feature/hair/head/humanoid,
-		/datum/customizer/bodypart_feature/hair/facial/humanoid,
-		/datum/customizer/bodypart_feature/accessory,
-		/datum/customizer/bodypart_feature/face_detail,
+
+	use_skintones = TRUE
+	possible_ages = NORMAL_AGES_LIST_CHILD
+
+	changesource_flags = WABBAJACK
+
+	limbs_icon_m = 'icons/roguetown/mob/bodies/m/mm.dmi'
+	limbs_icon_f = 'icons/roguetown/mob/bodies/f/fm.dmi'
+
+	offset_features_m = list(
+		OFFSET_RING = list(0,0),\
+		OFFSET_GLOVES = list(0,0),\
+		OFFSET_WRISTS = list(0,0),\
+		OFFSET_HANDS = list(0,0),\
+		OFFSET_CLOAK = list(0,0),\
+		OFFSET_FACEMASK = list(0,0),\
+		OFFSET_HEAD = list(0,0),\
+		OFFSET_FACE = list(0,0),\
+		OFFSET_BELT = list(0,0),\
+		OFFSET_BACK = list(0,0),\
+		OFFSET_NECK = list(0,0),\
+		OFFSET_MOUTH = list(0,0),\
+		OFFSET_PANTS = list(0,0),\
+		OFFSET_SHIRT = list(0,0),\
+		OFFSET_ARMOR = list(0,0),\
+		OFFSET_UNDIES = list(0,0),\
 	)
-	bodypart_features = list(
-		/datum/bodypart_feature/hair/head,
-		/datum/bodypart_feature/hair/facial,
+
+	offset_features_f = list(
+		OFFSET_RING = list(0,-1),\
+		OFFSET_GLOVES = list(0,0),\
+		OFFSET_WRISTS = list(0,0),\
+		OFFSET_HANDS = list(0,0),\
+		OFFSET_CLOAK = list(0,0),\
+		OFFSET_FACEMASK = list(0,-1),\
+		OFFSET_HEAD = list(0,-1),\
+		OFFSET_FACE = list(0,-1),\
+		OFFSET_BELT = list(0,-1),\
+		OFFSET_BACK = list(0,-1),\
+		OFFSET_NECK = list(0,-1),\
+		OFFSET_MOUTH = list(0,-1),\
+		OFFSET_PANTS = list(0,0),\
+		OFFSET_SHIRT = list(0,0),\
+		OFFSET_ARMOR = list(0,0),\
+		OFFSET_UNDIES = list(0,0),\
 	)
+
+	specstats_m = list(STATKEY_STR = 0, STATKEY_PER = 1, STATKEY_INT = 1, STATKEY_CON = 0, STATKEY_END = 0, STATKEY_SPD = 1, STATKEY_LCK = 0)
+	specstats_f = list(STATKEY_STR = 0, STATKEY_PER = 1, STATKEY_INT = 1, STATKEY_CON = 0, STATKEY_END = 0, STATKEY_SPD = 1, STATKEY_LCK = 0)
+
+	enflamed_icon = "widefire"
+
 	organs = list(
 		ORGAN_SLOT_BRAIN = /obj/item/organ/brain,
 		ORGAN_SLOT_HEART = /obj/item/organ/heart,
@@ -56,32 +100,19 @@
 		ORGAN_SLOT_GUTS = /obj/item/organ/guts,
 	)
 
-	use_skintones = 1
-	possible_ages = list(AGE_CHILD, AGE_ADULT, AGE_MIDDLEAGED, AGE_OLD)
-	disliked_food = NONE
-	liked_food = NONE
-	max_age = 500
-	changesource_flags = MIRROR_BADMIN | WABBAJACK | MIRROR_MAGIC | MIRROR_PRIDE | RACE_SWAP | SLIME_EXTRACT
-	limbs_icon_m = 'icons/roguetown/mob/bodies/m/mm.dmi'
-	limbs_icon_f = 'icons/roguetown/mob/bodies/f/fm.dmi'
-	dam_icon = 'icons/roguetown/mob/bodies/dam/dam_male.dmi'
-	dam_icon_f = 'icons/roguetown/mob/bodies/dam/dam_female.dmi'
-	hairyness = "t2"
-	soundpack_m = /datum/voicepack/male
-	soundpack_f = /datum/voicepack/female
-	offset_features = list(OFFSET_RING = list(0,0), OFFSET_GLOVES = list(0,0), OFFSET_WRISTS = list(0,0),\
-	OFFSET_CLOAK = list(0,0), OFFSET_FACEMASK = list(0,0), OFFSET_HEAD = list(0,0), \
-	OFFSET_FACE = list(0,0), OFFSET_BELT = list(0,0), OFFSET_BACK = list(0,0), \
-	OFFSET_NECK = list(0,0), OFFSET_MOUTH = list(0,0), OFFSET_PANTS = list(0,0), \
-	OFFSET_SHIRT = list(0,0), OFFSET_ARMOR = list(0,0), OFFSET_HANDS = list(0,0), OFFSET_UNDIES = list(0,0), \
-	OFFSET_RING_F = list(0,-1), OFFSET_GLOVES_F = list(0,0), OFFSET_WRISTS_F = list(0,0), OFFSET_HANDS_F = list(0,0), \
-	OFFSET_CLOAK_F = list(0,0), OFFSET_FACEMASK_F = list(0,-1), OFFSET_HEAD_F = list(0,-1), \
-	OFFSET_FACE_F = list(0,-1), OFFSET_BELT_F = list(0,-1), OFFSET_BACK_F = list(0,-1), \
-	OFFSET_NECK_F = list(0,-1), OFFSET_MOUTH_F = list(0,-1), OFFSET_PANTS_F = list(0,0), \
-	OFFSET_SHIRT_F = list(0,0), OFFSET_ARMOR_F = list(0,0), OFFSET_UNDIES_F = list(0,0))
-	specstats = list(STATKEY_STR = 0, STATKEY_PER = 1, STATKEY_INT = 1, STATKEY_CON = 0, STATKEY_END = 0, STATKEY_SPD = 1, STATKEY_LCK = 0)
-	specstats_f = list(STATKEY_STR = 0, STATKEY_PER = 1, STATKEY_INT = 1, STATKEY_CON = 0, STATKEY_END = 0, STATKEY_SPD = 1, STATKEY_LCK = 0)
-	enflamed_icon = "widefire"
+	customizers = list(
+		/datum/customizer/organ/ears/elf,
+		/datum/customizer/organ/eyes/humanoid,
+		/datum/customizer/bodypart_feature/hair/head/humanoid,
+		/datum/customizer/bodypart_feature/hair/facial/humanoid,
+		/datum/customizer/bodypart_feature/accessory,
+		/datum/customizer/bodypart_feature/face_detail,
+	)
+
+	bodypart_features = list(
+		/datum/bodypart_feature/hair/head,
+		/datum/bodypart_feature/hair/facial,
+	)
 
 	body_markings = list(
 		/datum/body_marking/tonage,
@@ -96,12 +127,17 @@
 		"Solar-Hue" = SKIN_COLOR_SOLAR_HUE, // - (White 2)
 		"Walnut-Stine" = SKIN_COLOR_WALNUT_STINE, // - (White 3)
 		"Amber-Stained" = SKIN_COLOR_AMBER_STAINED, // - (White 4)
-		"Joshua-Aligned" = SKIN_COLOR_JOSHUA_ALIGNED, // - (Middle-Eastern)
+		"Joshua-Aligned" = SKIN_COLOR_JOSHUA_ALIGNED, // - (Middle-Eastern 1)
+		"Acacia-Crossed" = SKIN_COLOR_ACACIA_CROSSED, // - (Middle Eastern 2)
 		"Arid-Birthed" = SKIN_COLOR_ARID_BIRTHED, // - (Black)
 		"Redwood-Rooted" = SKIN_COLOR_REDWOOD_ROOTED, // - (Mediterranean 1)
 		"Drifted-Wood" = SKIN_COLOR_DRIFTED_WOOD, // - (Mediterranean 2)
 		"Vine-Wrapped" = SKIN_COLOR_VINE_WRAPPED, // - (Latin 2)
 		"Sage-Bloomed" = SKIN_COLOR_SAGE_BLOOMED, // - (Black 2)
+		"Mangrove-Cradled" = SKIN_COLOR_MANGROVE_CRADLED, // - (Native American 1)
+		"Tundra-Kissed" = SKIN_COLOR_TUNDRA_KISSED, // - (Native American 2)
+		"Ocean-Born" = SKIN_COLOR_OCEAN_BORN, // - (Polynesian)
+		"Basalt-Birthed" = SKIN_COLOR_BASALT_BIRTHED, // - (Melanesian)
 	))
 
 /datum/species/human/halfelf/get_hairc_list()
@@ -141,8 +177,13 @@
 
 /datum/species/human/halfelf/after_creation(mob/living/carbon/human/C)
 	..()
+	//If a patreon user picks the Elf Accent as a Half Elf, it will work the same as a non patreon user.
+	if(C.accent == ACCENT_ELF)
+		C.dna.species.native_language = "Elfish"
+		C.dna.species.accent_language = C.dna.species.get_accent(C.dna.species.native_language, 1)
+	if(!(C.accent in GLOB.accent_list))
+		C.dna.species.native_language = C.accent
+	C.dna.species.accent_language = C.dna.species.get_accent(C.dna.species.native_language, 1)
 	C.grant_language(/datum/language/elvish)
 	to_chat(C, "<span class='info'>I can speak Elvish with ,e before my speech.</span>")
 
-/datum/species/human/halfelf/get_native_language()
-	return pick("Elfish", "Imperial")

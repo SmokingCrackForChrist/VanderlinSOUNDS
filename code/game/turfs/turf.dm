@@ -1,6 +1,8 @@
 /turf
 	icon = 'icons/turf/floors.dmi'
 	level = 1
+	hover_color = "#607d65"
+	uses_integrity = TRUE
 
 	var/intact = 1
 
@@ -18,6 +20,7 @@
 	var/blocks_air = FALSE
 
 	flags_1 = CAN_BE_DIRTY_1
+	var/turf_flags = NONE
 
 	var/list/image/blueprint_data //for the station blueprints, images of objects eg: pipes
 
@@ -30,18 +33,7 @@
 	var/bullet_sizzle = FALSE //used by ammo_casing/bounce_away() to determine if the shell casing should make a sizzle sound when it's ejected over the turf
 							//IE if the turf is supposed to be water, set TRUE.
 
-	var/turf_integrity	//defaults to max_integrity
-	var/max_integrity = 500
-	var/integrity_failure = 0 //0 if we have no special broken behavior, otherwise is a percentage of at what point the obj breaks. 0.5 being 50%
-	///Damage under this value will be completely ignored
-	var/damage_deflection = 5
-
-	var/blade_dulling = DULLING_FLOOR
-	var/attacked_sound
-
-	var/break_sound = null //The sound played when a turf breaks
 	var/debris = null
-	var/break_message = null
 
 	/// What we overlay onto turfs in our smoothing_list
 	var/neighborlay
@@ -49,6 +41,14 @@
 	var/neighborlay_self
 
 	vis_flags = VIS_INHERIT_PLANE|VIS_INHERIT_ID
+
+	/// Uses colours defined by the monarch roundstart see [lordcolor.dm]
+	var/uses_lord_coloring = FALSE
+
+	var/list/datum/automata_cell/autocells
+
+	///The typepath we use for lazy fishing on turfs, to save on world init time.
+	var/fish_source
 
 /turf/vv_edit_var(var_name, new_value)
 	var/static/list/banned_edits = list("x", "y", "z")
@@ -78,7 +78,7 @@
 	if(smoothing_flags & USES_SMOOTHING)
 		QUEUE_SMOOTH(src)
 
-	for(var/atom/movable/AM in src)
+	for(var/atom/movable/AM as anything in src)
 		Entered(AM)
 
 	var/area/A = loc
@@ -88,8 +88,9 @@
 	if (light_power && (light_outer_range || light_inner_range))
 		update_light()
 
-	if(turf_integrity == null)
-		turf_integrity = max_integrity
+	if(uses_integrity)
+		atom_integrity = max_integrity
+	TEST_ONLY_ASSERT((!armor || istype(armor)), "[type] has an armor that contains an invalid value at intialize")
 
 	var/turf/T = GET_TURF_ABOVE(src)
 	if(T)
@@ -104,8 +105,6 @@
 
 	if (opacity)
 		has_opaque_atom = TRUE
-
-	ComponentInitialize()
 
 	QUEUE_SMOOTH_NEIGHBORS(src)
 
@@ -145,6 +144,10 @@
 		return FALSE
 	if(outdoor_effect.state != SKY_BLOCKED)
 		return TRUE
+
+	for(var/obj/effect/temp_visual/daylight_orb/orb in range(4, src))
+		return TRUE
+
 	return FALSE
 
 /turf/proc/can_traverse_safely(atom/movable/traveler)
@@ -169,6 +172,44 @@
 /turf/proc/multiz_turf_new(turf/T, dir)
 	reassess_stack()
 
+
+/**
+ * the following are some fishing-related optimizations to shave off as much
+ * time we spend implementing the fishing as possible, even if that means
+ * hackier code, because we've hundreds of turfs like lava, water etc every round,
+ */
+/turf/proc/add_lazy_fishing(fish_source_path)
+	RegisterSignal(src, COMSIG_FISHING_ROD_CAST, PROC_REF(add_fishing_spot_comp))
+	RegisterSignal(src, COMSIG_NPC_FISHING, PROC_REF(on_npc_fishing))
+	RegisterSignal(src, COMSIG_FISH_RELEASED_INTO, PROC_REF(on_fish_release_into))
+	RegisterSignal(src, COMSIG_TURF_CHANGE, PROC_REF(remove_lazy_fishing))
+	ADD_TRAIT(src, TRAIT_FISHING_SPOT, INNATE_TRAIT)
+	fish_source = fish_source_path
+
+/turf/proc/remove_lazy_fishing()
+	SIGNAL_HANDLER
+	UnregisterSignal(src, list(
+		COMSIG_FISHING_ROD_CAST,
+		COMSIG_NPC_FISHING,
+		COMSIG_FISH_RELEASED_INTO,
+		COMSIG_TURF_CHANGE,
+	))
+	REMOVE_TRAIT(src, TRAIT_FISHING_SPOT, INNATE_TRAIT)
+	fish_source = null
+
+/turf/proc/add_fishing_spot_comp(datum/source, obj/item/fishingrod/rod, mob/user, automated)
+	SIGNAL_HANDLER
+	var/datum/component/fishing_spot/spot = source.AddComponent(/datum/component/fishing_spot, GLOB.preset_fish_sources[fish_source])
+	remove_lazy_fishing()
+	return spot.handle_cast(arglist(args))
+
+/turf/proc/on_npc_fishing(datum/source, list/fish_spot_container)
+	SIGNAL_HANDLER
+	fish_spot_container[NPC_FISHING_SPOT] = GLOB.preset_fish_sources[fish_source]
+
+/turf/proc/on_fish_release_into(datum/source, obj/item/reagent_containers/food/snacks/fish/fish, mob/living/releaser)
+	SIGNAL_HANDLER
+	GLOB.preset_fish_sources[fish_source].readd_fish(src, fish, releaser)
 
 /turf/proc/is_blocked_turf(exclude_mobs = FALSE, source_atom = null, list/ignore_atoms, type_list = FALSE)
 	if((!isnull(source_atom) && !CanPass(source_atom, get_dir(src, source_atom))) || density)
@@ -217,8 +258,8 @@
 
 	var/flags = NONE
 	var/mov_name = A.name
-	for(var/i in contents)
-		var/atom/thing = i
+	flags |= SEND_SIGNAL(A, COMSIG_ATOM_FALL_INTERACT, levels)
+	for(var/atom/thing as anything in contents)
 		flags |= thing.intercept_zImpact(A, levels)
 		if(flags & FALL_STOP_INTERCEPTING)
 			break
@@ -248,8 +289,10 @@
 			M.take_overall_damage(A.fall_damage()*2)
 	A.onZImpact(src, levels)
 	if(isobj(A))
-		for(var/mob/living/mob in contents)
-			A:on_fall_impact(mob, levels * 0.75)
+		var/obj/O = A
+		for(var/mob/living/mob in O.contents)
+			O.on_fall_impact(mob, levels * 0.75)
+
 	return TRUE
 
 /atom/movable/proc/fall_damage()
@@ -286,17 +329,6 @@
 	target.zImpact(A, levels, src)
 	return TRUE
 
-/turf/CanPass(atom/movable/mover, turf/target)
-	if(!target)
-		return FALSE
-	if(iscameramob(mover))
-		return TRUE
-	if(istype(mover)) // turf/Enter(...) will perform more advanced checks
-		return !density
-
-	stack_trace("Non movable passed to turf CanPass : [mover]")
-	return FALSE
-
 //There's a lot of QDELETED() calls here if someone can figure out how to optimize this but not runtime when something gets deleted by a Bump/CanPass/Cross call, lemme know or go ahead and fix this mess - kevinz000
 /turf/Enter(atom/movable/mover, atom/oldloc)
 	// Do not call ..()
@@ -305,7 +337,7 @@
 	// Here's hoping it doesn't stay like this for years before we finish conversion to step_
 	var/atom/firstbump
 	var/canPassSelf = CanPass(mover, src)
-	if(canPassSelf || CHECK_BITFIELD(mover.movement_type, UNSTOPPABLE))
+	if(canPassSelf || CHECK_BITFIELD(mover.movement_type, PHASING))
 		for(var/atom/movable/thing as anything in contents)
 			if(QDELETED(mover))
 				return FALSE		//We were deleted, do not attempt to proceed with movement.
@@ -314,7 +346,7 @@
 			if(!thing.Cross(mover))
 				if(QDELETED(mover))		//Mover deleted from Cross/CanPass, do not proceed.
 					return FALSE
-				if(CHECK_BITFIELD(mover.movement_type, UNSTOPPABLE))
+				if(CHECK_BITFIELD(mover.movement_type, PHASING))
 					mover.Bump(thing)
 					continue
 				else
@@ -326,7 +358,7 @@
 		firstbump = src
 	if(firstbump)
 		mover.Bump(firstbump)
-		return CHECK_BITFIELD(mover.movement_type, UNSTOPPABLE)
+		return CHECK_BITFIELD(mover.movement_type, PHASING)
 	return TRUE
 
 /turf/Exit(atom/movable/mover, atom/newloc)
@@ -446,6 +478,12 @@
 
 	return TRUE
 
+/turf/proc/get_cell(type)
+	for(var/datum/automata_cell/C in autocells)
+		if(istype(C, type))
+			return C
+	return null
+
 //////////////////////////////
 //Distance procs
 //////////////////////////////
@@ -510,8 +548,7 @@
 	else
 		affecting_level = 1
 
-	for(var/V in contents)
-		var/atom/A = V
+	for(var/atom/A as anything in contents)
 		if(!QDELETED(A) && A.level >= affecting_level)
 			if(ismovableatom(A))
 				var/atom/movable/AM = A
@@ -522,8 +559,7 @@
 
 /turf/narsie_act(force, ignore_mobs, probability = 20)
 	. = (prob(probability) || force)
-	for(var/I in src)
-		var/atom/A = I
+	for(var/atom/A as anything in src)
 		if(ignore_mobs && ismob(A))
 			continue
 		if(ismob(A) || .)
@@ -558,15 +594,13 @@
 	return
 
 /turf/handle_fall(mob/faller)
-	if(has_gravity(src))
-		playsound(src, "bodyfall", 100, TRUE)
+	playsound(src, "bodyfall", 100, TRUE)
 	faller.drop_all_held_items()
 
 /turf/proc/photograph(limit=20)
 	var/image/I = new()
 	I.add_overlay(src)
-	for(var/V in contents)
-		var/atom/A = V
+	for(var/atom/A as anything in contents)
 		if(A.invisibility)
 			continue
 		I.add_overlay(A)
@@ -611,11 +645,16 @@
 /turf/proc/Melt()
 	return ScrapeAway(flags = CHANGETURF_INHERIT_AIR)
 
-// When our turf is washed, we may wash everything on top of the turf
-// By default we will only wash mopable things (like blood or vomit)
-// but you may optionally pass in all_contents = TRUE to wash everything
-/turf/wash(clean_types, all_contents = FALSE)
+/**
+ * Called when this turf is being washed.
+ */
+/turf/wash(clean_types)
 	. = ..()
-	for(var/atom/movable/to_clean as anything in src)
-		if(all_contents)
-			to_clean.wash(clean_types)
+
+	for(var/am in src)
+		if(am == src)
+			continue
+		var/atom/movable/movable_content = am
+		if(!is_cleanable(movable_content))
+			continue
+		movable_content.wash(clean_types)

@@ -4,6 +4,7 @@
 	interaction_flags_atom = INTERACT_ATOM_ATTACK_HAND | INTERACT_ATOM_UI_INTERACT
 	layer = BELOW_OBJ_LAYER
 	anchored = TRUE
+	pass_flags_self = PASSSTRUCTURE
 	var/climb_time = 20
 	var/climb_stun = 0
 	var/climb_sound = 'sound/foley/woodclimb.ogg'
@@ -11,7 +12,9 @@
 	var/w_class = WEIGHT_CLASS_NORMAL
 	var/climb_offset = 0 //offset up when climbed
 	var/mob/living/structureclimber
-	var/broken = 0 //similar to machinery's stat BROKEN
+
+	var/last_redstone_state = 0
+	var/bonus_pressure = 0
 //	move_resist = MOVE_FORCE_STRONG
 
 /obj/structure/Initialize()
@@ -21,6 +24,11 @@
 	if(smoothing_flags & (SMOOTH_BITMASK|SMOOTH_BITMASK_CARDINALS))
 		QUEUE_SMOOTH(src)
 		QUEUE_SMOOTH_NEIGHBORS(src)
+	if(uses_lord_coloring)
+		if(GLOB.lordprimary && GLOB.lordsecondary)
+			lordcolor()
+		else
+			RegisterSignal(SSdcs, COMSIG_LORD_COLORS_SET, TYPE_PROC_REF(/obj/structure, lordcolor))
 	if(redstone_id)
 		GLOB.redstone_objs += src
 		. = INITIALIZE_HINT_LATELOAD
@@ -50,13 +58,17 @@
 		GLOB.redstone_objs -= src
 	return ..()
 
-/obj/structure/attack_hand(mob/user)
-	. = ..()
-	if(.)
-		return
+/obj/structure/proc/trigger_wire_network(mob/user)
+	// Find connected redstone components and trigger them
+	var/power_level = last_redstone_state ? 15 : 0
+	for(var/direction in GLOB.cardinals)
+		var/turf/target_turf = get_step(src, direction)
+		for(var/obj/structure/redstone/component in target_turf)
+			component.set_power(power_level, user, null) // Lever acts as power source
+	last_redstone_state = !last_redstone_state
 
-/obj/structure/pre_lock_interact(mob/user)
-	if(broken)
+/obj/structure/pre_lock_interact(mob/living/user)
+	if(obj_broken)
 		to_chat(user, span_notice("[src] is broken, I cannot do this."))
 		return FALSE
 	return ..()
@@ -133,15 +145,15 @@
 /obj/structure/examine(mob/user)
 	. = ..()
 	if(!(resistance_flags & INDESTRUCTIBLE))
-		if(obj_broken)
-			. += "<span class='notice'>It appears to be broken.</span>"
 		var/examine_status = examine_status(user)
 		if(examine_status)
 			. += examine_status
 
 /obj/structure/proc/examine_status(mob/user) //An overridable proc, mostly for falsewalls.
-	if(max_integrity)
-		var/healthpercent = (obj_integrity/max_integrity) * 100
+	if(obj_broken)
+		return "It appears to be broken."
+	if(uses_integrity)
+		var/healthpercent = (atom_integrity / max_integrity) * 100
 		switch(healthpercent)
 			if(50 to 99)
 				return  "It looks slightly damaged."

@@ -84,6 +84,8 @@
 	var/mouse_up_icon = null
 	///used to make a special mouse cursor, this one for mouse up icon
 	var/mouse_down_icon = null
+	///used to override the mouse cursor so it doesnt get reset
+	var/mouse_override_icon = null
 
 	///datum that controls the displaying and hiding of tooltips
 	var/datum/tooltip/tooltips
@@ -127,20 +129,22 @@
 	///When set to true, user will be autokicked if they trip the keysends in a second limit again
 	var/keysend_tripped = FALSE
 
-	var/atom/movable/screen/movable/mouseover/mouseovertext
-	var/atom/movable/screen/movable/mouseover/mouseoverbox
 	///custom movement keys for this client
 	var/list/movement_keys = list()
 
 	/// Messages currently seen by this client
 	var/list/seen_messages
+	var/datum/viewData/view_size
 
 	var/list/current_weathers = list()
 	var/last_lighting_update = 0
 
 	var/loop_sound = FALSE
 	var/rain_sound = FALSE
-	var/last_droning_sound
-	var/sound/droning_sound
 
-	var/list/triumph_ids = list() //I am not sure if i should put it here, but if it work? this check for specific triumph IDs.
+	///Which ambient sound this client is currently being provided
+	var/current_ambient_sound
+	/// Cooldowns for Real like - For Mentor
+	var/list/real_like_cooldowns  = list()
+	/// Total Real likes recieved in a round - For Mentor
+	var/real_likes_received  = 0

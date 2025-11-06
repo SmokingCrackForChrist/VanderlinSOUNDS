@@ -6,6 +6,10 @@
 	var/icon/cube
 	var/can_melt = TRUE
 
+/datum/status_effect/freon/lasting
+	id = "lasting_frozen"
+	duration = STATUS_EFFECT_PERMANENT
+
 /atom/movable/screen/alert/status_effect/freon
 	name = "Frozen Solid"
 	desc = ""
@@ -41,6 +45,7 @@
 			owner.remove_status_effect(/datum/status_effect/freon)
 
 /datum/status_effect/freon/on_remove()
+	. = ..()
 	if(!owner.stat)
 		to_chat(owner, "<span class='notice'>The cube melts!</span>")
 	owner.cut_overlay(cube)

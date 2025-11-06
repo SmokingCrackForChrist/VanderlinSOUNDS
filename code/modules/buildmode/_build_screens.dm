@@ -3,10 +3,13 @@
  */
 /atom/movable/screen/buildmode
 	icon = 'icons/misc/buildmode.dmi'
+	// If we don't do this, we get occluded by item action buttons
+	plane = ABOVE_HUD_PLANE
+	var/datum/buildmode/bd
 
-/atom/movable/screen/buildmode/New(datum/buildmode/bm)
-	bd = bm
-	return ..()
+/atom/movable/screen/buildmode/Initialize(mapload, datum/hud/hud_owner, datum/buildmode/build_datum)
+	. = ..()
+	bd = build_datum
 
 /atom/movable/screen/buildmode/Destroy()
 	bd = null
@@ -20,8 +23,9 @@
 /atom/movable/screen/buildmode/mode/Click()
 	bd.toggle_modeswitch()
 
-/atom/movable/screen/buildmode/mode/update_icon()
+/atom/movable/screen/buildmode/mode/update_icon_state()
 	icon_state = "buildmode[bd.mode.key ? bd.mode.key : 1]"
+	return ..()
 
 /atom/movable/screen/buildmode/help
 	icon_state = "buildhelp"
@@ -38,6 +42,7 @@
 
 /atom/movable/screen/buildmode/bdir/update_icon()
 	dir = bd.build_dir
+	return ..()
 
 /atom/movable/screen/buildmode/bdir/Click()
 	bd.toggle_dirswitch()
@@ -54,9 +59,10 @@
 	bd.change_mode(modetype)
 
 /atom/movable/screen/buildmode/dirswitch
+	icon_state = "build"
 	var/dir_type
 
-/atom/movable/screen/buildmode/dirswitch/New(datum/buildmode/bm, dir)
+/atom/movable/screen/buildmode/dirswitch/Initialize(mapload, datum/hud/hud_owner, datum/buildmode/build_datum, dir)
 	dir_type = dir
 	setDir(dir_type)
 	return ..()
@@ -74,8 +80,8 @@
  * @return {bool} - Whether the click was handled
  */
 /datum/buildmode_mode/proc/handle_click(client/c, params, atom/object)
-	var/list/pa = params2list(params)
-	var/left_click = pa.Find("left")
+	var/list/modifiers = params2list(params)
+	var/left_click = LAZYACCESS(modifiers, LEFT_CLICK)
 
 	if(use_corner_selection)
 		if(left_click)

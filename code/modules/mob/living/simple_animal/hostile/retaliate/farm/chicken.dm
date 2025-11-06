@@ -9,7 +9,7 @@
 
 	density = FALSE
 	gender = FEMALE
-	pass_flags = PASSTABLE | PASSMOB
+	pass_flags = PASSMOB|PASSTABLE
 	mob_size = MOB_SIZE_SMALL
 	ventcrawler = VENTCRAWLER_ALWAYS
 	emote_see = list("pecks at the ground.","flaps its wings viciously.")
@@ -46,6 +46,7 @@
 	melee_damage_upper = 5
 
 	pooptype = /obj/item/natural/poo/horse
+	happy_funtime_mob = TRUE
 
 	var/eggsFertile = TRUE
 	var/body_color
@@ -115,15 +116,12 @@
 
 /mob/living/simple_animal/hostile/retaliate/chicken/Initialize()
 	. = ..()
-
 	if(chicken_init)
 		if(!body_color)
 			body_color = pick(validColors)
 		icon_state = "[icon_prefix]_[body_color]"
 		icon_living = "[icon_prefix]_[body_color]"
 		icon_dead = "[icon_prefix]_[body_color]_dead"
-	pixel_x = rand(-6, 6)
-	pixel_y = rand(0, 10)
 	++chicken_count
 
 /mob/living/simple_animal/hostile/retaliate/chicken/Destroy()
@@ -132,16 +130,8 @@
 
 /mob/living/simple_animal/hostile/retaliate/chicken/Life()
 	..()
-	if(food > 0)
+	if(SEND_SIGNAL(src, COMSIG_MOB_RETURN_HUNGER) > 0)
 		production = min(production + 1, 100)
-	if(!stat && (production > 29) && egg_type && isturf(loc) && !enemies.len)
-		var/list/foundnests = list()
-		for(var/obj/structure/fluff/nest/N in oview(src))
-			foundnests += N
-		//if no nests, look for chaff and build one
-		if(!foundnests.len)
-			new /obj/structure/fluff/nest(loc)
-			visible_message("<span class='notice'>[src] builds a nest.</span>")
 
 /mob/living/simple_animal/hostile/retaliate/chicken/proc/hatch_eggs()
 	for(var/obj/item/reagent_containers/food/snacks/egg/egg in loc)
@@ -160,7 +150,7 @@
 
 	density = FALSE
 	gender = FEMALE
-	pass_flags = PASSTABLE | PASSMOB
+	pass_flags = PASSMOB
 
 	botched_butcher_results = list(/obj/item/reagent_containers/food/snacks/meat/poultry/cutlet = 1)
 	butcher_results = list(/obj/item/reagent_containers/food/snacks/fat = 1,

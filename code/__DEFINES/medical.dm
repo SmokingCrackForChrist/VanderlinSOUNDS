@@ -45,19 +45,19 @@
 #define ORGAN_SLOT_FRILLS "frills"
 #define ORGAN_SLOT_HORNS "horns"
 #define ORGAN_SLOT_ANTENNAS "antennas"
+#define ORGAN_SLOT_WINGS "wings"
+#define ORGAN_SLOT_SNOUT "snout"
+
 #define ORGAN_SLOT_NECK_FEATURE "neck_feature"
 #define ORGAN_SLOT_HEAD_FEATURE "head_feature"
 #define ORGAN_SLOT_BACK_FEATURE "back_feature"
 #define ORGAN_SLOT_TAIL_FEATURE "tail_feature"
-#define ORGAN_SLOT_WINGS "wings"
-#define ORGAN_SLOT_SNOUT "snout"
-#define ORGAN_SLOT_HAIR "hair"
-#define ORGAN_SLOT_FACIAL_HAIR "facial_hair"
 
 #define BODYPART_FEATURE_HAIR "hair"
 #define BODYPART_FEATURE_FACIAL_HAIR "facehair"
 #define BODYPART_FEATURE_ACCESSORY "accessory"
 #define BODYPART_FEATURE_FACE_DETAIL "facedetail"
+#define BODYPART_FEATURE_BRAND "brand"
 
 //flags for requirements for a surgery step
 #define SURGERY_BLOODY (1<<0)
@@ -95,3 +95,6 @@
 #define WOUND_SEVERITY_FATAL 5
 /// This wound has werewolf infection
 #define WOUND_SEVERITY_BIOHAZARD 6
+
+/// This is used as a reference point for dynamic wounds, so it's better off as a define.
+#define ARTERY_LIMB_BLEEDRATE 20

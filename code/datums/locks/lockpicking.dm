@@ -33,18 +33,23 @@
 /obj/proc/picked(mob/living/user, obj/lockpick_used, skill_level, difficulty)
 	finish_lockpicking(user)
 
-	if(prob(60 - (skill_level * 10)))
+	//difficulty goes from 1 to 6, hence 6 - difficulty
+	var/break_prob = clamp(60 - (skill_level * 10) + (6 - difficulty * 10), 0, 100)
+	if(prob(break_prob))
 		to_chat(user, span_notice("My \the [lockpick_used] broke!"))
-		playsound(loc, 'sound/items/LPBreak.ogg', 100 - (15 * skill_level))
+		playsound(loc, 'sound/items/LPBreak.ogg', min(100 - (15 * skill_level) + (10 * 6 - difficulty), 100), extrarange = SILENCED_SOUND_EXTRARANGE)
 		qdel(lockpick_used)
+
+	if(user.client?.prefs.showrolls)
+		to_chat(user, span_notice("The chance to break was [break_prob]%!"))
 
 	if(lock)
 		lock.locked = FALSE
 		lock.tampered = TRUE
 
-	playsound(loc, 'sound/items/LPWin.ogg', 150 - (15 * skill_level))
+	playsound(loc, 'sound/items/LPWin.ogg', min(100 - (15 * skill_level) + (10 * 6 - difficulty), 100), extrarange = SILENCED_SOUND_EXTRARANGE)
 
-	var/amt2raise = user.STAINT + (50 / difficulty)
+	var/amt2raise = (user.STAINT / 2) * (20 / difficulty)
 	var/boon = user.get_learning_boon(/datum/skill/misc/lockpicking)
 	user.adjust_experience(/datum/skill/misc/lockpicking, amt2raise * boon)
 	return TRUE
@@ -54,7 +59,7 @@
 		return FALSE
 	user.visible_message(span_warning("[user] picks the lock of \the [src]!"), span_notice("I finish picking the lock of \the [src]."))
 	record_featured_stat(FEATURED_STATS_CRIMINALS, user)
-	GLOB.vanderlin_round_stats[STATS_LOCKS_PICKED]++
+	record_round_statistic(STATS_LOCKS_PICKED)
 	being_picked = FALSE
 	return TRUE
 
@@ -74,8 +79,8 @@
 	imagery.sweet_spot = rand(1,179)
 	imagery.clicker = src
 	imagery.difficulty = difficulty
-	imagery.maptext += "<br><div align='center'><font color='#f0dd5f'> [shown_d] LOCK<br></div>"
-	imagery.maptext += "<br><div align='center'><font color='#f0dd5f'>       \[R Click) Exit\]</font></div><br>"
+	imagery.maptext += MAPTEXT("<br><div align='center'><font color='#f0dd5f'> [shown_d] LOCK<br></div>")
+	imagery.maptext += MAPTEXT("<br><div align='center'><font color='#f0dd5f'>       \[R Click) Exit\]</font></div><br>")
 	imagery.maptext_width = 100
 	imagery.maptext_x = 253
 	imagery.maptext_y = 150
@@ -84,7 +89,7 @@
 	imagery.skill_level = skill_level
 	lock.being_picked = TRUE
 
-	playsound(user, 'sound/items/LPstart.ogg', 100 - (15 * skill_level))
+	playsound(user, 'sound/items/LPstart.ogg', min(100 - (15 * skill_level) + (10 * 6 - difficulty), 100), extrarange = SILENCED_SOUND_EXTRARANGE)
 
 	screen += imagery
 	imagery.autofire_on(imagery.clicker)
@@ -99,6 +104,7 @@
 	locked = TRUE
 	plane = HUD_PLANE
 	layer = 1
+	mouse_drag_pointer = null
 
 	///Angle of the lock itself. Determined by holding down mouse1.
 	var/lock_angle = 0
@@ -176,7 +182,7 @@
 	linked_pick.icon_state = "pick"
 	linked_pick.plane = FLOAT_PLANE + 1
 	linked_pick.layer = 3
-	linked_pick.pixel_y = 6
+	linked_pick.pixel_y = linked_pick.base_pixel_y + 6
 	linked_pick.mouse_opacity = MOUSE_OPACITY_TRANSPARENT
 	vis_contents += linked_pick
 
@@ -184,10 +190,10 @@
 	. = ..()
 
 	if(!frozen && linked_pick)
-		var/list/new_params = params2list(params)
+		var/list/modifiers = params2list(params)
 
-		var/icon_x = text2num(new_params["icon-x"]) - 240
-		var/icon_y = text2num(new_params["icon-y"]) - 240
+		var/icon_x = text2num(LAZYACCESS(modifiers, ICON_X)) - 240
+		var/icon_y = text2num(LAZYACCESS(modifiers, ICON_Y)) - 240
 
 		icon_y = max(1,icon_y)
 
@@ -224,9 +230,9 @@
 	SIGNAL_HANDLER
 	var/list/modifiers = params2list(params)
 
-	if(LAZYACCESS(modifiers, "middle"))
+	if(LAZYACCESS(modifiers, MIDDLE_CLICK))
 		return
-	if(LAZYACCESS(modifiers, "right")) //right click to close
+	if(LAZYACCESS(modifiers, RIGHT_CLICK)) //right click to close
 		close_lockpick()
 		return
 	if(source.mob.in_throw_mode)
@@ -303,14 +309,24 @@
 	var/pick_y = 6 + cos(lock_angle)*6 - 6
 	if(failing)
 		if(break_checking_cooldown <= world.time)
-			if(prob(10 - skill_level))
+			var/break_prob = clamp(10 - skill_level + (6 - difficulty) * 2, 0, 100)
+			if(prob(break_prob))
 				to_chat(picker, span_notice("My \the [the_lockpick] broke!"))
-				playsound(loc, 'sound/items/LPBreak.ogg', 100 - (15 * skill_level))
+				playsound(loc, 'sound/items/LPBreak.ogg', min(100 - (15 * skill_level) + (10 * 6 - difficulty), 100), extrarange = SILENCED_SOUND_EXTRARANGE)
 				qdel(the_lockpick)
-			break_checking_cooldown = world.time + 7 SECONDS
+				//one tenth of the usual boost for picking a lock
+				if(isliving(picker))
+					var/mob/living/picker_real = picker
+					var/amt2raise = ((picker_real.STAINT / 2) * (20 / difficulty)) / 10
+					var/boon = picker_real.get_learning_boon(/datum/skill/misc/lockpicking)
+					picker_real.adjust_experience(/datum/skill/misc/lockpicking, amt2raise * boon)
+			if(picker.client?.prefs.showrolls)
+				to_chat(picker, span_notice("The chance to break was [break_prob]%!"))
+			break_checking_cooldown = world.time + (9 - (7 - difficulty)) SECONDS
+			//break check cooldown at highest difficulty is 3 seconds, at lowest its 8
 
 		lock_angle -= 20
-		playsound(picker.loc, pick('sound/items/LPtry.ogg', 'sound/items/LPtry2.ogg'), 100 - (15 * skill_level))
+		playsound(picker.loc, pick('sound/items/LPtry.ogg', 'sound/items/LPtry2.ogg'), min(100 - (15 * skill_level) + (10 * 6 - difficulty), 100), extrarange = SILENCED_SOUND_EXTRARANGE)
 	if(lock_angle >= 1 && !failing && !playing_lock_sound)
 		play_turn_sound()
 		playing_lock_sound = TRUE
@@ -335,3 +351,6 @@
 
 /atom/movable/screen/movable/snap/lockpicking/proc/turn_sound_reset()
 	playing_lock_sound = FALSE
+
+#undef LOCKPICK_MOUSEUP
+#undef LOCKPICK_MOUSEDOWN

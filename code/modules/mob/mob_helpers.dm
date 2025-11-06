@@ -117,7 +117,7 @@
 
 /proc/relative_angular_facing(mob/living/user, mob/living/target)
 	var/target_facing = dir2angle(target.dir)
-	var/abs_angle = Get_Angle(target, user)
+	var/abs_angle = get_angle(target, user)
 	target_facing = 360 + (abs_angle - target_facing)
 	if(target_facing > 360)
 		target_facing -= 360
@@ -460,7 +460,9 @@
 			else
 				to_examine = possible_a_intents[numb]
 	if(to_examine)
-		to_examine.examine(src)
+		var/list/result = to_examine.examine(src)
+		result += "<br>----------------------"
+		to_chat(src, "[result.Join()]")
 
 /mob/verb/rog_intent_change(numb as num,offhand as num)
 	set name = "intent-change"
@@ -515,7 +517,7 @@
 		used_intent = a_intent
 		cast_move = 0
 	if(hud_used?.action_intent)
-		hud_used.action_intent.switch_intent(r_index,l_index,oactive)
+		hud_used.action_intent.switch_intent(r_index,l_index)
 
 /mob/proc/update_a_intents()
 	possible_a_intents.Cut()
@@ -524,7 +526,7 @@
 	var/obj/item/Masteritem = get_active_held_item()
 	if(Masteritem)
 		intents = Masteritem.possible_item_intents
-		if(Masteritem.wielded)
+		if(HAS_TRAIT(Masteritem, TRAIT_WIELDED) && LAZYLEN(Masteritem.gripped_intents))
 			intents = Masteritem.gripped_intents
 		if(Masteritem.altgripped)
 			intents = Masteritem.alt_intents
@@ -542,7 +544,7 @@
 	Masteritem = get_inactive_held_item()
 	if(Masteritem)
 		intents = Masteritem.possible_item_intents
-		if(Masteritem.wielded)
+		if(HAS_TRAIT(Masteritem, TRAIT_WIELDED))
 			intents = Masteritem.gripped_intents
 		if(Masteritem.altgripped)
 			intents = Masteritem.alt_intents
@@ -559,9 +561,9 @@
 			possible_offhand_intents += new defintent(src)
 	if(hud_used?.action_intent)
 		if(active_hand_index == 1)
-			hud_used.action_intent.update_icon(possible_a_intents,possible_offhand_intents,oactive)
+			hud_used.action_intent.update(possible_a_intents, possible_offhand_intents)
 		else
-			hud_used.action_intent.update_icon(possible_offhand_intents,possible_a_intents,oactive)
+			hud_used.action_intent.update(possible_offhand_intents, possible_a_intents)
 	if(active_hand_index == 1)
 		if(l_index <= possible_a_intents.len)
 			rog_intent_change(l_index)
@@ -575,9 +577,6 @@
 			rog_intent_change(1)
 		rog_intent_change(l_index, 1)
 
-/mob/proc/check_spell_quickselect()
-	return (mind && !incapacitated())
-
 /mob/verb/mmb_intent_change(input as text)
 	set name = "mmb-change"
 	set hidden = 1
@@ -588,11 +587,7 @@
 
 	if(!input)
 		qdel(mmb_intent)
-		cancel_spell_visual_effects(src)
 		mmb_intent = null
-	if(input != QINTENT_SPELL)
-		if(ranged_ability)
-			ranged_ability.deactivate()
 	switch(input)
 		if(QINTENT_KICK)
 			if(mmb_intent?.type == INTENT_KICK)
@@ -629,52 +624,9 @@
 				mmb_intent = null
 			else
 				mmb_intent = new INTENT_GIVE(src)
-		if(QINTENT_SPELL)
-			if(mmb_intent)
-				qdel(mmb_intent)
-				cancel_spell_visual_effects(src)
-			mmb_intent = new INTENT_SPELL(src)
-			mmb_intent.releasedrain = ranged_ability.get_fatigue_drain()
-			mmb_intent.chargedrain = ranged_ability.chargedrain
-			mmb_intent.chargetime = ranged_ability.get_chargetime()
-			mmb_intent.warnie = ranged_ability.warnie
-			mmb_intent.charge_invocation = ranged_ability.charge_invocation
-			mmb_intent.no_early_release = FALSE
-			mmb_intent.movement_interrupt = ranged_ability.movement_interrupt
-			mmb_intent.charging_slowdown = ranged_ability.charging_slowdown
-			mmb_intent.chargedloop = ranged_ability.chargedloop
-			mmb_intent.update_chargeloop()
-
-			if(istype(ranged_ability, /obj/effect/proc_holder/spell))
-				var/obj/effect/proc_holder/spell/ability = ranged_ability
-				if(!ability.miracle && ability.uses_mana)
-					start_spell_visual_effects(src, ability)
-					if(ability.spell_flag & SPELL_MANA)
-						mmb_intent.AddComponent(
-							/datum/component/uses_mana/spell,\
-							CALLBACK(mmb_intent, TYPE_PROC_REF(/datum/intent, spell_cannot_activate)),\
-							CALLBACK(mmb_intent, TYPE_PROC_REF(/datum/intent, get_master_mob)),\
-							COMSIG_SPELL_BEFORE_CAST,\
-							null,\
-							COMSIG_SPELL_AFTER_CAST,\
-							CALLBACK(ranged_ability, TYPE_PROC_REF(/obj/effect/proc_holder, get_fatigue_drain)),\
-							ranged_ability.attunements,\
-						)
-					else if(ability.spell_flag & SPELL_ESSENCE)
-						mmb_intent.AddComponent(
-							/datum/component/uses_essence,\
-							CALLBACK(mmb_intent, TYPE_PROC_REF(/datum/intent, spell_cannot_activate)),\
-							CALLBACK(mmb_intent, TYPE_PROC_REF(/datum/intent, get_master_mob)),\
-							COMSIG_SPELL_BEFORE_CAST,\
-							COMSIG_SPELL_BEFORE_CAST,\
-							COMSIG_SPELL_AFTER_CAST,\
-							ability.cost,\
-							ranged_ability.attunements,\
-						)
 
 	hud_used.quad_intents?.switch_intent(input)
 	hud_used.give_intent?.switch_intent(input)
-	givingto = null
 
 /mob/verb/def_intent_change(input as num)
 	set name = "def-change"
@@ -686,7 +638,7 @@
 	playsound_local(src, 'sound/misc/click.ogg', 100)
 	if(hud_used)
 		if(hud_used.def_intent)
-			hud_used.def_intent.update_icon()
+			hud_used.def_intent.update_appearance(UPDATE_ICON_STATE)
 	update_inv_hands()
 
 
@@ -700,27 +652,22 @@
 	var/client/client = L.client
 	if(L.IsSleeping() || L.surrendering)
 		if(cmode)
-			playsound_local(src, 'sound/misc/comboff.ogg', 100)
-			SSdroning.play_area_sound(get_area(src), client)
 			cmode = FALSE
-		if(hud_used)
-			if(hud_used.cmode_button)
-				hud_used.cmode_button.update_icon()
+		refresh_looping_ambience()
+		hud_used?.cmode_button?.update_appearance(UPDATE_ICON_STATE)
 		return
+
 	if(cmode)
 		playsound_local(src, 'sound/misc/comboff.ogg', 100)
-		SSdroning.play_area_sound(get_area(src), client)
 		cmode = FALSE
 		if(client && HAS_TRAIT(src, TRAIT_SCHIZO_AMBIENCE) && !HAS_TRAIT(src, TRAIT_SCREENSHAKE))
 			animate(client, pixel_y) // stops screenshake if you're not on 4th wonder yet.
 	else
 		cmode = TRUE
 		playsound_local(src, 'sound/misc/combon.ogg', 100)
-		if(L.cmode_music)
-			SSdroning.play_combat_music(L.cmode_music, client)
-	if(hud_used)
-		if(hud_used.cmode_button)
-			hud_used.cmode_button.update_icon()
+
+	refresh_looping_ambience()
+	hud_used?.cmode_button?.update_appearance(UPDATE_ICON_STATE)
 
 /mob
 	var/last_aimhchange = 0
@@ -780,7 +727,7 @@
 		playsound_local(src, 'sound/misc/click.ogg', 50, TRUE)
 		if(hud_used)
 			if(hud_used.zone_select)
-				hud_used.zone_select.update_icon()
+				hud_used.zone_select.update_appearance()
 
 /mob/proc/select_organ_slot(choice)
 	organ_slot_selected = choice
@@ -827,15 +774,10 @@
 		if(BODY_ZONE_PRECISE_L_FOOT)
 			aimheight = 1
 
-///Checks if passed through item is blind
-/proc/is_blind(A)
-	if(ismob(A))
-		var/mob/B = A
-		if(HAS_TRAIT(B, TRAIT_BLIND))
-			return TRUE
-		return B.eye_blind
-	return FALSE
-
+/mob/proc/is_blind()
+	if(HAS_TRAIT(src, TRAIT_BLIND))
+		return TRUE
+	return eye_blind
 
 // moved out of admins.dm because things other than admin procs were calling this.
 /**
@@ -906,7 +848,6 @@
 				A.target = source
 				if(!alert_overlay)
 					alert_overlay = new(source)
-				alert_overlay.layer = FLOAT_LAYER
 				alert_overlay.plane = FLOAT_PLANE
 				A.add_overlay(alert_overlay)
 
@@ -974,13 +915,6 @@
 		to_chat(M, "There were no ghosts willing to take control.")
 		message_admins("No ghosts were willing to take control of [ADMIN_LOOKUPFLW(M)])")
 		return FALSE
-
-///Is the mob a flying mob
-/mob/proc/is_flying(mob/M = src)
-	if(M.movement_type & FLYING)
-		return 1
-	else
-		return 0
 
 ///Clicks a random nearby mob with the source from this mob
 /mob/proc/click_random_mob()
@@ -1065,15 +999,10 @@
 
 /mob/living/carbon/human/proc/get_role_title()
 	var/used_title
-	if(migrant_type)
-		var/datum/migrant_role/migrant = MIGRANT_ROLE(migrant_type)
-		used_title = migrant.name
-	else if(advjob)
-		used_title = advjob
-	else if(job)
+	if(job)
 		var/datum/job/J = SSjob.GetJob(job)
 		if(!J)
-			return "Unknown"
+			return job
 		used_title = J.get_informed_title(src)
 	if(is_apprentice())
 		used_title = return_our_apprentice_name()

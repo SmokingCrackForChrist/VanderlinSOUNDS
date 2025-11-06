@@ -3,23 +3,20 @@
 	tutorial = "Some say Dendor brings bountiful harvests - this much is true, but rot brings forth life. \
 	From life brings decay, and from decay brings life. Like your father before you, you let milk rot into cheese. \
 	This is your duty, this is your call."
-	flag = CHEESEMAKER
 	department_flag = PEASANTS
 	job_flags = (JOB_ANNOUNCE_ARRIVAL | JOB_SHOW_IN_CREDITS | JOB_EQUIP_RANK | JOB_NEW_PLAYER_JOINABLE)
 	display_order = JDO_CHEESEMAKER
-	faction = FACTION_STATION
+	faction = FACTION_TOWN
 	total_positions = 0
 	spawn_positions = 0
 
-	allowed_sexes = list(MALE, FEMALE)
 	allowed_races = RACES_PLAYER_ALL
-	outfit = /datum/outfit/job/cheesemaker
+	outfit = /datum/outfit/cheesemaker
 	cmode_music = 'sound/music/cmode/towner/CombatTowner2.ogg'
 
-/datum/outfit/job/cheesemaker
 	job_bitflag = BITFLAG_CONSTRUCTOR
 
-/datum/outfit/job/cheesemaker/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/cheesemaker/pre_equip(mob/living/carbon/human/H)
 	..()
 	H.adjust_skillrank(/datum/skill/combat/knives, 2, TRUE)
 	H.adjust_skillrank(/datum/skill/misc/athletics, 2, TRUE)
@@ -31,8 +28,8 @@
 	H.adjust_skillrank(/datum/skill/craft/cooking, 4, TRUE)
 	H.adjust_skillrank(/datum/skill/labor/farming, 2, TRUE)
 	belt = /obj/item/storage/belt/leather
-	pants = /obj/item/clothing/pants/tights/random
-	shirt = /obj/item/clothing/shirt/shortshirt/random
+	pants = /obj/item/clothing/pants/tights/colored/random
+	shirt = /obj/item/clothing/shirt/shortshirt/colored/random
 	cloak = /obj/item/clothing/cloak/apron
 	shoes = /obj/item/clothing/shoes/simpleshoes
 	backl = /obj/item/storage/backpack/backpack

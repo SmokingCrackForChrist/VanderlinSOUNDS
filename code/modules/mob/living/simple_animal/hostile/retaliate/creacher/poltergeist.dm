@@ -11,7 +11,6 @@
 	emote_hear = null
 	emote_see = null
 	speak_chance = 1
-	turns_per_move = 2
 	see_in_dark = 6
 	move_to_delay = 5
 	base_intents = list(/datum/intent/simple/claw)
@@ -34,7 +33,6 @@
 	defdrain = 10
 	dodgetime = 30
 	aggressive = 1
-
 	damage_coeff = list(BRUTE = 0, BURN = 0, TOX = 0, CLONE = 0, STAMINA = 0, OXY = 0)
 
 	ai_controller = /datum/ai_controller/polter

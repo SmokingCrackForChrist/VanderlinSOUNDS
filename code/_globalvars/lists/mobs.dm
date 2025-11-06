@@ -1,3 +1,4 @@
+GLOBAL_LIST_EMPTY(keys_by_ckey)						//all client ckeys, and their associated keys (keys_by_ckey[ckey] -> key), isn't cleared when the client leaves the game
 GLOBAL_LIST_EMPTY(clients)							//all clients
 GLOBAL_LIST_EMPTY(admins)							//all clients whom are admins
 GLOBAL_PROTECT(admins)
@@ -34,6 +35,7 @@ GLOBAL_LIST_EMPTY(aiEyes)
 GLOBAL_LIST_EMPTY(language_datum_instances)
 GLOBAL_LIST_EMPTY(all_languages)
 
+/// Associative list of species name (ick) to typepath
 GLOBAL_LIST_EMPTY(species_list)
 
 GLOBAL_LIST_EMPTY(latejoin_ai_cores)

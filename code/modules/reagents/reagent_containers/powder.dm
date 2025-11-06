@@ -11,6 +11,23 @@
 	grid_height = 32
 	grid_width = 32
 
+/obj/item/reagent_containers/powder/canconsume(mob/eater, mob/user, silent)
+	. = ..()
+	if(!.)
+		return
+	if(user.zone_selected != BODY_ZONE_PRECISE_NOSE)
+		to_chat(user, span_notice("\The [src] must be snorted."))
+		return FALSE
+	// Checked in parent for carbon
+	var/mob/living/L = eater
+	if(!L.can_smell())
+		if(L == user)
+			to_chat(user, span_warning("I can't use my nose!"))
+		else
+			to_chat(user, span_warning("[L.p_they(TRUE)] can't use [L.p_their()] nose!"))
+		return FALSE
+	return TRUE
+
 /obj/item/reagent_containers/powder/throw_impact(atom/hit_atom, datum/thrownthing/thrownthing)
 	. = ..()
 	if(thrownthing?.target_zone != BODY_ZONE_PRECISE_NOSE)
@@ -26,8 +43,6 @@
 /obj/item/reagent_containers/powder/attack(mob/M, mob/user, def_zone)
 	if(!canconsume(M, user))
 		return FALSE
-	if(user.zone_selected != BODY_ZONE_PRECISE_NOSE)
-		return FALSE
 	if(M == user)
 		M.visible_message(span_notice("[user] sniffs [src]."))
 	else
@@ -37,8 +52,8 @@
 			if(!CH)
 				to_chat(user, span_warning("[C.p_theyre(TRUE)] missing their head."))
 				return FALSE
-			user.visible_message(span_danger("[user] attempts to force [C] to inhale [src]."), \
-								span_danger("[user] attempts to force me to inhale [src]!"))
+			C.visible_message(span_danger("[user] attempts to force [C] to inhale [src]."), \
+							span_danger("[user] attempts to force me to inhale [src]!"))
 			if(C.cmode)
 				if(!CH.grabbedby)
 					to_chat(user, span_info("[C.p_they(TRUE)] steals [C.p_their()] face from it."))
@@ -52,7 +67,7 @@
 		reagents.trans_to(M, reagents.total_volume, transfered_by = user, method = "swallow")
 		SEND_SIGNAL(M, COMSIG_DRUG_SNIFFED, user)
 		record_featured_stat(FEATURED_STATS_CRIMINALS, user)
-		GLOB.vanderlin_round_stats[STATS_DRUGS_SNORTED]++
+		record_round_statistic(STATS_DRUGS_SNORTED)
 	qdel(src)
 	return TRUE
 
@@ -62,7 +77,6 @@
 	icon = 'icons/roguetown/items/produce.dmi'
 	icon_state = "spice"
 	item_state = "spice"
-	volume = 15
 	list_reagents = list(/datum/reagent/druqks = 15)
 	sellprice = 16
 
@@ -98,8 +112,7 @@
 	M.set_drugginess(30)
 	if(M.client)
 		ADD_TRAIT(M, TRAIT_DRUQK, "based")
-		SSdroning.area_entered(get_area(M), M.client)
-	M.update_body_parts_head_only()
+		M.refresh_looping_ambience()
 
 /datum/reagent/druqks/on_mob_end_metabolize(mob/living/M)
 	M.clear_fullscreen("druqk")
@@ -107,8 +120,7 @@
 	M.remove_status_effect(/datum/status_effect/buff/druqks)
 	if(M.client)
 		REMOVE_TRAIT(M, TRAIT_DRUQK, "based")
-		SSdroning.play_area_sound(get_area(M), M.client)
-	M.update_body_parts_head_only()
+		M.refresh_looping_ambience()
 
 /datum/reagent/druqks/overdose_process(mob/living/M)
 	M.adjustOrganLoss(ORGAN_SLOT_BRAIN, 0.25*REM)
@@ -123,7 +135,6 @@
 	desc = "A potent drug that causes a state of euphoria, but can also arrest breathing."
 	icon = 'icons/roguetown/items/produce.dmi'
 	icon_state = "ozium"
-	volume = 15
 	list_reagents = list(/datum/reagent/ozium = 15)
 	sellprice = 8
 
@@ -134,10 +145,6 @@
 	color = "#60A584" // rgb: 96, 165, 132
 	overdose_threshold = 16
 	metabolization_rate = 0.2
-
-/datum/reagent/ozium/on_mob_metabolize(mob/living/L)
-	. = ..()
-	L.flash_fullscreen("can_you_see")
 
 /datum/reagent/ozium/on_mob_life(mob/living/carbon/M)
 	if(M.has_flaw(/datum/charflaw/addiction/junkie))
@@ -160,7 +167,6 @@
 	desc = "Derived from the skins of certain pallid goblins. Makes folk quick to act and anger."
 	icon = 'icons/roguetown/items/produce.dmi'
 	icon_state = "moondust"
-	volume = 15
 	list_reagents = list(/datum/reagent/moondust = 15)
 	sellprice = 16
 
@@ -173,7 +179,6 @@
 	metabolization_rate = 0.2
 
 /datum/reagent/moondust/on_mob_metabolize(mob/living/M)
-	M.flash_fullscreen("can_you_see")
 	animate(M.client, pixel_y = 1, time = 1, loop = -1, flags = ANIMATION_RELATIVE)
 	animate(pixel_y = -1, time = 1, flags = ANIMATION_RELATIVE)
 
@@ -204,8 +209,7 @@
 	desc = "This moondust glitters even in the dark. It seems to have certain pure properties."
 	icon = 'icons/roguetown/items/produce.dmi'
 	icon_state = "moondust_purest"
-	volume = 18
-	list_reagents = list(/datum/reagent/moondust_purest = 18)
+	list_reagents = list(/datum/reagent/moondust_purest = 15)
 	sellprice = 20
 
 /datum/reagent/moondust_purest
@@ -218,7 +222,6 @@
 
 /datum/reagent/moondust_purest/on_mob_metabolize(mob/living/M)
 	M.playsound_local(M, 'sound/ravein/small/hello_my_friend.ogg', 100, FALSE)
-	M.flash_fullscreen("can_you_see")
 	M.overlay_fullscreen("purest_kaif", /atom/movable/screen/fullscreen/purest)
 	animate(M.client, pixel_y = 1, time = 1, loop = -1, flags = ANIMATION_RELATIVE)
 	animate(pixel_y = -1, time = 1, flags = ANIMATION_RELATIVE)
@@ -251,17 +254,28 @@
 	desc = "Crushed manabloom useful as a combat measure against mages."
 	icon = 'icons/roguetown/items/produce.dmi'
 	icon_state = "salt"
-	volume = 5
 	list_reagents = list(/datum/reagent/toxin/manabloom_juice = 5)
 	sellprice = 10
 	color = COLOR_CYAN
 
+//generic herbs and spices used in cooking
+//not as strong as pepper is, meant to be used by peasants and poor people to add some extra flavour
+//feel free to make this be used in anything cooking related
+/obj/item/reagent_containers/powder/herbs
+	name = "herbs and spices"
+	desc = "A bunch of herbs and spices mixed together."
+	icon = 'icons/roguetown/items/produce.dmi'
+	icon_state = "flour"
+	volume = 1
+	list_reagents = list(/datum/reagent/ash = 1)//you shouldn't be eating this anyways
+	sellprice = 10
+	color = COLOR_PALE_GREEN_GRAY
+
 /obj/item/reagent_containers/powder/blastpowder
 	name = "blastpowder"
-	desc = "explosive powder known to be produced by the dwarves. It's used in many explosives."
+	desc = "Explosive powder known to be produced by the dwarves. It's used in many explosives."
 	icon = 'icons/roguetown/items/produce.dmi'
 	icon_state = "blastpowder"
-	volume = 15
 	list_reagents = list(/datum/reagent/blastpowder = 15)
 	sellprice = 15
 	var/primed = FALSE

@@ -15,19 +15,21 @@
 	if(contents.len)
 		. += span_notice("[contents.len] thing[contents.len > 1 ? "s" : ""] in the pouch.")
 
-/obj/item/storage/magebag/attack_right(mob/user)
+/obj/item/storage/magebag/attack_hand_secondary(mob/user, params)
 	. = ..()
-	if(.)
+	if(. == SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN)
 		return
 	user.changeNext_move(CLICK_CD_MELEE)
 	var/datum/component/storage/STR = GetComponent(/datum/component/storage)
 	var/list/things = STR.contents()
-	if(things.len)
+	if(length(things))
 		var/obj/item/I = pick(things)
 		STR.remove_from_storage(I, get_turf(user))
 		user.put_in_hands(I)
+	return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
 
-/obj/item/storage/magebag/update_icon()
+/obj/item/storage/magebag/update_icon_state()
+	. = ..()
 	var/datum/component/storage/STR = GetComponent(/datum/component/storage)
 	var/list/things = STR.contents()
 	if(things.len)
@@ -65,8 +67,9 @@
 /obj/item/chalk
 	name = "stick of chalk"
 	desc = "A stark-white stick of chalk, possibly made from quicksilver. "
-	icon = 'icons/roguetown/items/misc.dmi'
+	icon = 'icons/roguetown/misc/rituals.dmi'
 	icon_state = "chalk"
+	dropshrink = 0.7
 	throw_speed = 2
 	throw_range = 5
 	throwforce = 5
@@ -93,7 +96,7 @@
 	else
 		return ..()
 
-/obj/item/chalk/attack_self(mob/living/carbon/human/user)
+/obj/item/chalk/attack_self(mob/living/carbon/human/user, params)
 	if(!isarcyne(user))//We'll set up other items for other types of rune rituals
 		to_chat(user, span_cult("Nothing comes in mind to draw with the chalk."))
 		return
@@ -162,7 +165,7 @@
 	else
 		return ..()
 
-/obj/item/weapon/knife/dagger/silver/arcyne/attack_self(mob/living/carbon/human/user)
+/obj/item/weapon/knife/dagger/silver/arcyne/attack_self(mob/living/carbon/human/user, params)
 	if(!isarcyne(user))
 		return
 	var/obj/effect/decal/cleanable/roguerune/pickrune
@@ -221,12 +224,12 @@
 	icon_state = "amethyst"
 	sellprice = 18
 	arcyne_potency = 25
-	desc = "A deep lavender crystal, it surges with magical energy, yet it's artificial nature means it' worth little."
+	desc = "A pink crystal, it surges with magical energy, yet it's artificial nature means it' worth little."
 	attuned = /datum/attunement/arcyne
 
 /obj/item/mimictrinket
 	name = "mimic trinket"
-	desc = "A small mimic, imbued with the arcane to make it docile. It can transform into most things it touchs. "
+	desc = "A small mimic, imbued with the arcyne to make it docile. It can transform into most things it touchs. "
 	icon = 'icons/roguetown/items/misc.dmi'
 	icon_state = "mimic_trinket"
 	possible_item_intents = list(/datum/intent/use)
@@ -238,7 +241,7 @@
 	var/ready = TRUE
 	var/timing_id
 
-/obj/item/mimictrinket/attack_self(mob/living/carbon/human/user)
+/obj/item/mimictrinket/attack_self(mob/living/carbon/human/user, params)
 	revert()
 
 /obj/item/mimictrinket/proc/revert()
@@ -252,7 +255,12 @@
 		deltimer(timing_id)
 		timing_id = null
 
-/obj/item/mimictrinket/attack_obj(obj/target, mob/living/user)
+/obj/item/mimictrinket/attack_atom(atom/attacked_atom, mob/living/user)
+	if(!isobj(attacked_atom))
+		return ..()
+
+	var/obj/target = attacked_atom
+	. = TRUE
 	if(ready)
 		to_chat(user,span_notice("[src] takes the form of [target]!"))
 		oldicon = icon
@@ -268,7 +276,7 @@
 
 /obj/item/hourglass/temporal
 	name = "temporal hourglass"
-	desc = "An arcane infused hourglass that glows with magick."
+	desc = "An arcyne infused hourglass that glows with magick."
 	icon = 'icons/obj/hourglass.dmi'
 	icon_state = "hourglass_idle"
 	var/turf/target
@@ -306,17 +314,17 @@
 	on = FALSE
 
 /obj/item/clothing/ring/arcanesigil
-	name = "arcane sigil"
-	desc = "A radiantly shimmering sigil within an amulet, It seems to pulse with intense arcanic flows."
+	name = "arcyne sigil"
+	desc = "A radiantly shimmering sigil within an amulet, It seems to pulse with intense arcynic flows."
 	icon = 'icons/roguetown/items/misc.dmi'
 	icon_state = "amulet"
 	var/cdtime = 30 MINUTES
 	var/ready = TRUE
 
-/obj/item/clothing/ring/arcanesigil/attack_self(mob/living/carbon/human/user)
+/obj/item/clothing/ring/arcanesigil/attack_self(mob/living/carbon/human/user, params)
 	if(ready)
 		if(do_after(user, 25, target = src))
-			to_chat(user,span_notice("[src] heats up to an almost burning temperature, flooding you with overwhelming arcane knowledge!"))
+			to_chat(user,span_notice("[src] heats up to an almost burning temperature, flooding you with overwhelming arcyne knowledge!"))
 			ready = FALSE
 			addtimer(CALLBACK(src, PROC_REF(revert), user), cdtime,TIMER_STOPPABLE) // Minus two so we play the sound and decap faster
 			user.adjust_skillrank(/datum/skill/magic/arcane, 1, TRUE)
@@ -335,7 +343,10 @@
 	resistance_flags = FIRE_PROOF | ACID_PROOF
 	var/active = FALSE
 
-/obj/item/clothing/ring/shimmeringlens/attack_right(mob/user)
+/obj/item/clothing/ring/shimmeringlens/attack_hand_secondary(mob/user, params)
+	. = ..()
+	if(. == SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN)
+		return
 	if(loc != user)
 		return
 	if(!active)
@@ -345,6 +356,7 @@
 	else
 		user.visible_message(span_warning("[user] stops looking through the [src]!"))
 		demagicify()
+	return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
 
 /obj/item/clothing/ring/shimmeringlens/proc/activate(mob/user)
 	ADD_TRAIT(user, TRAIT_SEE_LEYLINES, "[type]")
@@ -358,9 +370,11 @@
 	user.hud_used?.plane_masters_update()
 	active = FALSE
 
-/obj/item/sendingstonesummoner/Initialize()
+/obj/item/sendingstonesummoner
+	name = "sending stone summoner"
+
+/obj/item/sendingstonesummoner/OnCrafted(dirin, mob/user)
 	. = ..()
-	var/mob/living/user = usr
 	var/obj/item/natural/stone/sending/item1 = new /obj/item/natural/stone/sending
 	var/obj/item/natural/stone/sending/item2 = new /obj/item/natural/stone/sending
 	item1.paired_with = item2
@@ -371,14 +385,14 @@
 	item2.color = "#d8aeff"
 	user.put_in_hands(item1, FALSE)
 	user.put_in_hands(item2, FALSE)
-	return INITIALIZE_HINT_QDEL
+	qdel(src)
 
 /obj/item/natural/stone/sending
 	name = "sending stone"
 	desc = "One of a pair of sending stones."
 	var/obj/item/natural/stone/sending/paired_with
 
-/obj/item/natural/stone/sending/attack_self(mob/user)
+/obj/item/natural/stone/sending/attack_self(mob/user, params)
 	var/input_text = input(user, "Enter your message:", "Message")
 	if(input_text)
 		paired_with.say(input_text)
@@ -399,15 +413,14 @@
 /obj/item/clothing/gloves/nomagic/equipped(mob/living/user, slot)
 	if(active_item)
 		return
-	var/slotbit = slotdefine2slotbit(slot)
-	if(slotbit == ITEM_SLOT_GLOVES)
+	if(slot & ITEM_SLOT_GLOVES)
 		active_item = TRUE
 		ADD_TRAIT(src, TRAIT_NODROP, TRAIT_GENERIC)
 	. = ..()
 
 /obj/item/rope/chain/bindingshackles
 	name = "planar binding shackles"
-	desc = "arcane shackles imbued to bind other-planar creatures intelligence to this plane. They will not be under your thrall and a deal will need to be made."
+	desc = "arcyne shackles imbued to bind other-planar creatures intelligence to this plane. They will not be under your thrall and a deal will need to be made."
 	var/mob/living/fam
 	var/tier = 1
 	var/being_used = FALSE
@@ -584,6 +597,9 @@
 	desc = "Dense mana that has taken the form of plant life."
 	resistance_flags = FLAMMABLE
 	w_class = WEIGHT_CLASS_SMALL
+	slot_flags = ITEM_SLOT_HEAD|ITEM_SLOT_MASK
+	body_parts_covered = NONE
+	alternate_worn_layer  = 8.9
 	list_reagents = list(/datum/reagent/toxin/manabloom_juice = SNACK_CHUNKY)
 	seed = /obj/item/neuFarm/seed/manabloom
 
@@ -604,7 +620,7 @@
 
 //combined items
 /obj/item/natural/melded
-	name = "arcane meld"
+	name = "arcyne meld"
 	icon_state = "wessence"
 	desc = "You should not be seeing this"
 	resistance_flags = FLAMMABLE
@@ -638,25 +654,22 @@
 /obj/item/natural/melded/t5
 	name = "arcanic aberation"
 	icon_state = "wessence"
-	desc = "A melding of arcane fusion and voidstone. It pulses erratically, power coiled tightly within and dangerous. Many would be afraid of going near this, let alone holding it."
+	desc = "A melding of arcyne fusion and voidstone. It pulses erratically, power coiled tightly within and dangerous. Many would be afraid of going near this, let alone holding it."
 
 
 /obj/structure/soul
 	name = "soul"
 	desc = "The soul of the dead"
-
 	icon = 'icons/roguetown/misc/mana.dmi'
 	icon_state = "soul"
-
-	plane = PLANE_LEYLINES
+	plane = LEYLINE_PLANE
 	invisibility = INVISIBILITY_LEYLINES
 	anchored = TRUE
 	resistance_flags = INDESTRUCTIBLE | LAVA_PROOF | FIRE_PROOF | UNACIDABLE | ACID_PROOF
+	no_over_text = TRUE
 
-	var/mana_amount = 75
-
+	var/mana_amount = 7
 	var/datum/weakref/drainer
-
 	var/qdel_timer
 
 /obj/structure/soul/Initialize(mapload)
@@ -683,7 +696,7 @@
 	if(!mana_amount || mana_amount <= 0)
 		qdel(src)
 		return
-	qdel_timer = QDEL_IN(src, 10 MINUTES)
+	qdel_timer = QDEL_IN_STOPPABLE(src, 10 MINUTES)
 
 /obj/structure/soul/proc/drain_mana(mob/living/user)
 	var/datum/beam/transfer_beam = user.Beam(src, icon_state = "drain_life", time = INFINITY)

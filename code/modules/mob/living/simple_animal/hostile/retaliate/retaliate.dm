@@ -12,7 +12,6 @@
 	footstep_type = FOOTSTEP_MOB_BAREFOOT
 	speak_chance = 1
 
-	turns_per_move = 5
 	move_to_delay = 8	// basically speed when player controlled. Lower is faster, a lot faster.
 	see_in_dark = 6
 	robust_searching = TRUE
@@ -49,7 +48,6 @@
 	var/can_act = TRUE
 	//Trolls eat more than wolves
 	var/deaggroprob = 10
-	var/eat_forever
 	var/list/enemies = list()
 
 	var/tier = 0
@@ -164,12 +162,17 @@
 					var/mob/living/simple_animal/A = new adult_growth(loc)
 					if(tame)
 						A.tame = TRUE
+
+					var/datum/component/generic_mob_hunger/old_hunger = GetComponent(/datum/component/generic_mob_hunger)
+					var/datum/component/generic_mob_hunger/hunger = A.GetComponent(/datum/component/generic_mob_hunger)
+					if(old_hunger && hunger)
+						var/old_hunger_percentage = old_hunger.current_hunger / old_hunger.max_hunger
+						hunger.current_hunger = hunger.max_hunger * old_hunger_percentage
+
 					qdel(src)
 					return
 
-
-
-//Prevents certain items from being targeted as food.
+/// Prevents certain items from being targeted as food.
 /mob/living/simple_animal/hostile/retaliate/proc/PickyEater(atom/thing_to_eat)
 	//Yes we eats this.
 	. = TRUE
@@ -193,7 +196,7 @@
 		addtimer(CALLBACK(src, PROC_REF(return_action)), 3 SECONDS)
 */
 
-/mob/living/simple_animal/hostile/retaliate/UnarmedAttack(atom/A)
+/mob/living/simple_animal/hostile/retaliate/UnarmedAttack(atom/A, proximity_flag, params, atom/source)
 	. = ..()
 	if(!is_type_in_list(A, food_type))
 		return
@@ -203,6 +206,7 @@
 
 	face_atom(A)
 	playsound(src,'sound/misc/eat.ogg', rand(30,60), TRUE)
+	target = null
 	qdel(A)
-	food = min(food + 30, food_max)
+	SEND_SIGNAL(src, COMSIG_MOB_FEED, A, 30, source)
 	return TRUE

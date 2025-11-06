@@ -1,24 +1,23 @@
 
 /mob/living/proc/run_armor_check(def_zone = null, attack_flag = "blunt", absorb_text = null, soften_text = null, armor_penetration, penetrated_text, damage, blade_dulling)
 	var/armor = getarmor(def_zone, attack_flag, damage, armor_penetration, blade_dulling)
+	var/armor_check = 0
 
-	//the if "armor" check is because this is used for everything on /living, including humans
-	if(armor > 0 && armor_penetration)
-		armor = max(0, armor - armor_penetration)
-		if(penetrated_text)
-			to_chat(src, "<span class='danger'>[penetrated_text]</span>")
-		else
-			to_chat(src, "<span class='danger'>My armor was penetrated!</span>")
-	else if(armor >= 130)
-		if(absorb_text)
-			to_chat(src, "<span class='notice'>[absorb_text]</span>")
-		else
-			to_chat(src, "<span class='notice'>My armor absorbs the blow!</span>")
-	else if(armor > 0)
-		if(soften_text)
-			to_chat(src, "<span class='warning'>[soften_text]</span>")
-		else
-			to_chat(src, "<span class='warning'>My armor softens the blow!</span>")
+	// Only run armor logic if there actually is armor
+	if(armor > 0)
+		if(armor_penetration)
+			armor = max(0, armor - armor_penetration)
+		armor_check = max(0, armor - damage)
+
+		// Decide feedback based on how much damage got through
+		if(armor_check == 0 && armor_penetration)
+			to_chat(src, "<span class='danger'>[penetrated_text || "My armor was penetrated!"]</span>")
+		else if(armor_check > 0)
+			if(armor_penetration)
+				to_chat(src, "<span class='warning'>[soften_text || "My armor softens the blow!"]</span>")
+			else
+				to_chat(src, "<span class='notice'>[absorb_text || "My armor absorbs the blow!"]</span>")
+
 	return armor
 
 
@@ -128,11 +127,13 @@
 						if(throwingdatum)
 							throwee = isliving(throwingdatum.thrower) ? throwingdatum.thrower : null
 						affecting.bodypart_attacked_by(I.thrown_bclass, I.throwforce, throwee, affecting.body_zone, crit_message = TRUE)
+					I.do_special_attack_effect(I.thrownby, affecting, null, src, zone, thrown = TRUE)
 				else
 					simple_woundcritroll(I.thrown_bclass, I.throwforce, null, zone, crit_message = TRUE)
 					if(((throwingdatum ? throwingdatum.speed : I.throw_speed) >= EMBED_THROWSPEED_THRESHOLD) || I.embedding.embedded_ignore_throwspeed_threshold)
-						if(can_embed(I) && prob(I.embedding.embed_chance) && HAS_TRAIT(src, TRAIT_SIMPLE_WOUNDS) && !HAS_TRAIT(src, TRAIT_PIERCEIMMUNE))
+						if(I.can_embed() && prob(I.embedding.embed_chance) && HAS_TRAIT(src, TRAIT_SIMPLE_WOUNDS) && !HAS_TRAIT(src, TRAIT_PIERCEIMMUNE))
 							simple_add_embedded_object(I, silent = FALSE, crit_message = TRUE)
+					I.do_special_attack_effect(I.thrownby, null, null, src, null, thrown = TRUE)
 			visible_message("<span class='danger'>[src] is hit by [I]![next_attack_msg.Join()]</span>", \
 							"<span class='danger'>I'm hit by [I]![next_attack_msg.Join()]</span>")
 			next_attack_msg.Cut()
@@ -181,11 +182,14 @@
 	if(user == src)
 		instant = TRUE
 
+	if(HAS_TRAIT(user, TRAIT_NOSTRUGGLE))
+		instant = TRUE
+
 	if(surrendering)
 		combat_modifier = 2
 
 	if(HAS_TRAIT(src, TRAIT_RESTRAINED))
-		combat_modifier += 0.25
+		combat_modifier += 0.4
 
 	if(body_position == LYING_DOWN && user.body_position != LYING_DOWN)
 		combat_modifier += 0.05
@@ -201,7 +205,7 @@
 		if(G.chokehold)
 			combat_modifier += 0.15
 
-	var/probby = clamp((((4 + (((user.STASTR - STASTR)/2) + skill_diff)) * 10 + rand(-5, 5)) * combat_modifier), 5, 95)
+	var/probby = clamp((((8 + (((user.STASTR - STASTR)/4) + skill_diff)) * 5 + rand(-5, 5)) * combat_modifier), 5, 95)
 
 	if(!prob(probby) && !instant && !stat && cmode)
 		var/self_message
@@ -213,10 +217,9 @@
 		playsound(src.loc, 'sound/foley/struggle.ogg', 100, FALSE, -1)
 		user.Immobilize(1 SECONDS)
 		user.changeNext_move(1 SECONDS)
-		user.adjust_stamina(rand(7,15))
+		user.adjust_stamina(rand(2,6))
 		src.Immobilize(0.5 SECONDS)
 		src.changeNext_move(0.5 SECONDS)
-		src.adjust_stamina(rand(7,15))
 		return
 
 	if(!instant)
@@ -227,12 +230,11 @@
 	if(user.active_hand_index == 1)
 		if(user.r_grab)
 			user.r_grab.grab_state = GRAB_AGGRESSIVE
+			user.r_grab.update_grab_intents()
 	if(user.active_hand_index == 2)
 		if(user.l_grab)
 			user.l_grab.grab_state = GRAB_AGGRESSIVE
-
-	if(iscarbon(user))
-		user.update_grab_intents()
+			user.l_grab.update_grab_intents()
 
 	var/add_log = ""
 	if(HAS_TRAIT(user, TRAIT_PACIFISM))
@@ -244,32 +246,6 @@
 		user.set_pull_offsets(src, user.grab_state)
 	log_combat(user, src, "grabbed", addition="aggressive grab[add_log]")
 	return 1
-
-/mob/living/proc/update_grab_intents(mob/living/target)
-	return
-
-/mob/living/carbon/update_grab_intents()
-	var/obj/item/grabbing/G = get_active_held_item()
-	if(!istype(G))
-		return
-	if(ismob(G.grabbed))
-		if(isitem(G.sublimb_grabbed))
-			var/obj/item/I = G.sublimb_grabbed
-			G.possible_item_intents = I.grabbedintents(src, G.sublimb_grabbed)
-		else
-			if(iscarbon(G.grabbed) && G.limb_grabbed)
-				var/obj/item/I = G.limb_grabbed
-				G.possible_item_intents = I.grabbedintents(src, G.sublimb_grabbed)
-			else
-				var/mob/M = G.grabbed
-				G.possible_item_intents = M.grabbedintents(src, G.sublimb_grabbed)
-	if(isobj(G.grabbed))
-		var/obj/I = G.grabbed
-		G.possible_item_intents = I.grabbedintents(src, G.sublimb_grabbed)
-	if(isturf(G.grabbed))
-		var/turf/T = G.grabbed
-		G.possible_item_intents = T.grabbedintents(src)
-	update_a_intents()
 
 /turf/proc/grabbedintents(mob/living/user)
 	//RTD up and down
@@ -285,6 +261,9 @@
 	return list(/datum/intent/grab/move)
 
 /mob/living/proc/send_grabbed_message(mob/living/carbon/user)
+	if(HAS_TRAIT(user, TRAIT_NOTIGHTGRABMESSAGE))
+		return
+
 	if(HAS_TRAIT(user, TRAIT_PACIFISM))
 		visible_message("<span class='danger'>[user] firmly grips [src]!</span>",
 						"<span class='danger'>[user] firmly grips me!</span>", "<span class='hear'>I hear aggressive shuffling!</span>", null, user)
@@ -321,7 +300,7 @@
 		return FALSE
 	if(!M.Adjacent(src))
 		return FALSE
-	if(M.incapacitated(ignore_grab = TRUE))
+	if(M.incapacitated(IGNORE_GRAB))
 		return FALSE
 
 	if(checkmiss(M))
@@ -412,7 +391,7 @@
 	if(!(flags & SHOCK_ILLUSION))
 		adjustFireLoss(shock_damage)
 	visible_message(
-		"<span class='danger'>[src] was shocked by \the [source]!</span>", \
+		"<span class='danger'>[src] was shocked by [source ? "\the [source]" : "something"]!</span>", \
 		"<span class='danger'>I feel a powerful shock coursing through my body!</span>", \
 		"<span class='hear'>I hear a heavy electrical crack.</span>" \
 	)
@@ -437,8 +416,7 @@
 /mob/living/proc/damage_clothes(damage_amount, damage_type = BRUTE, damage_flag = 0, def_zone)
 	return
 
-/mob/living/do_attack_animation(atom/A, visual_effect_icon, obj/item/used_item, no_effect, item_animation_override = null, datum/intent/used_intent)
-	if(!used_item)
+/mob/living/do_attack_animation(atom/A, visual_effect_icon, obj/item/used_item, no_effect, item_animation_override = null, datum/intent/used_intent, atom_bounce)
+	if(isnull(used_item) && (used_item != 0))
 		used_item = get_active_held_item()
-	..()
-	setMovetype(movement_type & ~FLOATING) // If we were without gravity, the bouncing animation got stopped, so we make sure we restart the bouncing after the next movement.
+	return ..()

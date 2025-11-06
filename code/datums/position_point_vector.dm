@@ -3,12 +3,6 @@
 
 //You might see places where it does - 16 - 1. This is intentionally 17 instead of 16, because of how byond's tiles work and how not doing it will result in rounding errors like things getting put on the wrong turf.
 
-#define RETURN_PRECISE_POSITION(A) new /datum/position(A)
-#define RETURN_PRECISE_POINT(A) new /datum/point(A)
-
-#define RETURN_POINT_VECTOR(ATOM, ANGLE, SPEED) (new /datum/point/vector(ATOM, null, null, null, null, ANGLE, SPEED))
-#define RETURN_POINT_VECTOR_INCREMENT(ATOM, ANGLE, SPEED, AMT) (new /datum/point/vector(ATOM, null, null, null, null, ANGLE, SPEED, AMT))
-
 /proc/point_midpoint_points(datum/point/a, datum/point/b)	//Obviously will not support multiZ calculations! Same for the two below.
 	var/datum/point/P = new
 	P.x = a.x + (b.x - a.x) / 2
@@ -111,8 +105,8 @@
 
 /datum/point/proc/move_atom_to_src(atom/movable/AM)
 	AM.forceMove(return_turf())
-	AM.pixel_x = return_px()
-	AM.pixel_y = return_py()
+	AM.pixel_x = AM.base_pixel_x + return_px()
+	AM.pixel_y = AM.base_pixel_y + return_py()
 
 /datum/point/proc/return_turf()
 	return locate(CEILING(x / world.icon_size, 1), CEILING(y / world.icon_size, 1), z)

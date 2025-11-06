@@ -1,12 +1,12 @@
 /obj/machinery/essence/splitter
 	name = "essence splitter"
-	desc = "A complex alchemical device used to extract thaumaturgical essences from natural materials. Can process multiple items at once for efficiency."
+	desc = "A rather mundane machine used to extract alchemical essences from natural materials. Can process multiple items at once for efficiency."
 	icon = 'icons/roguetown/misc/splitter.dmi'
 	icon_state = "splitter"
 	density = TRUE
 	anchored = TRUE
 	var/list/current_items = list()
-	var/max_items = 5
+	var/max_items = 6
 	var/datum/essence_storage/storage
 	processing_priority = 2
 
@@ -16,10 +16,10 @@
 	storage.max_total_capacity = 200
 	storage.max_essence_types = 15
 
-	if(GLOB.thaumic_research.has_research(/datum/thaumic_research_node/splitter_output_four))
-		max_items = 9
-	else if(GLOB.thaumic_research.has_research(/datum/thaumic_research_node/splitter_output_five))
-		max_items = 10
+	if(GLOB.thaumic_research.has_research(/datum/thaumic_research_node/splitter_efficiency/five))
+		max_items = 8
+	else if(GLOB.thaumic_research.has_research(/datum/thaumic_research_node/splitter_efficiency/six))
+		max_items = 12
 
 /obj/machinery/essence/splitter/Destroy()
 	if(storage)
@@ -110,7 +110,7 @@
 		if(extracted > 0)
 			vial.contained_essence = new essence_type
 			vial.essence_amount = extracted
-			vial.update_icon()
+			vial.update_appearance(UPDATE_OVERLAYS)
 			to_chat(user, span_info("You extract [extracted] units of essence into the vial."))
 		return
 
@@ -136,11 +136,23 @@
 	return TRUE
 
 /obj/machinery/essence/splitter/attack_hand(mob/user, params)
+	. = ..()
 	if(processing)
 		to_chat(user, span_warning("The splitter is currently processing."))
 		return
 
 	begin_bulk_splitting(user)
+
+/obj/machinery/essence/splitter/attack_hand_secondary(mob/user, params)
+	. = ..()
+	if(. == SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN)
+		return
+	if(processing)
+		to_chat(user, span_warning("The splitter is currently processing."))
+		return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
+
+	remove_all_items(user)
+	return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
 
 /obj/machinery/essence/splitter/proc/remove_all_items(mob/user)
 	for(var/obj/item/I in current_items)
@@ -156,7 +168,7 @@
 	var/total_essence_yield = 0
 	var/list/all_precursors = list()
 
-	var/efficiency_bonus = GLOB.thaumic_research.get_research_bonus("splitting_efficiency")
+	var/efficiency_bonus = GLOB.thaumic_research.get_research_bonus(/datum/thaumic_research_node/splitter_efficiency)
 	for(var/obj/item/I in current_items)
 		var/datum/natural_precursor/precursor = get_precursor_data(I)
 		if(precursor)
@@ -172,14 +184,14 @@
 	user.visible_message(span_info("[user] activates the essence splitter."))
 	update_overlays()
 
-	var/speed_divide = GLOB.thaumic_research.get_speed_multiplier("essence_splitting")
+	var/speed_divide = GLOB.thaumic_research.get_research_bonus(/datum/thaumic_research_node/splitter_speed)
 	var/process_time = (3 SECONDS + (length(current_items) * 1 SECONDS)) / speed_divide
 	addtimer(CALLBACK(src, PROC_REF(finish_bulk_splitting), all_precursors, user), process_time)
 
 /obj/machinery/essence/splitter/proc/finish_bulk_splitting(list/precursors, mob/living/user)
 	flick_overlay_view(image(icon, src, "split", ABOVE_MOB_LAYER), 1.2 SECONDS)
 
-	var/efficiency_bonus = GLOB.thaumic_research.get_research_bonus("splitting_efficiency")
+	var/efficiency_bonus = GLOB.thaumic_research.get_research_bonus(/datum/thaumic_research_node/splitter_efficiency)
 	var/list/total_produced = list()
 	for(var/datum/natural_precursor/precursor in precursors)
 		for(var/essence_type in precursor.essence_yields)

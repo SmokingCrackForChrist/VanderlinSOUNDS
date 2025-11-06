@@ -13,7 +13,7 @@
 /mob/living/carbon/human/spawn_dust(just_ash = FALSE)
 	if(just_ash)
 		for(var/i in 1 to 5)
-			new /obj/item/ash(loc)
+			new /obj/item/fertilizer/ash(loc)
 	else
 		new /obj/effect/decal/remains/human(loc)
 
@@ -33,11 +33,6 @@
 
 	var/area/A = get_area(src)
 
-	if(client)
-		SSdroning.kill_droning(client)
-		SSdroning.kill_loop(client)
-		SSdroning.kill_rain(client)
-
 	if(mind)
 		if(!gibbed)
 			var/datum/antagonist/vampire/VD = mind.has_antag_datum(/datum/antagonist/vampire)
@@ -46,21 +41,21 @@
 				return
 
 	if(client || mind)
-		GLOB.vanderlin_round_stats[STATS_DEATHS]++
+		record_round_statistic(STATS_DEATHS)
 		var/area_of_death = lowertext(get_area_name(src))
 		if(area_of_death == "wilderness")
-			GLOB.vanderlin_round_stats[STATS_FOREST_DEATHS]++
+			record_round_statistic(STATS_FOREST_DEATHS)
 		if(is_noble())
-			GLOB.vanderlin_round_stats[STATS_NOBLE_DEATHS]++
+			record_round_statistic(STATS_NOBLE_DEATHS)
 		if(ishumannorthern(src))
-			GLOB.vanderlin_round_stats[STATS_HUMEN_DEATHS]++
+			record_round_statistic(STATS_HUMEN_DEATHS)
 		if(mind)
-			if(mind.assigned_role.title in GLOB.church_positions)
-				GLOB.vanderlin_round_stats[STATS_CLERGY_DEATHS]++
+			if((mind.assigned_role.title in GLOB.church_positions) || (mind.assigned_role.title in GLOB.inquisition_positions))
+				record_round_statistic(STATS_CLERGY_DEATHS)
 			if(mind.has_antag_datum(/datum/antagonist/vampire))
-				GLOB.vanderlin_round_stats[STATS_VAMPIRES_KILLED]++
+				record_round_statistic(STATS_VAMPIRES_KILLED)
 			if(mind.has_antag_datum(/datum/antagonist/zombie) || mind.has_antag_datum(/datum/antagonist/skeleton) || mind.has_antag_datum(/datum/antagonist/lich))
-				GLOB.vanderlin_round_stats[STATS_DEADITES_KILLED]++
+				record_round_statistic(STATS_DEADITES_KILLED)
 
 	if(!gibbed)
 		if(!has_world_trait(/datum/world_trait/necra_requiem))
@@ -74,9 +69,6 @@
 
 	if(!MOBTIMER_EXISTS(src, MT_DEATHDIED))
 		MOBTIMER_SET(src, MT_DEATHDIED)
-		var/tris2take = 0
-		if(istype(A, /area/rogue/indoors/town/cell))
-			tris2take += -2
 		if(H in SStreasury.bank_accounts)
 			for(var/obj/structure/fake_machine/camera/C in view(7, src))
 				var/area_name = A.name
@@ -90,16 +82,8 @@
 			if(istype(buckled, /obj/structure/fluff/psycross) || istype(buckled, /obj/machinery/light/fueled/campfire/pyre))
 				if((real_name in GLOB.excommunicated_players) || (real_name in GLOB.heretical_players))
 					yeae = FALSE
-					tris2take += -2
 				if(real_name in GLOB.outlawed_players)
 					yeae = FALSE
-		if(istype(src, /mob/living/carbon/human/species/skeleton/death_arena))
-			tris2take = 0
-		if(tris2take)
-			adjust_triumphs(tris2take)
-		else
-			if(!istype(src, /mob/living/carbon/human/species/skeleton/death_arena) && get_triumphs() > 0)
-				adjust_triumphs(-1)
 
 		if(mind && yeae)
 			// Omens are handled here
@@ -114,24 +98,23 @@
 
 		if(!gibbed && yeae)
 			for(var/mob/living/carbon/human/HU in viewers(7, src))
-				if(HU.RomanticPartner(src))
-					HU.adjust_triumphs(-1)
 				if(HU != src && !HAS_TRAIT(HU, TRAIT_BLIND))
 					if(!HAS_TRAIT(HU, TRAIT_VILLAIN)) //temporary measure for npc skeletons
 						if(HU.dna?.species && dna?.species)
 							if(HU.dna.species.id == dna.species.id)
 								var/mob/living/carbon/D = HU
 								if(D.has_flaw(/datum/charflaw/addiction/maniac))
-									D.add_stress(/datum/stressevent/viewdeathmaniac)
+									D.add_stress(/datum/stress_event/viewdeathmaniac)
 									D.sate_addiction()
 								else
-									D.add_stress(/datum/stressevent/viewdeath)
+									D.add_stress(/datum/stress_event/viewdeath)
+
+	dna.species.spec_death(gibbed, src) // parent call deletes dna
 
 	. = ..()
 
 	dizziness = 0
 	jitteriness = 0
-	dna.species.spec_death(gibbed, src)
 
 	if(SSticker.HasRoundStarted())
 		SSblackbox.ReportDeath(src)
@@ -140,11 +123,12 @@
 /mob/living/carbon/human/proc/zombie_check()
 	if(!mind)
 		return
+	var/datum/antagonist/zombie = mind.has_antag_datum(/datum/antagonist/zombie)
+	if(zombie)
+		return zombie
 	if(mind.has_antag_datum(/datum/antagonist/vampire))
 		return
 	if(mind.has_antag_datum(/datum/antagonist/werewolf))
-		return
-	if(mind.has_antag_datum(/datum/antagonist/zombie))
 		return
 	if(mind.has_antag_datum(/datum/antagonist/skeleton))
 		return
@@ -153,19 +137,17 @@
 	return mind.add_antag_datum(/datum/antagonist/zombie)
 
 /mob/living/carbon/human/gib(no_brain, no_organs, no_bodyparts, safe_gib = FALSE)
-	GLOB.vanderlin_round_stats[STATS_PEOPLE_GIBBED]++
+	record_round_statistic(STATS_PEOPLE_GIBBED)
 	for(var/mob/living/carbon/human/CA in viewers(7, src))
 		if(CA != src && !HAS_TRAIT(CA, TRAIT_BLIND))
 			if(HAS_TRAIT(CA, TRAIT_STEELHEARTED))
 				continue
-			if(CA.RomanticPartner(src))
-				CA.adjust_triumphs(-1)
 			var/mob/living/carbon/V = CA
 			if(V.has_flaw(/datum/charflaw/addiction/maniac))
-				V.add_stress(/datum/stressevent/viewgibmaniac)
+				V.add_stress(/datum/stress_event/viewgibmaniac)
 				V.sate_addiction()
 				continue
-			V.add_stress(/datum/stressevent/viewgib)
+			V.add_stress(/datum/stress_event/viewgib)
 	. = ..()
 
 /mob/living/carbon/human/revive(full_heal, admin_revive)

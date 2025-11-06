@@ -7,9 +7,9 @@
 	destroy_sound = 'sound/combat/hits/onwood/destroyfurniture.ogg'
 	attacked_sound = "woodimpact"
 	sleepy = 0.55
-//	pixel_y = 10
 	layer = OBJ_LAYER
 	metalizer_result = /obj/item/statue/iron/deformed
+	anchored = TRUE
 
 /obj/structure/chair/bench/church
 	icon_state = "church_benchleft"
@@ -26,14 +26,6 @@
 	AddElement(/datum/element/connect_loc, loc_connections)
 	handle_layer()
 
-/obj/structure/chair/bench/handle_layer()
-	if(dir == NORTH)
-		layer = ABOVE_MOB_LAYER
-		plane = GAME_PLANE_UPPER
-	else
-		layer = OBJ_LAYER
-		plane = GAME_PLANE
-
 /obj/structure/chair/bench/post_buckle_mob(mob/living/M)
 	..()
 	density = TRUE
@@ -42,12 +34,12 @@
 	..()
 	density = FALSE
 
-/obj/structure/chair/bench/CanPass(atom/movable/mover, turf/target)
+/obj/structure/chair/bench/CanAllowThrough(atom/movable/mover, turf/target)
+	. = ..()
 	if(istype(mover, /obj/projectile))
 		return TRUE
-	if(get_dir(mover,loc) == dir)
+	if(get_dir(mover, loc) == dir)
 		return FALSE
-	return !density
 
 /obj/structure/chair/bench/proc/on_exit(datum/source, atom/movable/leaving, atom/new_location)
 	SIGNAL_HANDLER
@@ -57,13 +49,13 @@
 		leaving.Bump(src)
 		return COMPONENT_ATOM_BLOCK_EXIT
 
-/obj/structure/chair/bench/couch
-	icon_state = "redcouch"
-
 /obj/structure/chair/bench/church/smallbench
 	icon_state = "benchsmall"
 
-/obj/structure/chair/bench/couch/r
+/obj/structure/chair/bench/coucha
+	icon_state = "redcouch"
+
+/obj/structure/chair/bench/coucha/r
 	icon_state = "redcouch2"
 
 /obj/structure/chair/bench/ultimacouch
@@ -88,30 +80,11 @@
 	name = "small throne"
 	icon_state = "thronechair"
 
-/obj/structure/chair/bench/couch/Initialize()
-	. = ..()
-	if(GLOB.lordprimary)
-		lordcolor(GLOB.lordprimary,GLOB.lordsecondary)
-	else
-		GLOB.lordcolor += src
-
-/obj/structure/chair/bench/couch/Destroy()
-	GLOB.lordcolor -= src
-	return ..()
-
-/obj/structure/chair/bench/couch/lordcolor(primary,secondary)
-	if(!primary || !secondary)
-		return
-	var/mutable_appearance/M = mutable_appearance(icon, "[icon_state]_primary", -(layer+0.1))
-	M.color = secondary //looks better
-	add_overlay(M)
-	GLOB.lordcolor -= src
-
 // dirtier sofa
-/obj/structure/chair/bench/couch/redleft
+/obj/structure/chair/bench/coucha/redleft
 	icon_state = "redcouch_alt"
 
-/obj/structure/chair/bench/couch/redright
+/obj/structure/chair/bench/coucha/redright
 	icon_state = "redcouch2_alt"
 
 /obj/structure/chair/wood/alt
@@ -127,6 +100,16 @@
 	. = ..()
 	var/static/list/loc_connections = list(COMSIG_ATOM_EXIT = PROC_REF(on_exit))
 	AddElement(/datum/element/connect_loc, loc_connections)
+
+/obj/structure/chair/wood/alt/uncomfortable
+	icon_state = "chair_bronze"
+	desc = "This has to be the most uncomfortable chair in Psydonia. It looks like it will *violate* your backside." //This is a DE reference don't be fucking weird about it.
+	item_chair = /obj/item/chair/bronze
+	attacked_sound = "sound/combat/hits/onmetal/metalimpact (1).ogg"
+
+/obj/item/chair/bronze
+	icon_state = "chair_bronze"
+	origin_type = /obj/structure/chair/wood/alt/uncomfortable
 
 /obj/structure/chair/wood/alt/chair3
 	icon_state = "chair3"
@@ -171,7 +154,8 @@
 	origin_type = /obj/structure/chair/wood/alt/chair_noble/red
 
 
-/obj/structure/chair/wood/alt/CanPass(atom/movable/mover, turf/target)
+/obj/structure/chair/wood/alt/CanAllowThrough(atom/movable/mover, turf/target)
+	. = ..()
 	if(isliving(mover))
 		var/mob/living/M = mover
 		if((M.body_position != LYING_DOWN))
@@ -184,8 +168,6 @@
 					I.dir = dir
 					qdel(src)
 					return FALSE
-	return ..()
-
 
 /obj/structure/chair/wood/alt/onkick(mob/user)
 	if(!user)
@@ -231,24 +213,19 @@
 	icon_state = "chair1"
 	origin_type = /obj/structure/chair/wood/alt/fancy
 
-/obj/structure/chair/wood/alt
-//	pixel_y = 5
-
 /obj/structure/chair/wood/alt/post_buckle_mob(mob/living/M)
 	..()
 	density = TRUE
-//	M.set_mob_offsets("bed_buckle", _x = 0, _y = 5)
 
 /obj/structure/chair/wood/alt/post_unbuckle_mob(mob/living/M)
 	..()
 	density = FALSE
-//	M.reset_offsets("bed_buckle")
 
 /obj/item/chair/stool/bar
-	name = "stool"
-	icon_state = "baritem"
+	name = "barstool"
+	icon_state = "barstoolover"
 	icon = 'icons/roguetown/misc/structure.dmi'
-	origin_type = /obj/structure/chair/stool
+	origin_type = /obj/structure/chair/stool/bar
 	blade_dulling = DULLING_BASHCHOP
 	can_parry = TRUE
 	gripped_intents = list(/datum/intent/hit)
@@ -412,3 +389,27 @@
 /obj/structure/bed/post_unbuckle_mob(mob/living/M)
 	..()
 	M.reset_offsets("bed_buckle")
+
+/obj/structure/chair/wood/alt/chair3/crafted
+	item_chair = /obj/item/chair/chair3/crafted
+	sellprice = 6
+
+/obj/item/chair/chair3/crafted
+	origin_type = /obj/structure/chair/wood/alt/chair3/crafted
+	sellprice = 6
+
+/obj/structure/chair/wood/alt/fancy/crafted
+	item_chair = /obj/item/chair/fancy/crafted
+	sellprice = 12
+
+/obj/item/chair/fancy/crafted
+	origin_type = /obj/structure/chair/wood/alt/fancy/crafted
+	sellprice = 12
+
+/obj/structure/chair/stool/crafted
+	item_chair = /obj/item/chair/stool/crafted
+	sellprice = 6
+
+/obj/item/chair/stool/crafted
+	origin_type = /obj/structure/chair/stool/crafted
+	sellprice = 6

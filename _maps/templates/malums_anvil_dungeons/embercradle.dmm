@@ -190,7 +190,7 @@
 /turf/open/floor/carpet,
 /area/rogue/under/mountains/anvil/dungeon)
 "dX" = (
-/obj/structure/fluff/railing/fence{
+/obj/structure/fluff/railing/tall/palisade{
 	dir = 8
 	},
 /turf/open/floor/cobblerock,
@@ -363,7 +363,6 @@
 /area/rogue/under/mountains/anvil/dungeon)
 "gl" = (
 /obj/structure/door/fancy{
-	lockid = "manor";
 	name = "Manor"
 	},
 /turf/open/floor/carpet/lord/center,
@@ -816,7 +815,7 @@
 /turf/open/floor/dirt/road,
 /area/rogue/under/mountains/anvil/dungeon/lower)
 "lQ" = (
-/obj/structure/fluff/railing/fence,
+/obj/structure/fluff/railing/tall/palisade,
 /turf/open/floor/cobblerock,
 /area/rogue/under/mountains/anvil/dungeon)
 "lX" = (
@@ -914,7 +913,7 @@
 /obj/item/weapon/hammer/iron,
 /obj/item/weapon/tongs,
 /obj/item/clothing/shoes/boots/leather,
-/obj/item/clothing/head/softcap,
+/obj/item/clothing/head/armingcap,
 /obj/effect/mapping_helpers/floor_clothing_equipper,
 /turf/open/floor/naturalstone,
 /area/rogue/under/mountains/anvil/dungeon/lower)
@@ -965,11 +964,11 @@
 	real_name = "Shard"
 	},
 /obj/item/clothing/head/bardhat,
-/obj/item/clothing/cloak/raincloak/mortus,
+/obj/item/clothing/cloak/raincloak/colored/mortus,
 /obj/item/clothing/shoes/boots/leather,
 /obj/item/clothing/gloves/fingerless,
 /obj/item/clothing/pants/tights,
-/obj/item/clothing/shirt/tunic/ucolored,
+/obj/item/clothing/shirt/tunic/colored,
 /obj/item/storage/belt/leather,
 /obj/item/storage/belt/pouch/coins/poor,
 /obj/item/storage/backpack/satchel,
@@ -1248,11 +1247,11 @@
 	real_name = "Shriek"
 	},
 /obj/item/clothing/head/bardhat,
-/obj/item/clothing/cloak/raincloak/green,
+/obj/item/clothing/cloak/raincloak/colored/green,
 /obj/item/clothing/shoes/boots/leather,
 /obj/item/clothing/gloves/fingerless,
 /obj/item/clothing/pants/tights,
-/obj/item/clothing/shirt/tunic/purple,
+/obj/item/clothing/shirt/tunic/colored/purple,
 /obj/item/storage/belt/leather,
 /obj/item/storage/belt/pouch/coins/poor,
 /obj/item/storage/backpack/satchel,
@@ -1322,11 +1321,11 @@
 	real_name = "Hollow"
 	},
 /obj/item/clothing/head/bardhat,
-/obj/item/clothing/cloak/raincloak/purple,
+/obj/item/clothing/cloak/raincloak/colored/purple,
 /obj/item/clothing/shoes/boots/leather,
 /obj/item/clothing/gloves/fingerless,
 /obj/item/clothing/pants/tights,
-/obj/item/clothing/shirt/tunic/green,
+/obj/item/clothing/shirt/tunic/colored/green,
 /obj/item/storage/belt/leather,
 /obj/item/storage/belt/pouch/coins/poor,
 /obj/item/storage/backpack/satchel,
@@ -1382,11 +1381,11 @@
 	real_name = "Clatter"
 	},
 /obj/item/clothing/head/bardhat,
-/obj/item/clothing/cloak/raincloak/blue,
+/obj/item/clothing/cloak/raincloak/colored/blue,
 /obj/item/clothing/shoes/boots/leather,
 /obj/item/clothing/gloves/fingerless,
 /obj/item/clothing/pants/tights,
-/obj/item/clothing/shirt/tunic/red,
+/obj/item/clothing/shirt/tunic/colored/red,
 /obj/item/storage/belt/leather,
 /obj/item/storage/belt/pouch/coins/poor,
 /obj/item/storage/backpack/satchel,
@@ -1554,10 +1553,10 @@
 /turf/open/floor/cobblerock,
 /area/rogue/under/mountains/anvil/dungeon)
 "uA" = (
-/obj/structure/fluff/railing/fence{
+/obj/structure/fluff/railing/tall/palisade{
 	dir = 1
 	},
-/obj/structure/fluff/railing/fence{
+/obj/structure/fluff/railing/tall/palisade{
 	dir = 8
 	},
 /turf/open/floor/cobblerock,
@@ -1735,11 +1734,11 @@
 	real_name = "Rattle"
 	},
 /obj/item/clothing/head/bardhat,
-/obj/item/clothing/cloak/raincloak/red,
+/obj/item/clothing/cloak/raincloak/colored/red,
 /obj/item/clothing/shoes/boots/leather,
 /obj/item/clothing/gloves/fingerless,
 /obj/item/clothing/pants/tights,
-/obj/item/clothing/shirt/tunic/blue,
+/obj/item/clothing/shirt/tunic/colored/blue,
 /obj/item/storage/belt/leather,
 /obj/item/storage/belt/pouch/coins/poor,
 /obj/item/storage/backpack/satchel,
@@ -1755,10 +1754,10 @@
 /turf/open/floor/carpet/stellar,
 /area/rogue/under/mountains/anvil/dungeon/lower)
 "xr" = (
-/obj/structure/fluff/railing/fence{
+/obj/structure/fluff/railing/tall/palisade{
 	dir = 8
 	},
-/obj/structure/fluff/railing/fence,
+/obj/structure/fluff/railing/tall/palisade,
 /turf/open/floor/churchrough,
 /area/rogue/under/mountains/anvil/dungeon)
 "xv" = (
@@ -2364,10 +2363,10 @@
 /mob/living/carbon/human/species/skeleton/npc/no_equipment,
 /obj/item/clothing/head/helmet/horned,
 /obj/effect/mapping_helpers/floor_clothing_equipper,
-/obj/item/clothing/cloak/raincloak/furcloak/brown,
+/obj/item/clothing/cloak/raincloak/furcloak/colored/brown,
 /obj/item/clothing/shoes/boots/leather,
 /obj/item/clothing/armor/leather/hide,
-/obj/item/clothing/pants/loincloth/brown,
+/obj/item/clothing/pants/loincloth/colored/brown,
 /obj/item/weapon/axe/boneaxe,
 /obj/item/weapon/axe/boneaxe,
 /obj/item/clothing/wrists/bracers/leather,
@@ -2468,7 +2467,7 @@
 /obj/item/storage/belt/leather/plaquesilver,
 /obj/item/clothing/ring/silver/noc,
 /obj/item/clothing/wrists/nocwrappings,
-/obj/item/clothing/neck/psycross/noc,
+/obj/item/clothing/neck/psycross/silver/noc,
 /obj/effect/mapping_helpers/floor_clothing_equipper,
 /mob/living/carbon/human/species/skeleton/npc/no_equipment,
 /turf/open/floor/carpet/purple,
@@ -2521,10 +2520,10 @@
 /turf/open/floor/cobble,
 /area/rogue/under/mountains/anvil/dungeon/lower)
 "Ie" = (
-/obj/structure/fluff/railing/fence{
+/obj/structure/fluff/railing/tall/palisade{
 	dir = 8
 	},
-/obj/structure/fluff/railing/fence,
+/obj/structure/fluff/railing/tall/palisade,
 /turf/open/floor/cobblerock,
 /area/rogue/under/mountains/anvil/dungeon)
 "Ig" = (
@@ -2551,7 +2550,6 @@
 /area/rogue/under/mountains/anvil/dungeon)
 "Il" = (
 /obj/structure/door/fancy{
-	lockid = "manor";
 	name = "Manor"
 	},
 /turf/open/floor/cobblerock,
@@ -2653,13 +2651,13 @@
 /turf/open/floor/carpet,
 /area/rogue/under/mountains/anvil/dungeon)
 "Js" = (
-/obj/structure/fluff/railing/fence{
+/obj/structure/fluff/railing/tall/palisade{
 	dir = 8
 	},
-/obj/structure/fluff/railing/fence{
+/obj/structure/fluff/railing/tall/palisade{
 	dir = 1
 	},
-/obj/structure/fluff/railing/fence{
+/obj/structure/fluff/railing/tall/palisade{
 	dir = 8
 	},
 /turf/open/floor/cobblerock,
@@ -2696,7 +2694,6 @@
 /area/rogue/under/mountains/anvil/dungeon/lower)
 "JL" = (
 /obj/structure/door/fancy{
-	lockid = "manor";
 	name = "Manor"
 	},
 /turf/open/floor/cobble,
@@ -2804,7 +2801,7 @@
 /turf/open/floor/cobblerock,
 /area/rogue/under/mountains/anvil/dungeon)
 "Lf" = (
-/obj/structure/fluff/railing/fence{
+/obj/structure/fluff/railing/tall/palisade{
 	dir = 1
 	},
 /turf/open/floor/cobblerock,
@@ -2893,7 +2890,6 @@
 /area/rogue/under/mountains/anvil/dungeon)
 "Md" = (
 /obj/structure/door/fancy{
-	lockid = "manor";
 	name = "Manor"
 	},
 /turf/open/floor/cobble,
@@ -2933,7 +2929,7 @@
 /obj/item/weapon/sword/sabre/scythe,
 /obj/item/weapon/sword/sabre/scythe,
 /obj/item/clothing/pants/trou/leather,
-/obj/item/clothing/shirt/robe/black,
+/obj/item/clothing/shirt/robe/colored/black,
 /obj/item/clothing/gloves/leather/black,
 /obj/effect/mapping_helpers/floor_clothing_equipper,
 /obj/item/clothing/shoes/boots,
@@ -2984,7 +2980,7 @@
 /turf/open/floor/cobble,
 /area/rogue/under/mountains/anvil/dungeon)
 "No" = (
-/obj/structure/fluff/railing/fence{
+/obj/structure/fluff/railing/tall/palisade{
 	dir = 8
 	},
 /obj/structure/bed/sleepingbag,
@@ -3015,7 +3011,7 @@
 /turf/open/floor/carpet,
 /area/rogue/under/mountains/anvil/dungeon/lower)
 "NY" = (
-/obj/structure/fluff/railing/fence{
+/obj/structure/fluff/railing/tall/palisade{
 	dir = 8
 	},
 /obj/effect/decal/cleanable/blood,
@@ -3048,7 +3044,7 @@
 /area/rogue/under/mountains/anvil/dungeon)
 "Ou" = (
 /obj/item/clothing/face/facemask/goldmask,
-/obj/item/clothing/wrists/bracers/hoplite,
+/obj/item/clothing/wrists/bracers/rare/hoplite,
 /obj/item/clothing/neck/gorget/hoplite,
 /obj/item/weapon/polearm/spear/hoplite/winged,
 /obj/item/weapon/shield/tower/hoplite,
@@ -3210,7 +3206,7 @@
 /turf/open/floor/naturalstone,
 /area/rogue/under/mountains/anvil/dungeon/lower)
 "Qo" = (
-/obj/structure/fluff/railing/fence,
+/obj/structure/fluff/railing/tall/palisade,
 /obj/structure/fluff/walldeco/skullspike,
 /turf/open/floor/cobblerock,
 /area/rogue/under/mountains/anvil/dungeon)
@@ -3456,7 +3452,7 @@
 /area/rogue/under/mountains/anvil/dungeon)
 "Uf" = (
 /obj/structure/table/church,
-/obj/item/clothing/neck/psycross/noc,
+/obj/item/clothing/neck/psycross/silver/noc,
 /turf/open/floor/cobble,
 /area/rogue/under/mountains/anvil/dungeon/lower)
 "Ui" = (
@@ -3673,10 +3669,10 @@
 /turf/open/floor/cobble,
 /area/rogue/under/mountains/anvil/dungeon/lower)
 "WJ" = (
-/obj/structure/fluff/railing/fence{
+/obj/structure/fluff/railing/tall/palisade{
 	dir = 1
 	},
-/obj/structure/fluff/railing/fence{
+/obj/structure/fluff/railing/tall/palisade{
 	dir = 4
 	},
 /turf/open/floor/cobblerock,
@@ -3717,12 +3713,12 @@
 "Xr" = (
 /mob/living/carbon/human/species/skeleton/npc/no_equipment,
 /obj/item/clothing/shirt/robe/noc,
-/obj/item/clothing/neck/psycross/noc,
+/obj/item/clothing/neck/psycross/silver/noc,
 /obj/item/clothing/head/roguehood/nochood,
 /obj/item/clothing/gloves/leather/black,
 /obj/item/clothing/shoes/boots/leather,
 /obj/item/clothing/pants/trou/leather,
-/obj/item/clothing/shirt/undershirt/uncolored,
+/obj/item/clothing/shirt/undershirt/colored/uncolored,
 /obj/item/storage/belt/leather/cloth,
 /obj/effect/mapping_helpers/floor_clothing_equipper,
 /obj/item/clothing/wrists/nocwrappings,

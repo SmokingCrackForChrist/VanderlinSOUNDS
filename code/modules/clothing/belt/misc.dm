@@ -4,10 +4,13 @@
 	icon_state = "leather"
 	item_state = "leather"
 	equip_sound = 'sound/blank.ogg'
+	var/empty_when_dropped = TRUE
 
 /obj/item/storage/belt/leather/dropped(mob/living/carbon/human/user)
 	..()
 	if(QDELETED(src))
+		return
+	if(!empty_when_dropped)
 		return
 	var/datum/component/storage/STR = GetComponent(/datum/component/storage)
 	if(STR)
@@ -16,6 +19,7 @@
 			STR.remove_from_storage(I, get_turf(src))
 
 /obj/item/storage/belt/leather/assassin // Assassin's super edgy and cool belt can carry normal items (for poison vial, lockpick).
+	empty_when_dropped = FALSE
 	component_type = /datum/component/storage/concrete/grid/belt/assassin
 
 	populate_contents = list(
@@ -32,7 +36,22 @@
 		/obj/item/key/bandit,
 	)
 
-//Bandit's belt starts with a bandage and a key to their guildhall.
+
+//Garrison's belt starts with a simple needle, and a key to their hideout.
+
+/obj/item/storage/belt/leather/fgarrison
+	populate_contents = list(
+		/obj/item/needle/thorn,
+		/obj/item/key/forrestgarrison,
+	)
+
+/obj/item/storage/belt/leather/townguard //they get their keys + dagger there
+	populate_contents = list(
+		/obj/item/weapon/knife/dagger/steel/special,
+		/obj/item/storage/keyring/guard,
+	)
+
+// Bandit's belt starts with a bandage and a key to their guildhall.
 /obj/item/storage/belt/leather/mercenary
 	populate_contents = list(
 		/obj/item/natural/cloth,
@@ -70,6 +89,10 @@
 	icon_state = "silverplaque"
 	sellprice = 30
 
+/obj/item/storage/belt/leather/plaquesilver/Initialize(mapload)
+	. = ..()
+	enchant(/datum/enchantment/silver)
+
 /obj/item/storage/belt/leather/steel
 	name = "steel belt"
 	desc = "A belt with a steel plate on its front."
@@ -85,7 +108,7 @@
 	salvage_result = /obj/item/rope
 	component_type = /datum/component/storage/concrete/grid/belt/cloth
 
-/obj/item/storage/belt/leather/rope/attack_self(mob/user)
+/obj/item/storage/belt/leather/rope/attack_self(mob/user, params)
 	. = ..()
 	to_chat(user, span_notice("You begin untying [src]."))
 	if(do_after(user, 1.5 SECONDS, src))
@@ -99,7 +122,7 @@
 	salvage_result = /obj/item/natural/cloth
 	component_type = /datum/component/storage/concrete/grid/belt/cloth
 
-/obj/item/storage/belt/leather/cloth/attack_self(mob/user)
+/obj/item/storage/belt/leather/cloth/attack_self(mob/user, params)
 	. = ..()
 	to_chat(user, span_notice("You begin untying [src]."))
 	if(do_after(user, 1.5 SECONDS, src))
@@ -123,7 +146,6 @@
 	attack_verb = list("whips", "lashes")
 	max_integrity = 300
 	equip_sound = 'sound/blank.ogg'
-	content_overlays = FALSE
 	bloody_icon_state = "bodyblood"
 	fiber_salvage = FALSE
 	component_type = /datum/component/storage/concrete/grid/coin_pouch
@@ -197,6 +219,7 @@
 	name = "cloth pouch"
 	desc = "Usually used for holding small amount of coins."
 	icon_state = "clothpouch"
+	salvage_result = /obj/item/natural/cloth
 	component_type = /datum/component/storage/concrete/grid/coin_pouch/cloth
 
 //Poison darts pouch
@@ -223,12 +246,12 @@
 	alternate_worn_layer = UNDER_CLOAK_LAYER
 	component_type = /datum/component/storage/concrete/grid/satchel
 
-
 /obj/item/storage/backpack/satchel/cloth
 	name = "cloth knapsack"
 	desc = "A rudimentary cloth sack strapped to the back for storing small amounts of items."
 	icon_state = "clothbackpack"
 	item_state = "clothbackpack"
+	salvage_result = /obj/item/natural/cloth
 	component_type = /datum/component/storage/concrete/grid/satchel/cloth
 
 /obj/item/storage/backpack/satchel/heartfelt
@@ -236,6 +259,12 @@
 		/obj/item/natural/feather,
 		/obj/item/paper/heartfelt,
 	)
+
+/obj/item/storage/backpack/satchel/otavan
+	name = "grenzelhoftian leather satchel"
+	desc = "A made to last leather bag from the Psydonian heart of Grenzelhoft. It's Grenzelhoft's finest."
+	icon_state = "osatchel"
+	item_state = "osatchel"
 
 /obj/item/storage/backpack/satchel/mule/PopulateContents()
 	for(var/i in 1 to 3)
@@ -252,13 +281,6 @@
 /obj/item/storage/backpack/satchel/black
 	color = CLOTHING_SOOT_BLACK
 
-/obj/item/storage/backpack/attack_right(mob/user)
-	var/datum/component/storage/CP = GetComponent(/datum/component/storage)
-	if(CP)
-		CP.rmb_show(user)
-		return TRUE
-
-
 /obj/item/storage/backpack/backpack
 	name = "backpack"
 	desc = "A bulky backpack worn on the back which can store many items."
@@ -273,6 +295,10 @@
 	bloody_icon_state = "bodyblood"
 	component_type = /datum/component/storage/concrete/grid/backpack
 
+/obj/item/storage/backpack/backpack/Initialize()
+	. = ..()
+	ADD_TRAIT(src, TRAIT_HARD_TO_STEAL, TRAIT_GENERIC)
+
 /obj/item/storage/backpack/backpack/artibackpack
 	name = "cooling backpack"
 	desc = "A leather backpack with complex bronze pipework coursing through it. It hums and vibrates constantly."
@@ -280,6 +306,13 @@
 	item_state = "artibackpack"
 	resistance_flags = FIRE_PROOF
 	sewrepair = FALSE
+	//for those curious, yes the artibackpack preserves organs and food. Check _organ.dm and snacks.dm
+
+/obj/item/storage/backpack/backpack/artibackpack/porter
+	name = "humdrum"
+	desc = "A absurdly oversized backpack with complex bronze pipework coursing through it. It hums and vibrates constantly."
+	sewrepair = TRUE //Kobold thing, trust.
+	component_type = /datum/component/storage/concrete/grid/porter
 
 /obj/item/storage/backpack/satchel/surgbag
 	name = "surgery bag"
@@ -301,6 +334,22 @@
 	)
 	component_type = /datum/component/storage/concrete/grid/surgery_bag
 
+/obj/item/surgeontoolspawner
+	name = "set of surgery tools"
+
+/obj/item/surgeontoolspawner/OnCrafted(dirin, mob/user)
+	. = ..()
+	new /obj/item/weapon/surgery/scalpel(loc)
+	new /obj/item/weapon/surgery/saw(loc)
+	//two hemostats because one is needed to clamp bleeders, the other is needed to actually remove stuff with it
+	new /obj/item/weapon/surgery/hemostat(loc)
+	new /obj/item/weapon/surgery/hemostat(loc)
+	new /obj/item/weapon/surgery/retractor(loc)
+	new /obj/item/weapon/surgery/bonesetter(loc)
+	new /obj/item/weapon/surgery/cautery(loc)
+	new /obj/item/weapon/surgery/hammer(loc)
+	qdel(src)
+
 /obj/item/storage/backpack/satchel/surgbag/shit
 	populate_contents = list(
 		/obj/item/needle,
@@ -318,7 +367,6 @@
 	)
 
 /obj/item/storage/belt/leather/knifebelt
-
 	name = "tossblade belt"
 	desc = "A many-slotted belt meant for tossblades. Little room left over."
 	icon_state = "knife"
@@ -327,12 +375,17 @@
 	var/max_storage = 8
 	sewrepair = TRUE
 	component_type = /datum/component/storage/concrete/grid/belt/knife_belt
+	empty_when_dropped = FALSE
 
+/obj/item/storage/belt/leather/knifebelt/attack_atom(atom/attacked_atom, mob/living/user)
+	if(!isturf(attacked_atom))
+		return ..()
 
-/obj/item/storage/belt/leather/knifebelt/attack_turf(turf/T, mob/living/user)
+	. = TRUE
 	if(length(contents) >= max_storage)
 		to_chat(user, span_warning("Your [src.name] is full!"))
 		return
+	var/turf/T = attacked_atom
 	to_chat(user, span_notice("You begin to gather the ammunition..."))
 	for(var/obj/item/weapon/knife/throwingknife/knife in T.contents)
 		if(do_after(user, 5 DECISECONDS))
@@ -342,31 +395,26 @@
 /obj/item/storage/belt/leather/knifebelt/proc/eat_knife(obj/A)
 	if(A.type in typesof(/obj/item/weapon/knife/throwingknife))
 		if(length(contents) < max_storage)
-			if(SEND_SIGNAL(src, COMSIG_TRY_STORAGE_INSERT, A, null, FALSE))
-				update_icon()
-				return TRUE
-			else
-				return FALSE
+			return SEND_SIGNAL(src, COMSIG_TRY_STORAGE_INSERT, A, null, FALSE)
 
 /obj/item/storage/belt/leather/knifebelt/attackby(obj/A, mob/living/user, params)
 	if(A.type in typesof(/obj/item/weapon/knife/throwingknife))
 		if(SEND_SIGNAL(src, COMSIG_TRY_STORAGE_INSERT, A, user, TRUE))
-			update_icon()
 			to_chat(usr, span_notice("I discreetly slip [A] into [src]."))
 		else
 			to_chat(loc, span_warning("Full!"))
 		return TRUE
 	. = ..()
 
-/obj/item/storage/belt/leather/knifebelt/attack_right(mob/user)
+/obj/item/storage/belt/leather/knifebelt/attack_hand_secondary(mob/user, params)
 	if(length(contents))
 		var/list/knives = list()
 		SEND_SIGNAL(src, COMSIG_TRY_STORAGE_TAKE_TYPE, /obj/item/weapon/knife/throwingknife, drop_location(), amount = 1, check_adjacent = TRUE, user = user, inserted = knives)
 		for(var/knife in knives)
-			user.put_in_active_hand(knife)
-			break
-		update_icon()
-		return TRUE
+			if(!user.put_in_active_hand(knife))
+				break
+		return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
+	. = ..()
 
 /obj/item/storage/belt/leather/knifebelt/examine(mob/user)
 	. = ..()
@@ -379,7 +427,6 @@
 		var/obj/item/weapon/knife/throwingknife/A = new(loc)
 		if(!SEND_SIGNAL(src, COMSIG_TRY_STORAGE_INSERT, A, null, TRUE, TRUE))
 			qdel(A)
-	update_icon()
 
 /obj/item/storage/belt/leather/knifebelt/steel/Initialize()
 	. = ..()
@@ -387,7 +434,6 @@
 		var/obj/item/weapon/knife/throwingknife/steel/A = new(loc)
 		if(!SEND_SIGNAL(src, COMSIG_TRY_STORAGE_INSERT, A, null, TRUE, TRUE))
 			qdel(A)
-	update_icon()
 
 /obj/item/storage/belt/leather/knifebelt/psydon/Initialize()
 	. = ..()
@@ -395,10 +441,8 @@
 		var/obj/item/weapon/knife/throwingknife/psydon/A = new(loc)
 		if(!SEND_SIGNAL(src, COMSIG_TRY_STORAGE_INSERT, A, null, TRUE, TRUE))
 			qdel(A)
-	update_icon()
 
 /obj/item/storage/belt/leather/knifebelt/black
-
 	icon_state = "blackknife"
 	item_state = "blackknife"
 
@@ -408,7 +452,6 @@
 		var/obj/item/weapon/knife/throwingknife/A = new(loc)
 		if(!SEND_SIGNAL(src, COMSIG_TRY_STORAGE_INSERT, A, null, TRUE, TRUE))
 			qdel(A)
-	update_icon()
 
 /obj/item/storage/belt/leather/knifebelt/black/steel/Initialize()
 	. = ..()
@@ -416,7 +459,6 @@
 		var/obj/item/weapon/knife/throwingknife/steel/A = new(loc)
 		if(!SEND_SIGNAL(src, COMSIG_TRY_STORAGE_INSERT, A, null, TRUE, TRUE))
 			qdel(A)
-	update_icon()
 
 /obj/item/storage/belt/leather/knifebelt/black/psydon/Initialize()
 	. = ..()
@@ -424,7 +466,13 @@
 		var/obj/item/weapon/knife/throwingknife/psydon/A = new(loc)
 		if(!SEND_SIGNAL(src, COMSIG_TRY_STORAGE_INSERT, A, null, TRUE, TRUE))
 			qdel(A)
-	update_icon()
+
+/obj/item/storage/belt/leather/knifebelt/black/rous/Initialize()
+	. = ..()
+	for(var/i in 1 to max_storage)
+		var/obj/item/weapon/knife/throwingknife/rous/A = new(loc)
+		if(!SEND_SIGNAL(src, COMSIG_TRY_STORAGE_INSERT, A, null, TRUE, TRUE))
+			qdel(A)
 
 ///////////////////////////////////////////////
 
@@ -439,7 +487,6 @@
 	w_class = WEIGHT_CLASS_NORMAL
 	max_integrity = 300
 	equip_sound = 'sound/blank.ogg'
-	//content_overlays = FALSE
 	bloody_icon_state = "bodyblood"
 	anvilrepair = /datum/skill/craft/blacksmithing
 	smeltresult = /obj/item/ingot/iron
@@ -449,14 +496,13 @@
 	name = "bronze head hook"
 	desc = "a bronze hook for storing 12 heads"
 	icon = 'icons/roguetown/clothing/belts.dmi'
-	//mob_overlay_icon = 'icons/roguetown/clothing/onmob/belts.dmi'
+	//mob_overlay_icon = 'icons/roguetown/clothing/onmob/belts.dmi' // TODO
 	icon_state = "bronzeheadhook"
 	item_state = "bronzeheadhook"
 	slot_flags = ITEM_SLOT_HIP
 	w_class = WEIGHT_CLASS_NORMAL
 	max_integrity = 400
 	equip_sound = 'sound/blank.ogg'
-	//content_overlays = FALSE
 	bloody_icon_state = "bodyblood"
 	anvilrepair = /datum/skill/craft/blacksmithing
 	smeltresult = /obj/item/ingot/bronze
@@ -472,20 +518,19 @@
 	if(length(contents))
 		. += span_notice("[length(contents)] thing[length(contents) > 1 ? "s" : ""] in [src].")
 
-///obj/item/storage/hip/headhook/royal //N/A uncomment this whole thing when this actually has sprites to use, everything else about it works fine
-	//name = "royal head hook"
-	//desc = "a golden hook for storing 16 heads, befitting of any king's hunt"
-	//icon = 'icons/roguetown/clothing/belts.dmi' //N/A uncomment when a mob_overlay icon is made and added
-	//mob_overlay_icon = 'icons/roguetown/clothing/onmob/belts.dmi'
-	//icon_state = "knife"
-	//item_state = "knife"
-	//slot_flags = ITEM_SLOT_HIP
-	//w_class = WEIGHT_CLASS_NORMAL
-	//max_integrity = 400
-	//equip_sound = 'sound/blank.ogg'
-	//content_overlays = FALSE
-	//sellprice = 250
-	//bloody_icon_state = "bodyblood"
-	//anvilrepair = /datum/skill/craft/blacksmithing
-	//smeltresult = /obj/item/ingot/gold
-	//component_type = /datum/component/storage/concrete/grid/headhook/bronze
+/obj/item/storage/hip/headhook/royal
+	name = "royal head hook"
+	desc = "a golden hook for storing 16 heads, befitting of any king's hunt"
+	icon = 'icons/roguetown/clothing/belts.dmi'
+	//mob_overlay_icon = 'icons/roguetown/clothing/onmob/belts.dmi' // TODO
+	icon_state = "goldheadhook" // coder sprite  , if you can improve it would be nice
+	item_state = "goldheadhook"
+	slot_flags = ITEM_SLOT_HIP
+	w_class = WEIGHT_CLASS_NORMAL
+	max_integrity = 400
+	equip_sound = 'sound/blank.ogg'
+	sellprice = 160
+	bloody_icon_state = "bodyblood"
+	anvilrepair = /datum/skill/craft/blacksmithing
+	smeltresult = /obj/item/ingot/gold
+	component_type = /datum/component/storage/concrete/grid/headhook/bronze

@@ -1,5 +1,5 @@
 /obj/effect/mapping_helpers/access/keyset
-	name = "access helper"
+	name = "accesses helper"
 	icon_state = "access_helper"
 	var/list/accesses
 	var/difficulty
@@ -98,6 +98,10 @@
 /obj/effect/mapping_helpers/access/keyset/garrison/general
 	accesses = list(ACCESS_GARRISON)
 
+/obj/effect/mapping_helpers/access/keyset/garrison/lieutenant
+	accesses = list(ACCESSS_LIEUTENANT)
+	difficulty = 2
+
 /obj/effect/mapping_helpers/access/keyset/garrison/captain
 	accesses = list(ACCESS_CAPTAIN)
 	difficulty = 2
@@ -172,3 +176,20 @@
 
 /obj/effect/mapping_helpers/access/keyset/manor/physician
 	accesses = list(ACCESS_PHYSICIAN)
+
+// Thatchwood
+
+/obj/effect/mapping_helpers/access/keyset/thatchwood/inn1
+	accesses = list("oldinn1")
+
+/obj/effect/mapping_helpers/access/keyset/thatchwood/inn2
+	accesses = list("oldinn2")
+
+/obj/effect/mapping_helpers/access/keyset/thatchwood/inn3
+	accesses = list("oldinn3")
+
+/obj/effect/mapping_helpers/access/keyset/thatchwood/farm
+	accesses = list("oldfarm")
+
+/obj/effect/mapping_helpers/access/keyset/thatchwood/smith
+	accesses = list("oldsmith")

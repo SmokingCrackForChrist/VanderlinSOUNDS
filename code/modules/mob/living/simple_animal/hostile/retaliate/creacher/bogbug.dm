@@ -9,18 +9,17 @@
 	faction = list("bugs")
 	emote_hear = null
 	emote_see = null
-	turns_per_move = 6
 	see_in_dark = 9
 	move_to_delay = 1
 	vision_range = 9
 	aggro_vision_range = 9
 
-	botched_butcher_results = list(/obj/item/reagent_containers/food/snacks/meat/strange= 1)
-	butcher_results = list(/obj/item/reagent_containers/food/snacks/meat/strange= 1,
+	botched_butcher_results = list(/obj/item/reagent_containers/food/snacks/meat/strange = 1)
+	butcher_results = list(/obj/item/reagent_containers/food/snacks/meat/strange = 1,
 						/obj/item/natural/hide = 1)
 	perfect_butcher_results = list(/obj/item/reagent_containers/food/snacks/meat/strange = 2,
-						/obj/item/natural/hide = 2,
-						/obj/item/natural/head/bug = 1)
+						/obj/item/natural/hide = 2)
+	head_butcher = /obj/item/natural/head/bug
 
 	health = BOGBUG_HEALTH
 	maxHealth = BOGBUG_HEALTH
@@ -45,14 +44,14 @@
 	defdrain = 8
 	del_on_deaggro = 999 SECONDS
 	retreat_health = 0
-	food = 0
+
 
 	dodgetime = 20
 	aggressive = 1
 //	stat_attack = UNCONSCIOUS
 	remains_type = /obj/effect/decal/remains/bogbug
 	body_eater = TRUE
-
+	dendor_taming_chance = DENDOR_TAME_PROB_HIGH
 	ai_controller = /datum/ai_controller/bog_bug
 
 
@@ -67,16 +66,6 @@
 	. = ..()
 	AddComponent(/datum/component/ai_aggro_system)
 	gender = MALE
-
-
-/mob/living/simple_animal/hostile/retaliate/bogbug/death(gibbed)
-	..()
-	update_icon()
-
-
-/mob/living/simple_animal/hostile/retaliate/bogbug/update_icon()
-	cut_overlays()
-	..()
 
 /mob/living/simple_animal/hostile/retaliate/bogbug/get_sound(input)
 	switch(input)

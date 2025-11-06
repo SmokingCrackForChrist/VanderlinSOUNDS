@@ -4,20 +4,18 @@
 	mostly because they are the last ones in a party to die. \
 	Their wish is to experience the greatest adventures of the age and write amazing songs \
 	about them. This is not your story, for you are the storyteller."
-	flag = BARD
 	department_flag = PEASANTS
 	display_order = JDO_BARD
 	job_flags = (JOB_ANNOUNCE_ARRIVAL | JOB_SHOW_IN_CREDITS | JOB_EQUIP_RANK | JOB_NEW_PLAYER_JOINABLE)
-	faction = FACTION_STATION
+	faction = FACTION_TOWN
 	total_positions = 4
 	spawn_positions = 4
 
-	allowed_sexes = list(MALE, FEMALE)
 	allowed_races = RACES_PLAYER_ALL
-	outfit = /datum/outfit/job/bard
+	outfit = /datum/outfit/bard
 	cmode_music = 'sound/music/cmode/adventurer/CombatIntense.ogg'
 
-/datum/outfit/job/bard/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/bard/pre_equip(mob/living/carbon/human/H)
 	. = ..()
 	H.adjust_skillrank(/datum/skill/combat/knives, 1, TRUE)
 	H.adjust_skillrank(/datum/skill/combat/unarmed, 2, TRUE)
@@ -33,29 +31,33 @@
 	H.adjust_skillrank(/datum/skill/misc/lockpicking, 1, TRUE)
 	H.clamped_adjust_skillrank(/datum/skill/misc/music, 4, 4, TRUE) //Due to Harpy's innate music skill giving them legendary
 	H.adjust_skillrank(/datum/skill/misc/athletics, 3, TRUE)
-	H.mind?.AddSpell(new /obj/effect/proc_holder/spell/invoked/mockery)
+	H.add_spell(/datum/action/cooldown/spell/vicious_mockery)
+	H.add_spell(/datum/action/cooldown/spell/bardic_inspiration)
 	head = /obj/item/clothing/head/bardhat
 	shoes = /obj/item/clothing/shoes/boots
-	pants = /obj/item/clothing/pants/tights/random
+	pants = /obj/item/clothing/pants/tights/colored/random
 	shirt = /obj/item/clothing/shirt/tunic/noblecoat
 	if(prob(30))
 		gloves = /obj/item/clothing/gloves/fingerless
 	belt = /obj/item/storage/belt/leather
 	armor = /obj/item/clothing/armor/leather/vest
-	cloak = /obj/item/clothing/cloak/raincloak/blue
+	cloak = /obj/item/clothing/cloak/raincloak/colored/blue
 	if(prob(50))
-		cloak = /obj/item/clothing/cloak/raincloak/red
+		cloak = /obj/item/clothing/cloak/raincloak/colored/red
 	backl = /obj/item/storage/backpack/satchel
 	beltr = /obj/item/weapon/knife/dagger/steel/special
 	beltl = /obj/item/storage/belt/pouch/coins/poor
 	backpack_contents = list(/obj/item/flint)
-	if(H.dna?.species?.id == "dwarf")
+	scabbards = list(/obj/item/weapon/scabbard/knife)
+	if(H.dna?.species?.id == SPEC_ID_DWARF)
 		H.cmode_music = 'sound/music/cmode/combat_dwarf.ogg'
 	ADD_TRAIT(H, TRAIT_DODGEEXPERT, TRAIT_GENERIC)
 	ADD_TRAIT(H, TRAIT_BARDIC_TRAINING, TRAIT_GENERIC)
 	H.change_stat(STATKEY_PER, 1)
 	H.change_stat(STATKEY_SPD, 2)
 	H.change_stat(STATKEY_STR, -1)
+	var/datum/inspiration/I = new /datum/inspiration(H)
+	I.grant_inspiration(H, bard_tier = BARD_T3)
 
 /datum/job/bard/after_spawn(mob/living/spawned, client/player_client)
 	. = ..()

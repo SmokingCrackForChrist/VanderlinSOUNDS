@@ -57,6 +57,8 @@
 			return SLEEP_EXP_LEGENDARY
 
 /datum/sleep_adv/proc/enough_sleep_xp_to_advance(skill_type, level_amount)
+	if(level_amount <= 0)
+		return FALSE
 	var/skill_level = mind.current.get_skill_level(skill_type)
 	if(skill_level == SKILL_LEVEL_LEGENDARY)
 		return FALSE
@@ -247,10 +249,10 @@
 			</body>
 		</html>
 	"}
-	var/datum/browser/popup = new(user, "dreams", "<center>Dreams</center>", 350, 450)
-	popup.set_window_options(can_close = FALSE)
+	var/datum/browser/popup = new(user, "dreams", "<center>Dreams</center>", 350, 450, src)
+	popup.set_window_options(can_close = FALSE) // Does nothing
 	popup.set_content(dat.Join())
-	popup.open(FALSE)
+	popup.open(TRUE)
 
 /datum/sleep_adv/proc/close_ui()
 	if(!mind.current)
@@ -304,7 +306,7 @@
 	sleep_adv_points -= get_skill_cost(skill_type)
 	adjust_sleep_xp(skill_type, -get_requried_sleep_xp_for_skill(skill_type, 1))
 	mind.current.adjust_skillrank(skill_type, 1, FALSE)
-	GLOB.vanderlin_round_stats[STATS_SKILLS_DREAMED]++
+	record_round_statistic(STATS_SKILLS_DREAMED)
 
 /datum/sleep_adv/proc/grant_inspiration_xp(skill_amt)
 	var/list/viable_skills = list()
@@ -356,6 +358,7 @@
 	if(mind.has_studied)
 		mind.has_studied = FALSE
 		to_chat(mind.current, span_smallnotice("I feel like I can study my tome again..."))
+	SEND_SIGNAL(mind.current, COMSIG_LIVING_DREAM_END)
 	to_chat(mind.current, span_notice("...and that's all I dreamt of."))
 	close_ui()
 
@@ -366,6 +369,9 @@
 		return
 	if(!is_considered_sleeping())
 		close_ui()
+		return
+	if(href == "close=1")
+		finish()
 		return
 	switch(href_list["task"])
 		if("buy_skill")

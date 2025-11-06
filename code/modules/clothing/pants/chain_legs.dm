@@ -16,7 +16,8 @@
 	pickup_sound = "rustle"
 	break_sound = 'sound/foley/breaksound.ogg'
 	anvilrepair = /datum/skill/craft/armorsmithing
-	smeltresult = /obj/item/ingot/steel
+	melt_amount = 75
+	melting_material = /datum/material/steel
 	r_sleeve_status = SLEEVE_NOMOD
 	l_sleeve_status = SLEEVE_NOMOD
 
@@ -24,9 +25,11 @@
 	armor = ARMOR_MAILLE
 	max_integrity = INTEGRITY_STRONGEST
 	prevent_crits = ALL_EXCEPT_BLUNT
-	do_sound_chain = TRUE
 	item_weight = 6 * STEEL_MULTIPLIER
 
+/obj/item/clothing/pants/chainlegs/Initialize()
+	. = ..()
+	AddComponent(/datum/component/item_equipped_movement_rustle)
 
 /obj/item/clothing/pants/chainlegs/iron
 	icon_state = "ichain_legs"

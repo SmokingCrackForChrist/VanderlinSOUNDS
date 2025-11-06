@@ -1,20 +1,3 @@
-
-/obj/item/organ/ears/elf
-	name = "elf ears"
-	accessory_type = /datum/sprite_accessory/ears/elf
-
-/obj/item/organ/ears/elfw
-	name = "wood elf ears"
-	accessory_type = /datum/sprite_accessory/ears/elfw
-
-/obj/item/organ/ears/tiefling
-	name = "tiefling ears"
-	accessory_type = /datum/sprite_accessory/ears
-
-/obj/item/organ/ears/halforc
-	name = "halforc ears"
-	accessory_type = /datum/sprite_accessory/ears/elf
-
 /datum/customizer/organ/ears
 	name = "Ears"
 	abstract_type = /datum/customizer/organ/ears
@@ -61,9 +44,6 @@
 		/datum/sprite_accessory/ears/elfw,
 		)
 
-/obj/item/organ/ears/anthro
-	name = "wild-kin ears"
-
 /datum/customizer/organ/ears/anthro
 	customizer_choices = list(/datum/customizer_choice/organ/ears/anthro)
 	allows_disabling = TRUE
@@ -73,6 +53,7 @@
 	name = "Wild-Kin Ears"
 	organ_type = /obj/item/organ/ears/anthro
 	generic_random_pick = TRUE
+	allows_accessory_color_customization = TRUE
 	sprite_accessories = list(
 		/datum/sprite_accessory/ears/cat,
 		/datum/sprite_accessory/ears/axolotl,
@@ -134,6 +115,7 @@
 	name = "Hollow-Kin Ears"
 	organ_type = /obj/item/organ/ears
 	generic_random_pick = TRUE
+	allows_accessory_color_customization = TRUE
 	sprite_accessories = list(
 		/datum/sprite_accessory/ears/cat,				//Quality control ; Will not be re-added until sprite touchup. -Remains in with Ook request.
 //		/datum/sprite_accessory/ears/axolotl,  			QC

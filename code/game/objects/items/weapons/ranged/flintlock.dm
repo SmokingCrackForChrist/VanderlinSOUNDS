@@ -18,13 +18,12 @@
 	cartridge_wording = "ball"
 	var/rammed = FALSE
 	load_sound = 'sound/foley/nockarrow.ogg'
-	fire_sound = 'sound/combat/Ranged/muskshoot.ogg'
+	fire_sound = null // handled in shoot_live_shot()
 	equip_sound = 'sound/foley/gun_equip.ogg'
 	pickup_sound = 'sound/foley/gun_equip.ogg'
 	drop_sound = 'sound/foley/gun_drop.ogg'
 	dropshrink = 0.7
 	associated_skill = /datum/skill/combat/firearms
-	possible_item_intents = list(INTENT_GENERIC)
 	possible_item_intents = list(/datum/intent/shoot/musket, /datum/intent/shoot/musket/arc, INTENT_GENERIC)
 	mag_type = /obj/item/ammo_box/magazine/internal/shot/musk
 	gripped_intents = null
@@ -38,26 +37,22 @@
 	var/powdered = FALSE
 	var/wound = FALSE
 
-/obj/item/gun/ballistic/revolver/grenadelauncher/pistol/update_icon()
-	// Update the icon based on the cocked state and whether the ramrod is inserted
-	if(cocked)
-		if(ramrod_inserted)
-			icon_state = "puffer_cocked_ramrod"
-		else
-			icon_state = "puffer_cocked"
-	else
-		if(ramrod_inserted)
-			icon_state = "puffer_uncocked_ramrod"
-		else
-			icon_state = "puffer_uncocked"
-
-	// Update the visual icon
-	update_icon_state()
+/obj/item/gun/ballistic/revolver/grenadelauncher/pistol/update_icon_state()
+	. = ..()
+	icon_state = "puffer_[cocked ? "cocked" : "uncocked"][ramrod_inserted ? "_ramrod" : ""]"
 
 /obj/item/gun/ballistic/revolver/grenadelauncher/pistol/shoot_live_shot(mob/living/user, pointblank, mob/pbtarget, message)
 	..()
 	user.playsound_local(get_turf(user), 'sound/foley/tinnitus.ogg', 60, FALSE) // muh realism or something
 	new /obj/effect/particle_effect/smoke(get_turf(user))
+
+	for(var/mob/M in GLOB.player_list)
+		if(!is_in_zweb(M.z, src.z))
+			continue
+		var/turf/M_turf = get_turf(M)
+		var/shot_sound = sound('sound/combat/Ranged/muskshoot.ogg')
+		if(M_turf)
+			M.playsound_local(M_turf, null, 100, 1, get_rand_frequency(), S = shot_sound)
 
 /obj/item/gun/ballistic/revolver/grenadelauncher/pistol/shoot_with_empty_chamber(mob/living/user)
 	if(!cocked || !wound)
@@ -65,13 +60,15 @@
 	playsound(src.loc, 'sound/combat/Ranged/muskclick.ogg', 100, FALSE)
 	cocked = FALSE
 	wound = FALSE
-	update_icon() // Update the icon state after shooting an empty chamber
+	update_appearance(UPDATE_ICON_STATE)
 
-/obj/item/gun/ballistic/revolver/grenadelauncher/pistol/attack_right(mob/user)
+/obj/item/gun/ballistic/revolver/grenadelauncher/pistol/attack_hand_secondary(mob/user, params)
 	. = ..()
+	if(. == SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN)
+		return
 	if(!user.is_holding(src))
 		to_chat(user, "<span class='warning'>I need to hold \the [src] to cock it!</span>")
-		return
+		return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
 	if(cocked)
 		cocked = FALSE
 		to_chat(user, "<span class='warning'>I carefully de-cock \the [src].</span>")
@@ -80,23 +77,27 @@
 		playsound(src.loc, 'sound/combat/Ranged/muskclick.ogg', 100, FALSE)
 		to_chat(user, "<span class='info'>I cock \the [src].</span>")
 		cocked = TRUE
-	update_icon() // Update the icon state after cocking or de-cocking
+	update_appearance(UPDATE_ICON_STATE)
 
-/obj/item/gun/ballistic/revolver/grenadelauncher/pistol/rmb_self(mob/user)
+	return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
+
+/obj/item/gun/ballistic/revolver/grenadelauncher/pistol/attack_self_secondary(mob/user, params)
 	. = ..()
+	if(. == SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN)
+		return
 	if(user.get_skill_level(/datum/skill/combat/firearms) <= 0)
 		to_chat(user, "<span class='warning'>I don't know how to do this!</span>")
-		return
+		return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
 	if(wound)
 		to_chat(user, "<span class='info'>\The [src]'s mechanism is already wound!</span>")
-		return
+		return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
 	var/windtime = 3.5
 	windtime = windtime - (user.get_skill_level(/datum/skill/combat/firearms) / 2)
 	if(do_after(user, windtime SECONDS, src) && !wound)
 		to_chat(user, "<span class='info'>I wind \the [src]'s mechanism.</span>")
 		playsound(src.loc, 'sound/foley/winding.ogg', 100, FALSE)
 		wound = TRUE
-
+	return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
 
 /obj/item/gun/ballistic/revolver/grenadelauncher/pistol/MiddleClick(mob/user, params)
 	. = ..()
@@ -115,7 +116,7 @@
 			ramrod_inserted = TRUE
 			to_chat(user, "<span class='info'>I put \the [rrod] into \the [src].</span>")
 			playsound(src.loc, 'sound/foley/struggle.ogg', 100, FALSE, -1)
-		update_icon() // Update the icon state after handling the ramrod
+		update_appearance(UPDATE_ICON_STATE)
 
 /obj/item/gun/ballistic/revolver/grenadelauncher/pistol/process_fire(atom/target, mob/living/user, message = TRUE, params = null, zone_override = "", bonus_spread = 0)
 	if(!cocked)
@@ -141,8 +142,7 @@
 		if(user.STAPER > 8)
 			BB.accuracy += (user.STAPER - 8) * 4 //each point of perception above 8 increases standard accuracy by 4.
 			BB.bonus_accuracy += (user.STAPER - 8) //Also, increases bonus accuracy by 1, which cannot fall off due to distance.
-		if(user.STAPER > 10)
-			BB.damage = BB.damage * (user.STAPER / 10)
+		BB.damage = BB.damage *1.625 // 80 * 1.5 = 130 of damage.
 		BB.bonus_accuracy += (user.get_skill_level(/datum/skill/combat/firearms) * 3) //+3 accuracy per level in firearms
 	playsound(src.loc, 'sound/combat/Ranged/muskclick.ogg', 100, FALSE)
 	cocked = FALSE
@@ -150,7 +150,7 @@
 	powdered = FALSE
 	wound = FALSE
 	sleep(click_delay)
-	update_icon()
+	update_appearance(UPDATE_ICON_STATE)
 	..()
 
 /obj/item/ramrod
@@ -215,10 +215,39 @@
 	max_ammo = 1
 	start_empty = TRUE
 
+/obj/item/ammo_box/magazine/internal/shot/musk/loaded
+	ammo_type = /obj/item/ammo_casing/caseless/bullet
+	caliber = "musketball"
+	max_ammo = 1
+	start_empty = FALSE
+
 /obj/item/reagent_containers/glass/bottle/aflask
 	name = "alchemical flask"
 	desc = "A small metal flask used for the secure storing of alchemical powders."
 	icon = 'icons/roguetown/items/cooking.dmi'
 	list_reagents = list(/datum/reagent/blastpowder = 30)
 	icon_state = "aflask"
-	can_label_bottle = FALSE
+	can_label_container = FALSE
+
+/obj/item/reagent_containers/glass/bottle/aflask/Initialize()
+	. = ..()
+	icon_state = "aflask"
+
+/obj/item/gun/ballistic/revolver/grenadelauncher/pistol/conjured
+	sellprice = 0 //Yeah, Let's not sell this.
+	mag_type = /obj/item/ammo_box/magazine/internal/shot/musk/loaded
+
+/obj/item/gun/ballistic/revolver/grenadelauncher/pistol/conjured/Initialize()
+	. = ..()
+	cocked = TRUE
+	rammed = TRUE
+	powdered = TRUE
+	wound = TRUE
+
+/obj/item/gun/ballistic/revolver/grenadelauncher/pistol/conjured/afterattack(atom/target, mob/living/user, proximity_flag, click_parameters)
+	. = ..()
+	atom_integrity = 0
+	atom_break()
+
+	QDEL_IN(src, rand(2 SECONDS, 5 SECONDS)) //Apparently, a puffer being broken can still be shot, because that make sense. so we're qdel'ing it right after.
+	visible_message(span_warning("The puffer begins to crumble, the enchantment falls!"))

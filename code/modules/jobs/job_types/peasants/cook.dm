@@ -3,36 +3,24 @@
 	tutorial = "Slice, chop, and into the pot... \
 	you work closely with the innkeep to prepare meals for all the hungry mouths of Vanderlin. \
 	You've spent more nites than you can count cutting meat and vegetables until your fingers are bloody and raw, but it's honest work."
-	flag = COOK
 	department_flag = PEASANTS
 	job_flags = (JOB_ANNOUNCE_ARRIVAL | JOB_SHOW_IN_CREDITS | JOB_EQUIP_RANK | JOB_NEW_PLAYER_JOINABLE)
-	faction = FACTION_STATION
+	faction = FACTION_TOWN
 	total_positions = 3
 	spawn_positions = 3
 	min_pq = -20
 	bypass_lastclass = TRUE
 
-	allowed_sexes = list(MALE, FEMALE)
-	allowed_races = list(
-		"Humen",
-		"Elf",
-		"Half-Elf",
-		"Dwarf",
-		"Tiefling",
-		"Dark Elf",
-		"Aasimar",
-		"Harpy"
-	)
+	allowed_races = RACES_PLAYER_NONEXOTIC
 
-	outfit = /datum/outfit/job/cook
+	outfit = /datum/outfit/cook
 	display_order = JDO_COOK
 	give_bank_account = 8
 	cmode_music = 'sound/music/cmode/towner/CombatInn.ogg'
 
-/datum/outfit/job/cook
 	job_bitflag = BITFLAG_CONSTRUCTOR
 
-/datum/outfit/job/cook/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/cook/pre_equip(mob/living/carbon/human/H)
 	..()
 	H.adjust_skillrank(/datum/skill/combat/knives, 2, TRUE)
 	H.adjust_skillrank(/datum/skill/misc/reading, 1, TRUE)
@@ -48,8 +36,8 @@
 	beltl = /obj/item/key/tavern
 	beltr = /obj/item/weapon/knife/villager
 	if(H.gender == MALE)
-		pants = /obj/item/clothing/pants/tights/random
-		shirt = /obj/item/clothing/shirt/shortshirt/random
+		pants = /obj/item/clothing/pants/tights/colored/random
+		shirt = /obj/item/clothing/shirt/shortshirt/colored/random
 		shoes = /obj/item/clothing/shoes/simpleshoes
 		cloak = /obj/item/clothing/cloak/apron/cook
 		head = /obj/item/clothing/head/cookhat
@@ -58,7 +46,7 @@
 	else
 		shirt = /obj/item/clothing/shirt/undershirt/lowcut
 		armor = /obj/item/clothing/armor/corset
-		pants = /obj/item/clothing/pants/skirt/red
+		pants = /obj/item/clothing/pants/skirt/colored/red
 		cloak = /obj/item/clothing/cloak/apron/cook
 		head = /obj/item/clothing/head/cookhat
 		shoes = /obj/item/clothing/shoes/simpleshoes

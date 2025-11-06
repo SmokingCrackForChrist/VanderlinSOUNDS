@@ -7,6 +7,11 @@
 /atom
 	layer = TURF_LAYER
 	plane = GAME_PLANE
+	appearance_flags = TILE_BOUND
+
+	/// pass_flags that we are. If any of this matches a pass_flag on a moving thing, by default, we let them through.
+	var/pass_flags_self = NONE
+
 	var/level = 2
 
 	///If non-null, overrides a/an/some in all cases
@@ -84,6 +89,18 @@
 	///AI controller that controls this atom. type on init, then turned into an instance during runtime
 	var/datum/ai_controller/ai_controller
 
+	///Default pixel x shifting for the atom's icon.
+	var/base_pixel_x = 0
+	///Default pixel y shifting for the atom's icon.
+	var/base_pixel_y = 0
+	///Used for changing icon states for different base sprites.
+	var/base_icon_state
+
+	///The config type to use for greyscaled sprites. Both this and greyscale_colors must be assigned to work.
+	var/greyscale_config
+	///A string of hex format colors to be used by greyscale sprites, ex: "#0054aa#badcff"
+	var/greyscale_colors
+
 	///Icon-smoothing behavior.
 	var/smoothing_flags = NONE
 	///Icon to use for smoothing, only required for secret doors
@@ -108,7 +125,7 @@
 	var/xyoverride = FALSE //so we can 'face' a click catcher even though it doesn't have an x or a y
 
 	/// This means that the mouse over text will not be displayed when the mouse is over this atom
-	var/nomouseover = FALSE
+	var/no_over_text = FALSE
 	var/hover_color = "#a1bac4"
 
 	///this is the path to the enchantment not the actual enchantment
@@ -120,6 +137,27 @@
 	var/datum/component/orbiter/orbiters
 
 	var/blockscharging = FALSE
+
+	/// Any atom that uses integrity and can be damaged must set this to true, otherwise the integrity procs will throw an error
+	var/uses_integrity = FALSE
+	///Armor datum used by the atom
+	var/datum/armor/armor
+	///Current integrity, defaults to max_integrity on init
+	VAR_PRIVATE/atom_integrity
+	///Maximum integrity
+	var/max_integrity = 500
+	///Integrity level when this atom will "break" (whatever that means) 0 if we have no special broken behavior, otherwise is a percentage of at what point the atom breaks. 0.5 being 50%
+	var/integrity_failure = 0
+	///Damage under this value will be completely ignored
+	var/damage_deflection = 0
+	/// Determines the damage calculation from an item attacking this atom
+	var/blade_dulling
+
+	var/break_sound
+	var/break_message
+	var/attacked_sound
+
+	var/resistance_flags = NONE // INDESTRUCTIBLE | LAVA_PROOF | FIRE_PROOF | ON_FIRE | UNACIDABLE | ACID_PROOF
 
 /**
  * Called when an atom is created in byond (built in engine proc)
@@ -189,6 +227,8 @@
 		stack_trace("Warning: [src]([type]) initialized multiple times!")
 	flags_1 |= INITIALIZED_1
 
+	update_greyscale()
+
 	//atom color stuff
 	if(color)
 		add_atom_colour(color, FIXED_COLOUR_PRIORITY)
@@ -202,8 +242,12 @@
 
 	SETUP_SMOOTHING()
 
-	ComponentInitialize()
-	InitializeAIController()
+	if(uses_integrity)
+		atom_integrity = max_integrity
+	TEST_ONLY_ASSERT((!armor || istype(armor)), "[type] has an armor that contains an invalid value at intialize")
+
+	if(ispath(ai_controller))
+		ai_controller = new ai_controller(src)
 
 	return INITIALIZE_HINT_NORMAL
 
@@ -222,10 +266,6 @@
 /atom/proc/LateInitialize()
 	set waitfor = FALSE
 
-/// Put your AddComponent() calls here
-/atom/proc/ComponentInitialize()
-	return
-
 /**
  * Top level of the destroy chain for most atoms
  *
@@ -236,7 +276,7 @@
  * * clears overlays and priority overlays
  * * clears the light object
  */
-/atom/Destroy()
+/atom/Destroy(force)
 	if(alternate_appearances)
 		for(var/K in alternate_appearances)
 			var/datum/atom_hud/alternate_appearance/AA = alternate_appearances[K]
@@ -251,7 +291,7 @@
 	orbiters = null // The component is attached to us normaly and will be deleted elsewhere
 
 	LAZYCLEARLIST(overlays)
-	LAZYCLEARLIST(priority_overlays)
+	managed_overlays = null
 
 	QDEL_NULL(light)
 	QDEL_NULL(ai_controller)
@@ -264,9 +304,27 @@
 /atom/proc/handle_ricochet(obj/projectile/P)
 	return
 
+/atom/proc/get_explosion_resistance()
+	return 0
+
 ///Can the mover object pass this atom, while heading for the target turf
 /atom/proc/CanPass(atom/movable/mover, turf/target)
+	SHOULD_CALL_PARENT(TRUE)
+	if(mover.movement_type & PHASING)
+		return TRUE
+	. = CanAllowThrough(mover, target)
+	// This is cheaper than calling the proc every time since most things dont override CanPassThrough
+	if(!mover.generic_canpass)
+		return mover.CanPassThrough(src, target, .)
+
+/// Returns true or false to allow the mover to move through src
+/atom/proc/CanAllowThrough(atom/movable/mover, turf/target)
+	SHOULD_CALL_PARENT(TRUE)
 	if(istype(mover, /mob/camera))
+		return TRUE
+	if(mover.pass_flags & pass_flags_self)
+		return TRUE
+	if(mover.throwing && (pass_flags_self & LETPASSTHROW))
 		return TRUE
 	return !density
 
@@ -319,7 +377,7 @@
  *
  * Otherwise it simply forceMoves the atom into this atom
  */
-/atom/proc/CheckParts(list/parts_list, datum/crafting_recipe/R)
+/atom/proc/CheckParts(list/parts_list)
 	for(var/A in parts_list)
 		if(istype(A, /datum/reagent))
 			if(!reagents)
@@ -334,12 +392,8 @@
 			else
 				M.forceMove(src)
 
-/obj/item/CheckParts(list/parts_list, datum/crafting_recipe/R)
+/obj/item/CheckParts(list/parts_list)
 	..()
-	if(R)
-		if(R.sellprice)
-			sellprice = R.sellprice
-			randomize_price()
 
 ///Hook for multiz???
 /atom/proc/update_multiz(prune_on_fail = FALSE)
@@ -384,11 +438,16 @@
 /**
  * React to a hit by a projectile object
  *
- * Default behaviour is to send the COMSIG_ATOM_BULLET_ACT and then call on_hit() on the projectile
+ * Default behaviour is to send the [COMSIG_ATOM_BULLET_ACT] and then call [on_hit][/obj/projectile/proc/on_hit] on the projectile
+ *
+ * @params
+ * P - projectile
+ * def_zone - zone hit
+ * piercing_hit - is this hit piercing or normal?
  */
-/atom/proc/bullet_act(obj/projectile/P, def_zone)
+/atom/proc/bullet_act(obj/projectile/P, def_zone, piercing_hit = FALSE)
 	SEND_SIGNAL(src, COMSIG_ATOM_BULLET_ACT, P, def_zone)
-	. = P.on_hit(src, 0, def_zone)
+	. = P.on_hit(src, 0, def_zone, piercing_hit)
 
 ///Return true if we're inside the passed in atom
 /atom/proc/in_contents_of(container)//can take class or object instance as argument
@@ -421,6 +480,9 @@
 /atom/proc/get_inspect_button()
 	return ""
 
+/atom/proc/get_inspect_entries()
+	return list()
+
 /**
  * Called when a mob examines (shift click or verb) this atom
  *
@@ -445,76 +507,138 @@
 				if(user.can_see_reagents()) //Show each individual reagent
 					. += "It contains:"
 					for(var/datum/reagent/R in reagents.reagent_list)
-						if(R.volume / 3 < 1)
-							. += "less than 1 oz of <font color=[R.color]>[R.name]</font>"
-						else
-							. += "[round(R.volume / 3)] oz of <font color=[R.color]>[R.name]</font>"
+						. += "[(UNIT_FORM_STRING(R.volume))] of <font color=[R.color]>[R.name]</font>"
 				else //Otherwise, just show the total volume
 					var/total_volume = 0
 					var/reagent_color
 					for(var/datum/reagent/R in reagents.reagent_list)
 						total_volume += R.volume
 					reagent_color = mix_color_from_reagents(reagents.reagent_list)
-					if(total_volume / 3 < 1)
-						. += "It contains less than 1 oz of <font color=[reagent_color]>something.</font>"
-					else
-						. += "It contains [round(total_volume / 3)] oz of <font color=[reagent_color]>something.</font>"
+					. += "It contains [(UNIT_FORM_STRING(total_volume))] of <font color=[reagent_color]>something.</font>"
 			else
-				. += "Nothing."
+				. += "It's empty."
 		else if(reagents.flags & AMOUNT_VISIBLE)
 			if(reagents.total_volume)
-				. += "<span class='notice'>It has [round(reagents.total_volume / 3)] oz left.</span>"
+				. += "<span class='notice'>It has [(UNIT_FORM_STRING(round(reagents.total_volume, 0.1)))] left.</span>"
 			else
 				. += "<span class='danger'>It's empty.</span>"
 		//SNIFFING
 		if (user.zone_selected == BODY_ZONE_PRECISE_NOSE && get_dist(src, user) <= 1)
 			// if atom's path is item/reagent_containers/glass/carafe
 			var/is_not_closed = FALSE
-			if (istype(src, /obj/item/reagent_containers/glass/carafe))
-				var/obj/item/reagent_containers/glass/carafe/A = src
-				is_not_closed = !A.closed
-			else if (istype(src, /obj/item/reagent_containers/glass/bottle))
+			if(istype(src, /obj/item/reagent_containers/glass/bottle))
 				var/obj/item/reagent_containers/glass/bottle/A = src
 				is_not_closed = !A.closed
-			else if (istype(src, /obj/item/reagent_containers/glass/alchemical))
+			else if(istype(src, /obj/item/reagent_containers/glass/alchemical))
 				var/obj/item/reagent_containers/glass/alchemical/A = src
 				is_not_closed = !A.closed
-			if (is_not_closed && reagents.total_volume) // if the container is open, and there's liquids in there
+			if(is_not_closed && reagents.total_volume) // if the container is open, and there's liquids in there
 				user.visible_message(span_info("[user] takes a whiff of [src]."))
 				. += span_notice("I smell [src.reagents.generate_scent_message()].")
-				if (HAS_TRAIT(user, TRAIT_LEGENDARY_ALCHEMIST))
+				if(HAS_TRAIT(user, TRAIT_LEGENDARY_ALCHEMIST))
 					var/list/full_reagents = list()
-					for (var/datum/reagent/R in reagents.reagent_list)
+					for(var/datum/reagent/R in reagents.reagent_list)
 						if(R.volume > 0)
 							full_reagents += "[lowertext(R.name)]"
 					if(length(full_reagents))
 						. += span_notice("I can identity this smell as [full_reagents.Join(", ")].")
 	SEND_SIGNAL(src, COMSIG_PARENT_EXAMINE, user, .)
 
+/**
+ * Updates the appearence of the icon
+ *
+ * Mostly delegates to update_name, update_desc, and update_icon
+ *
+ * Arguments:
+ * - updates: A set of bitflags dictating what should be updated. Defaults to [ALL]
+ */
+/atom/proc/update_appearance(updates = ALL)
+	SHOULD_NOT_SLEEP(TRUE)
+	SHOULD_CALL_PARENT(TRUE)
+
+	. = NONE
+	updates &= ~SEND_SIGNAL(src, COMSIG_ATOM_UPDATE_APPEARANCE, updates)
+	if(updates & UPDATE_NAME)
+		. |= update_name(updates)
+	if(updates & UPDATE_DESC)
+		. |= update_desc(updates)
+	if(updates & UPDATE_ICON)
+		. |= update_icon(updates)
+
+/// Updates the name of the atom
+/atom/proc/update_name(updates = ALL)
+	SHOULD_CALL_PARENT(TRUE)
+	return SEND_SIGNAL(src, COMSIG_ATOM_UPDATE_NAME, updates)
+
+/// Updates the description of the atom
+/atom/proc/update_desc(updates = ALL)
+	SHOULD_CALL_PARENT(TRUE)
+	return SEND_SIGNAL(src, COMSIG_ATOM_UPDATE_DESC, updates)
+
 /// Updates the icon of the atom
-/atom/proc/update_icon()
-	var/signalOut = SEND_SIGNAL(src, COMSIG_ATOM_UPDATE_ICON)
+/atom/proc/update_icon(updates = ALL)
+	SIGNAL_HANDLER
+	SHOULD_CALL_PARENT(TRUE)
 
-	if(!(signalOut & COMSIG_ATOM_NO_UPDATE_ICON_STATE))
+	. = NONE
+	updates &= ~SEND_SIGNAL(src, COMSIG_ATOM_UPDATE_ICON, updates)
+	if(updates & UPDATE_ICON_STATE)
 		update_icon_state()
+		. |= UPDATE_ICON_STATE
 
-	if(!(signalOut & COMSIG_ATOM_NO_UPDATE_OVERLAYS))
+	if(updates & UPDATE_OVERLAYS)
+		if(LAZYLEN(managed_vis_overlays))
+			SSvis_overlays.remove_vis_overlay(src, managed_vis_overlays)
 		var/list/new_overlays = update_overlays()
 		if(managed_overlays)
 			cut_overlay(managed_overlays)
 			managed_overlays = null
 		if(length(new_overlays))
-			managed_overlays = new_overlays
+			if(length(new_overlays) == 1)
+				managed_overlays = new_overlays[1]
+			else
+				managed_overlays = new_overlays
 			add_overlay(new_overlays)
+		. |= UPDATE_OVERLAYS
+
+	. |= SEND_SIGNAL(src, COMSIG_ATOM_UPDATED_ICON, updates, .)
 
 /// Updates the icon state of the atom
 /atom/proc/update_icon_state()
+	SHOULD_CALL_PARENT(TRUE)
+	return SEND_SIGNAL(src, COMSIG_ATOM_UPDATE_ICON_STATE)
 
 /// Updates the overlays of the atom
 /atom/proc/update_overlays()
 	SHOULD_CALL_PARENT(TRUE)
 	. = list()
 	SEND_SIGNAL(src, COMSIG_ATOM_UPDATE_OVERLAYS, .)
+
+/// Handles updates to greyscale value updates.
+/// The colors argument can be either a list or the full color string.
+/// Child procs should call parent last so the update happens after all changes.
+/atom/proc/set_greyscale(list/colors, new_config)
+	SHOULD_CALL_PARENT(TRUE)
+	if(istype(colors))
+		colors = colors.Join("")
+	if(!isnull(colors) && greyscale_colors != colors) // If you want to disable greyscale stuff then give a blank string
+		greyscale_colors = colors
+
+	if(!isnull(new_config) && greyscale_config != new_config)
+		greyscale_config = new_config
+
+	update_greyscale()
+
+/// Checks if this atom uses the GAGS system and if so updates the icon
+/atom/proc/update_greyscale()
+	SHOULD_CALL_PARENT(TRUE)
+	if(greyscale_colors && greyscale_config)
+		icon = SSgreyscale.GetColoredIconByType(greyscale_config, greyscale_colors)
+	if(!smoothing_flags) // This is a bitfield but we're just checking that some sort of smoothing is happening
+		return
+	update_atom_colour()
+	QUEUE_SMOOTH(src)
+
 
 /**
  * An atom we are buckled or is contained within us has tried to move
@@ -558,17 +682,7 @@
  */
 /atom/proc/hitby(atom/movable/AM, skipcatch, hitpush, blocked, datum/thrownthing/throwingdatum, damage_type = "blunt")
 	SEND_SIGNAL(src, COMSIG_ATOM_HITBY, AM, skipcatch, hitpush, blocked, throwingdatum, damage_type)
-	if(density && !has_gravity(AM)) //thrown stuff bounces off dense stuff in no grav, unless the thrown stuff ends up inside what it hit(embedding, bola, etc...).
-		addtimer(CALLBACK(src, PROC_REF(hitby_react), AM), 2)
 
-/**
- * We have have actually hit the passed in atom
- *
- * Default behaviour is to move back from the item that hit us
- */
-/atom/proc/hitby_react(atom/movable/AM)
-	if(AM && isturf(AM.loc))
-		step(AM, turn(AM.dir, 180))
 
 ///Handle the atom being slipped over
 /atom/proc/handle_slip(mob/living/carbon/C, knockdown_amount, obj/O, lube, paralyze, force_drop)
@@ -697,8 +811,7 @@
  * Default behaviour is to loop through atom contents and call their HandleTurfChange() proc
  */
 /atom/proc/HandleTurfChange(turf/T)
-	for(var/a in src)
-		var/atom/A = a
+	for(var/atom/A as anything in src)
 		A.HandleTurfChange(T)
 
 /**
@@ -1160,14 +1273,13 @@
 	defender.log_message(message, LOG_ATTACK, color="red")
 	attacker.log_message(reverse_message, LOG_ATTACK, "red", FALSE) // log it in the attacker's personal log too, but not log globally because it was already done.
 
-/atom/movable/proc/add_filter(name,priority,list/params)
+/atom/movable/proc/add_filter(name, priority, list/params)
 	if(!filter_data)
 		filter_data = list()
 	var/list/p = params.Copy()
 	p["priority"] = priority
 	filter_data[name] = p
 	update_filters()
-
 
 /atom/movable/proc/remove_filter(name_or_names)
 	if(!filter_data)
@@ -1185,6 +1297,11 @@
 		update_filters()
 	return .
 
+/atom/movable/proc/clear_filters()
+	var/atom/atom_cast = src // filters only work with images or atoms.
+	filter_data = null
+	atom_cast.filters = null
+
 /proc/cmp_filter_data_priority(list/A, list/B)
 	return A["priority"] - B["priority"]
 
@@ -1192,7 +1309,7 @@
 	filters = null
 	var/atom/atom_cast = src // filters only work with images or atoms.
 	atom_cast.filters = null
-	filter_data = sortTim(filter_data, GLOBAL_PROC_REF(cmp_filter_data_priority), TRUE)
+	sortTim(filter_data, GLOBAL_PROC_REF(cmp_filter_data_priority), TRUE)
 	for(var/filter_raw in filter_data)
 		var/list/data = filter_data[filter_raw]
 		var/list/arguments = data.Copy()
@@ -1200,60 +1317,16 @@
 		atom_cast.filters += filter(arglist(arguments))
 	UNSETEMPTY(filter_data)
 
+/obj/item/update_filters()
+	. = ..()
+	update_item_action_buttons()
+
 /atom/movable/proc/get_filter(name)
 	if(filter_data && filter_data[name])
 		return filters[filter_data.Find(name)]
 
 /atom/proc/intercept_zImpact(atom/movable/AM, levels = 1)
 	. |= SEND_SIGNAL(src, COMSIG_ATOM_INTERCEPT_Z_FALL, AM, levels)
-
-/**
- * Returns true if this atom has gravity for the passed in turf
- *
- * Sends signals COMSIG_ATOM_HAS_GRAVITY and COMSIG_TURF_HAS_GRAVITY, both can force gravity with
- * the forced gravity var
- *
- * Gravity situations:
- * * No gravity if you're not in a turf
- * * No gravity if this atom is in is a space turf
- * * Gravity if the area it's in always has gravity
- * * Gravity if there's a gravity generator on the z level
- * * Gravity if the Z level has an SSMappingTrait for ZTRAIT_GRAVITY
- * * otherwise no gravity
- */
-/atom/proc/has_gravity(turf/gravity_turf)
-	if(!isturf(gravity_turf))
-		gravity_turf = get_turf(src)
-
-	if(!gravity_turf)//no gravity in nullspace
-		return 0
-
-	//the list isnt created every time as this proc is very hot, its only accessed if anything is actually listening to the signal too
-	var/static/list/forced_gravity = list()
-	if(SEND_SIGNAL(src, COMSIG_ATOM_HAS_GRAVITY, gravity_turf, forced_gravity))
-		if(!length(forced_gravity))
-			SEND_SIGNAL(gravity_turf, COMSIG_TURF_HAS_GRAVITY, src, forced_gravity)
-
-		var/max_grav = 0
-		for(var/i in forced_gravity)//our gravity is the strongest return forced gravity we get
-			max_grav = max(max_grav, i)
-		forced_gravity.Cut()
-		//cut so we can reuse the list, this is ok since forced gravity movers are exceedingly rare compared to all other movement
-		return max_grav
-
-	var/area/turf_area = gravity_turf.loc
-	// force_no_gravity has been removed because this is Roguetown code
-	// it'd be trivial to readd if you needed it, though
-	return SSmapping.gravity_by_z_level["[gravity_turf.z]"] || turf_area.has_gravity
-
-/**
-* Instantiates the AI controller of this atom. Override this if you want to assign variables first.
-*
-* This will work fine without manually passing arguments.
-+*/
-/atom/proc/InitializeAIController()
-	if(ai_controller)
-		ai_controller = new ai_controller(src)
 
 /obj/proc/propagate_temp_change(value, weight, falloff = 0.5, max_depth = 3)
 	var/key = REF(src)
@@ -1289,3 +1362,39 @@
 			if(!start.CanAtmosPass(adj))
 				continue
 			_propagate_turf_heat(source, adj, key, next_value, next_weight, falloff, max_depth, depth + 1, seen)
+
+///Setter for the `base_pixel_x` variable to append behavior related to its changing.
+/atom/proc/set_base_pixel_x(new_value)
+	if(base_pixel_x == new_value)
+		return
+	. = base_pixel_x
+	base_pixel_x = new_value
+	pixel_x = pixel_x + base_pixel_x - .
+
+///Setter for the `base_pixel_y` variable to append behavior related to its changing.
+/atom/proc/set_base_pixel_y(new_value)
+	if(base_pixel_y == new_value)
+		return
+	. = base_pixel_y
+	base_pixel_y = new_value
+	pixel_y = pixel_y + base_pixel_y - .
+
+/// Returns the indice in filters of the given filter name.
+/// If it is not found, returns null.
+/atom/proc/get_filter_index(name)
+	return filter_data?.Find(name)
+
+/atom/proc/do_alert_effect()
+	var/mutable_appearance/alert = mutable_appearance('icons/effects/32x48.dmi', "alert_effect")
+	var/atom/movable/flick_visual/exclamation = flick_overlay_view(alert, 1 SECONDS)
+	exclamation.plane = src.plane
+	exclamation.alpha = 0
+	exclamation.pixel_x = -pixel_x
+	animate(exclamation, pixel_z = 32, alpha = 255, time = 0.5 SECONDS, easing = ELASTIC_EASING)
+
+	// Intentionally less time then the flick so we don't get weird shit
+	addtimer(CALLBACK(src, PROC_REF(forget_alert), exclamation), 0.8 SECONDS, TIMER_CLIENT_TIME)
+
+/atom/proc/forget_alert(atom/movable/flick_visual/alert)
+	animate(alert, time = 0.5 SECONDS, alpha = 0)
+	QDEL_IN(alert, 0.5 SECONDS)

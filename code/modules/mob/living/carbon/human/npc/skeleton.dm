@@ -7,7 +7,7 @@
 	bodyparts = list(/obj/item/bodypart/chest, /obj/item/bodypart/head, /obj/item/bodypart/l_arm,
 					/obj/item/bodypart/r_arm, /obj/item/bodypart/r_leg, /obj/item/bodypart/l_leg)
 	faction = list(FACTION_UNDEAD)
-	var/skel_outfit = /datum/outfit/job/npc/skeleton
+	var/skel_outfit = /datum/outfit/npc/skeleton
 	ambushable = FALSE
 	rot_type = null
 	base_intents = list(INTENT_HELP, INTENT_DISARM, INTENT_GRAB, /datum/intent/unarmed/claw)
@@ -44,6 +44,9 @@
 	underwear = "Nude"
 	mob_biotypes = MOB_UNDEAD
 	faction = list(FACTION_UNDEAD)
+	var/turf/turf = get_turf(src)
+	if(SSterrain_generation.get_island_at_location(turf))
+		faction |= "islander"
 	if(charflaw)
 		QDEL_NULL(charflaw)
 	if(dna?.species)
@@ -55,6 +58,7 @@
 			headdy.icon = 'icons/roguetown/mob/monster/skeletons.dmi'
 			headdy.icon_state = "skull"
 			headdy.headprice = rand(5,15)
+			headdy.sellprice = rand(5,15)
 	for(var/obj/item/bodypart/B as anything in bodyparts)
 		B.skeletonize(FALSE)
 	grant_undead_eyes()
@@ -62,6 +66,7 @@
 	ADD_TRAIT(src, TRAIT_NOMOOD, TRAIT_GENERIC)
 	ADD_TRAIT(src, TRAIT_NOHUNGER, TRAIT_GENERIC)
 	ADD_TRAIT(src, TRAIT_NOBREATH, TRAIT_GENERIC)
+	ADD_TRAIT(src, TRAIT_NOHYGIENE, TRAIT_GENERIC)
 	ADD_TRAIT(src, TRAIT_NOPAIN, TRAIT_GENERIC)
 	ADD_TRAIT(src, TRAIT_NOSLEEP, TRAIT_GENERIC)
 	ADD_TRAIT(src, TRAIT_EASYDISMEMBER, TRAIT_GENERIC)
@@ -73,22 +78,20 @@
 		if(OU)
 			equipOutfit(OU)
 
-/datum/outfit/job/npc/skeleton/random/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/npc/skeleton/random/pre_equip(mob/living/carbon/human/H)
 	..()
 	H.base_strength = 6
 	H.base_speed = 10
 	H.base_constitution = 8
 	H.base_endurance = 8
 	H.base_intelligence = 1
+	H.recalculate_stats(FALSE)
 
-/datum/outfit/job/greater_skeleton/pre_equip(mob/living/carbon/human/H) //equipped onto Summon Greater Undead player skeletons only after the mind is added
+/datum/outfit/greater_skeleton/pre_equip(mob/living/carbon/human/H) //equipped onto Summon Greater Undead player skeletons only after the mind is added
 	..()
 	wrists = /obj/item/clothing/wrists/bracers/leather
 	armor = /obj/item/clothing/armor/chainmail/iron
-	if(prob(50))
-		shirt = /obj/item/clothing/shirt/undershirt/vagrant
-	else
-		shirt = /obj/item/clothing/shirt/undershirt/vagrant/l
+	shirt = /obj/item/clothing/shirt/undershirt/colored/vagrant
 	pants = /obj/item/clothing/pants/chainlegs/iron
 	head = /obj/item/clothing/head/helmet/leather
 	shoes = /obj/item/clothing/shoes/boots
@@ -98,6 +101,7 @@
 	H.base_constitution = 9
 	H.base_endurance = 15
 	H.base_intelligence = 1
+	H.recalculate_stats(FALSE)
 
 	//light labor skills for skeleton manual labor and some warrior-adventurer skills, equipment is still bad probably
 	H.adjust_skillrank(/datum/skill/craft/carpentry, 1, TRUE)
@@ -139,22 +143,23 @@
 	ADD_TRAIT(src, TRAIT_NOHUNGER, TRAIT_GENERIC)
 	ADD_TRAIT(src, TRAIT_EASYDISMEMBER, TRAIT_GENERIC)
 	ADD_TRAIT(src, TRAIT_CRITICAL_WEAKNESS, TRAIT_GENERIC)
-	equipOutfit(new /datum/outfit/job/species/skeleton/npc/peasant)
+	equipOutfit(new /datum/outfit/species/skeleton/npc/peasant)
 	dodgetime = 15
 	canparry = TRUE
 	flee_in_pain = FALSE
 	wander = TRUE
 
-/datum/outfit/job/species/skeleton/npc/peasant/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/species/skeleton/npc/peasant/pre_equip(mob/living/carbon/human/H)
 	..()
 	H.base_strength = 6
 	H.base_speed = 8
 	H.base_constitution = 8
 	H.base_endurance = 8
+	H.recalculate_stats(FALSE)
 	var/loadout = rand(1,7)
-	head = /obj/item/clothing/head/roguehood/random
-	pants = /obj/item/clothing/pants/tights/vagrant
-	shirt = /obj/item/clothing/shirt/undershirt/vagrant
+	head = /obj/item/clothing/head/roguehood/colored/random
+	pants = /obj/item/clothing/pants/tights/colored/vagrant
+	shirt = /obj/item/clothing/shirt/undershirt/colored/vagrant
 	switch(loadout)
 		if(1) //Axe Warrior
 			r_hand = /obj/item/weapon/axe/iron
@@ -176,7 +181,7 @@
 		if(7) //Ex Wife
 			r_hand = /obj/item/cooking/pan
 			head = /obj/item/clothing/head/armingcap
-			shirt = /obj/item/clothing/shirt/dress/gen/brown
+			shirt = /obj/item/clothing/shirt/dress/gen/colored/brown
 
 
 ///////////////////////////////////////////////////////////// EVENTMIN SKELETONGS
@@ -187,30 +192,26 @@
 	ADD_TRAIT(src, TRAIT_HEAVYARMOR, TRAIT_GENERIC)
 	ADD_TRAIT(src, TRAIT_EASYDISMEMBER, TRAIT_GENERIC)
 	ADD_TRAIT(src, TRAIT_CRITICAL_WEAKNESS, TRAIT_GENERIC)
-	equipOutfit(new /datum/outfit/job/species/skeleton/npc/random)
+	equipOutfit(new /datum/outfit/species/skeleton/npc/random)
 	dodgetime = 15
 	canparry = TRUE
 	flee_in_pain = FALSE
 	wander = TRUE
 
-/datum/outfit/job/species/skeleton/npc/random/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/species/skeleton/npc/random/pre_equip(mob/living/carbon/human/H)
 	..()
 	if(prob(50))
 		wrists = /obj/item/clothing/wrists/bracers/leather
 	if(prob(50))
 		armor = /obj/item/clothing/armor/chainmail/iron
 	if(prob(30))
-		shirt = /obj/item/clothing/shirt/undershirt/vagrant
-		if(prob(50))
-			shirt = /obj/item/clothing/shirt/undershirt/vagrant/l
+		shirt = /obj/item/clothing/shirt/undershirt/colored/vagrant
 	if(prob(50))
-		pants = /obj/item/clothing/pants/tights/vagrant
-		if(prob(50))
-			pants = /obj/item/clothing/pants/tights/vagrant/l
+		pants = /obj/item/clothing/pants/tights/colored/vagrant
 	if(prob(50))
 		head = /obj/item/clothing/head/helmet/leather
 	if(prob(50))
-		head = /obj/item/clothing/head/roguehood/random
+		head = /obj/item/clothing/head/roguehood/colored/random
 	if(prob(50))
 		r_hand = /obj/item/weapon/sword/iron
 	else
@@ -225,75 +226,51 @@
 	ADD_TRAIT(src, TRAIT_HEAVYARMOR, TRAIT_GENERIC)
 	ADD_TRAIT(src, TRAIT_EASYDISMEMBER, TRAIT_GENERIC)
 	ADD_TRAIT(src, TRAIT_CRITICAL_WEAKNESS, TRAIT_GENERIC)
-	equipOutfit(new /datum/outfit/job/species/skeleton/npc/warrior)
+	equipOutfit(new /datum/outfit/species/skeleton/npc/warrior)
 	dodgetime = 15
 	canparry = TRUE
 	flee_in_pain = FALSE
 	wander = TRUE
 
-/datum/outfit/job/species/skeleton/npc/warrior/pre_equip(mob/living/carbon/human/H)
+/datum/outfit/species/skeleton/npc/warrior/pre_equip(mob/living/carbon/human/H)
 	..()
 	H.base_strength = 10
 	H.base_speed = 7
 	H.base_constitution = 10
 	H.base_endurance = 10
+	H.recalculate_stats(FALSE)
+	shirt = /obj/item/clothing/shirt/undershirt/colored/vagrant
+	pants = /obj/item/clothing/pants/tights/colored/vagrant
+	neck = /obj/item/clothing/neck/chaincoif
+	armor = /obj/item/clothing/armor/chainmail/iron
+	wrists = /obj/item/clothing/wrists/bracers/leather
 	var/loadout = rand(1,6)
 	switch(loadout)
 		if(1) //Skeleton Warrior
 			r_hand = /obj/item/weapon/sword/iron
 			l_hand = /obj/item/weapon/shield/wood
 			belt = /obj/item/storage/belt/leather
-			armor = /obj/item/clothing/armor/chainmail/iron
-			shirt = /obj/item/clothing/shirt/undershirt/vagrant
-			pants = /obj/item/clothing/pants/tights/vagrant
-			wrists = /obj/item/clothing/wrists/bracers/leather
-			neck = /obj/item/clothing/neck/chaincoif
 			head = /obj/item/clothing/head/helmet/kettle
 		if(2)//Skeleton Warrior
 			r_hand = /obj/item/weapon/mace
 			l_hand = /obj/item/weapon/shield/wood
 			belt = /obj/item/storage/belt/leather
-			armor = /obj/item/clothing/armor/chainmail/iron
-			shirt = /obj/item/clothing/shirt/undershirt/vagrant
-			pants = /obj/item/clothing/pants/tights/vagrant
-			neck = /obj/item/clothing/neck/chaincoif
-			wrists = /obj/item/clothing/wrists/bracers/leather
 			head = /obj/item/clothing/head/helmet/kettle
 		if(3) //Skeleton Warrior
 			r_hand = /obj/item/weapon/flail
 			l_hand = /obj/item/weapon/shield/wood
 			belt = /obj/item/storage/belt/leather
-			armor = /obj/item/clothing/armor/chainmail/iron
-			shirt = /obj/item/clothing/shirt/undershirt/vagrant
-			pants = /obj/item/clothing/pants/tights/vagrant
-			neck = /obj/item/clothing/neck/chaincoif
-			wrists = /obj/item/clothing/wrists/bracers/leather
 			head = /obj/item/clothing/head/helmet/skullcap
 		if(4) //Skeleton Warrior
 			r_hand =/obj/item/weapon/polearm/spear
-			armor = /obj/item/clothing/armor/chainmail/iron
-			shirt = /obj/item/clothing/shirt/undershirt/vagrant
-			neck = /obj/item/clothing/neck/chaincoif
-			pants = /obj/item/clothing/pants/tights/vagrant
-			wrists = /obj/item/clothing/wrists/bracers/leather
 			head = /obj/item/clothing/head/helmet/kettle
 		if(5) //Skeleton Warrior
 			r_hand = /obj/item/weapon/sword/sabre
 			l_hand = /obj/item/weapon/knife/dagger
-			armor = /obj/item/clothing/armor/chainmail/iron
-			shirt = /obj/item/clothing/shirt/undershirt/vagrant
-			pants = /obj/item/clothing/pants/tights/vagrant
-			wrists = /obj/item/clothing/wrists/bracers/leather
-			neck = /obj/item/clothing/neck/chaincoif
 			head = /obj/item/clothing/head/helmet/kettle
 		if(6) //Skeleton Warrior
 			r_hand = /obj/item/weapon/sword/scimitar/messer
 			l_hand = /obj/item/weapon/knife/dagger
-			shirt = /obj/item/clothing/shirt/undershirt/vagrant
-			pants = /obj/item/clothing/pants/tights/vagrant
-			neck = /obj/item/clothing/neck/chaincoif
-			armor = /obj/item/clothing/armor/chainmail/iron
-			wrists = /obj/item/clothing/wrists/bracers/leather
 			head = /obj/item/clothing/head/helmet/skullcap
 
 
@@ -302,7 +279,7 @@
 	ADD_TRAIT(src, TRAIT_NOMOOD, TRAIT_GENERIC)
 	ADD_TRAIT(src, TRAIT_NOHUNGER, TRAIT_GENERIC)
 	ADD_TRAIT(src, TRAIT_HEAVYARMOR, TRAIT_GENERIC)
-	equipOutfit(new /datum/outfit/job/species/skeleton/npc/warrior)
+	equipOutfit(new /datum/outfit/species/skeleton/npc/warrior)
 	d_intent = INTENT_PARRY //these ones will parry instead of dodge, making them much more dangerous
 	canparry = TRUE
 	flee_in_pain = FALSE
@@ -326,7 +303,7 @@
 
 /mob/living/carbon/human/species/skeleton/death_arena/after_creation()
 	..()
-	equipOutfit(new /datum/outfit/job/arena_skeleton)
+	equipOutfit(new /datum/outfit/arena_skeleton)
 	ADD_TRAIT(src, TRAIT_CRITICAL_WEAKNESS, TRAIT_GENERIC)
 	ADD_TRAIT(src, TRAIT_NOLIMBDISABLE, TRAIT_GENERIC)
 

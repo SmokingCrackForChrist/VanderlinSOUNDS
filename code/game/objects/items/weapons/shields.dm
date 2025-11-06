@@ -1,5 +1,3 @@
-#define SHIELD_BASH		/datum/intent/shield/bash
-#define SHIELD_BLOCK		/datum/intent/shield/block
 #define SHIELD_BANG_COOLDOWN (3 SECONDS)
 
 /obj/item/weapon/shield
@@ -29,9 +27,10 @@
 	max_integrity = 100
 	blade_dulling = DULLING_BASHCHOP
 	anvilrepair = /datum/skill/craft/armorsmithing
-	smeltresult = /obj/item/ash
+	smeltresult = /obj/item/fertilizer/ash
 	melting_material = null
 	COOLDOWN_DECLARE(shield_bang)
+	var/design_chosen
 
 // Shield banging
 /obj/item/weapon/shield/attackby(obj/item/attackby_item, mob/user, params)
@@ -61,6 +60,18 @@
 				owner.visible_message("<span class='danger'>[owner] blocks [hitby] with [src]!</span>")
 				return 1
 	return 0
+
+/obj/item/weapon/shield/attack_hand_secondary(mob/user, params)
+	. = ..()
+	if(. == SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN)
+		return
+	if(design_chosen)
+		return
+	return choose_design(., user)
+
+/obj/item/weapon/shield/proc/choose_design(proc_value, mob/user)
+	design_chosen = TRUE
+	return proc_value
 
 /datum/intent/shield/bash
 	name = "bash"
@@ -92,30 +103,35 @@
 	desc = "A simple, emblazoned round wooden shield with leather padding. \nCan exceptionally block attacks, but is more brittle than metal ones."
 	icon_state = "woodsh"
 	dropshrink = 0.8
-	coverage = 50
-	max_integrity = 150
+	coverage = 60
+	max_integrity = INTEGRITY_STANDARD - 25
 
-/obj/item/weapon/shield/wood/attack_right(mob/user)
-	if(!overlays.len)
-		if(!('icons/roguetown/weapons/wood_heraldry.dmi' in GLOB.IconStates_cache))
-			var/icon/J = new('icons/roguetown/weapons/wood_heraldry.dmi')
-			var/list/istates = J.IconStates()
-			GLOB.IconStates_cache |= icon
-			GLOB.IconStates_cache['icons/roguetown/weapons/wood_heraldry.dmi'] = istates
+/obj/item/weapon/shield/wood/choose_design(proc_value, mob/user)
+	. = proc_value
+	if(design_chosen)
+		return
 
-		var/picked_name = input(user, "Choose a Heraldry", "VANDERLIN", name) as null|anything in sortList(GLOB.IconStates_cache['icons/roguetown/weapons/wood_heraldry.dmi'])
-		if(!picked_name)
-			picked_name = "none"
-		var/mutable_appearance/M = mutable_appearance('icons/roguetown/weapons/wood_heraldry.dmi', picked_name)
-		M.alpha = 178
-		add_overlay(M)
-		var/mutable_appearance/MU = mutable_appearance(icon, "woodsh_detail")
-		MU.alpha = 114
-		add_overlay(MU)
-		if(alert("Are you pleased with your heraldry?", "Heraldry", "Yes", "No") != "Yes")
-			cut_overlays()
-	else
-		..()
+	if(!('icons/roguetown/weapons/wood_heraldry.dmi' in GLOB.IconStates_cache))
+		var/icon/icon_file = new('icons/roguetown/weapons/wood_heraldry.dmi')
+		GLOB.IconStates_cache['icons/roguetown/weapons/wood_heraldry.dmi'] = icon_file.IconStates()
+
+	var/picked_name = browser_input_list(user, "Choose a Heraldry", "Heraldry", GLOB.IconStates_cache['icons/roguetown/weapons/wood_heraldry.dmi'])
+	if(!picked_name)
+		return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
+
+	var/mutable_appearance/M = mutable_appearance('icons/roguetown/weapons/wood_heraldry.dmi', picked_name)
+	M.alpha = 178
+	add_overlay(M)
+	var/mutable_appearance/MU = mutable_appearance(icon, "woodsh_detail")
+	MU.alpha = 114
+	add_overlay(MU)
+
+	design_chosen = TRUE
+	if(browser_alert(user, "Are you pleased with your heraldry?", "Heraldry", DEFAULT_INPUT_CHOICES) != CHOICE_YES)
+		cut_overlays()
+		design_chosen = FALSE
+
+	return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
 
 /obj/item/weapon/shield/wood/getonmobprop(tag)
 	. = ..()
@@ -128,23 +144,15 @@
 
 /obj/item/weapon/shield/wood/adept/Initialize()
 	. = ..()
-	if(!overlays.len)
-		if(!('icons/roguetown/weapons/wood_heraldry.dmi' in GLOB.IconStates_cache))
-			var/icon/J = new('icons/roguetown/weapons/wood_heraldry.dmi')
-			var/list/istates = J.IconStates()
-			GLOB.IconStates_cache |= icon
-			GLOB.IconStates_cache['icons/roguetown/weapons/wood_heraldry.dmi'] = istates
-		if("Psydon" in GLOB.IconStates_cache['icons/roguetown/weapons/wood_heraldry.dmi'])
-			var/picked_name = "Psydon"
-			var/mutable_appearance/M = mutable_appearance('icons/roguetown/weapons/wood_heraldry.dmi', picked_name)
-			M.alpha = 178
-			add_overlay(M)
-			var/mutable_appearance/MU = mutable_appearance(icon, "woodsh_detail")
-			MU.alpha = 114
-			add_overlay(MU)
-			update_icon()
-		else
-			return
+	update_appearance(UPDATE_OVERLAYS)
+
+/obj/item/weapon/shield/wood/adept/update_overlays()
+	. = ..()
+	var/mutable_appearance/M = mutable_appearance('icons/roguetown/weapons/wood_heraldry.dmi', "Psydon")
+	M.alpha = 174
+	. += M
+	M = mutable_appearance(icon, "woodsh_detail")
+	. += M
 
 /obj/item/weapon/shield/tower
 	name = "tower shield"
@@ -160,7 +168,7 @@
 	wdefense = 6
 	coverage = 65
 	parrysound = list('sound/combat/parry/shield/towershield (1).ogg','sound/combat/parry/shield/towershield (2).ogg','sound/combat/parry/shield/towershield (3).ogg')
-	max_integrity = 300
+	max_integrity = INTEGRITY_STRONG
 	melting_material = /datum/material/iron
 	melt_amount = 75
 
@@ -168,7 +176,6 @@
 	name = "spider shield"
 	desc = "A bulky shield of spike-like lengths molten together. The motifs evoke anything but safety and protection."
 	icon_state = "spidershield"
-	coverage = 55
 
 /obj/item/weapon/shield/tower/getonmobprop(tag)
 	. = ..()
@@ -196,7 +203,7 @@
 	coverage = 75 // Rare shield from unique job, gets a tiny bit of additional coverage
 	attacked_sound = list('sound/combat/parry/shield/metalshield (1).ogg','sound/combat/parry/shield/metalshield (2).ogg','sound/combat/parry/shield/metalshield (3).ogg')
 	parrysound = list('sound/combat/parry/shield/metalshield (1).ogg','sound/combat/parry/shield/metalshield (2).ogg','sound/combat/parry/shield/metalshield (3).ogg')
-	max_integrity = 500
+	max_integrity = INTEGRITY_STRONGEST
 	blade_dulling = DULLING_BASH
 	sellprice = 150 // A noble collector would love to get their hands on one of these
 	melting_material = /datum/material/bronze
@@ -227,11 +234,12 @@
 	coverage = 70
 	attacked_sound = list('sound/combat/parry/shield/metalshield (1).ogg','sound/combat/parry/shield/metalshield (2).ogg','sound/combat/parry/shield/metalshield (3).ogg')
 	parrysound = list('sound/combat/parry/shield/metalshield (1).ogg','sound/combat/parry/shield/metalshield (2).ogg','sound/combat/parry/shield/metalshield (3).ogg')
-	max_integrity = 500
+	max_integrity = INTEGRITY_STRONGEST
 	blade_dulling = DULLING_BASH
 	sellprice = 30
 	melting_material = /datum/material/steel
 	melt_amount = 90
+	design_chosen = FALSE
 
 /obj/item/weapon/shield/tower/metal/getonmobprop(tag)
 	if(tag)
@@ -242,29 +250,55 @@
 				return list("shrink" = 0.6,"sx" = 1,"sy" = 4,"nx" = 1,"ny" = 2,"wx" = 3,"wy" = 3,"ex" = 0,"ey" = 2,"nturn" = 0,"sturn" = 0,"wturn" = 0,"eturn" = 0,"nflip" = 8,"sflip" = 0,"wflip" = 0,"eflip" = 0,"northabove" = 1,"southabove" = 0,"eastabove" = 0,"westabove" = 0)
 	return ..()
 
-/obj/item/weapon/shield/tower/metal/attack_right(mob/user)
-	if(!overlays.len)
-		if(!('icons/roguetown/weapons/shield_heraldry.dmi' in GLOB.IconStates_cache))
-			var/icon/J = new('icons/roguetown/weapons/shield_heraldry.dmi')
-			var/list/istates = J.IconStates()
-			GLOB.IconStates_cache |= icon
-			GLOB.IconStates_cache['icons/roguetown/weapons/shield_heraldry.dmi'] = istates
-		var/picked_name = input(user, "Choose a Heraldry", "VANDERLIN", name) as null|anything in sortList(GLOB.IconStates_cache['icons/roguetown/weapons/shield_heraldry.dmi'])
-		if(!picked_name)
-			picked_name = "none"
-		var/mutable_appearance/M = mutable_appearance('icons/roguetown/weapons/shield_heraldry.dmi', picked_name)
-		M.alpha = 190
-		add_overlay(M)
-		var/mutable_appearance/MU = mutable_appearance(icon, "ironsh_detail")
-		MU.alpha = 90
-		add_overlay(MU)
-		if(alert("Are you pleased with your heraldry?", "Heraldry", "Yes", "No") != "Yes")
-			cut_overlays()
-	else
-		..()
+/obj/item/weapon/shield/tower/metal/choose_design(proc_value, user)
+	. = proc_value
+	if(design_chosen)
+		return
+
+	if(!('icons/roguetown/weapons/shield_heraldry.dmi' in GLOB.IconStates_cache))
+		var/icon/icon_file = new('icons/roguetown/weapons/shield_heraldry.dmi')
+		GLOB.IconStates_cache['icons/roguetown/weapons/shield_heraldry.dmi'] = icon_file.IconStates()
+
+	var/picked_name = browser_input_list(user, "Choose a Heraldry", "Heraldry", sortList(GLOB.IconStates_cache['icons/roguetown/weapons/shield_heraldry.dmi']))
+	if(!picked_name)
+		return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
+
+	var/mutable_appearance/M = mutable_appearance('icons/roguetown/weapons/shield_heraldry.dmi', picked_name)
+	M.alpha = 190
+	add_overlay(M)
+	var/mutable_appearance/MU = mutable_appearance(icon, "ironsh_detail")
+	MU.alpha = 90
+	add_overlay(MU)
+
+	design_chosen = TRUE
+	if(browser_alert(user, "Are you pleased with your heraldry?", "Heraldry", DEFAULT_INPUT_CHOICES) != CHOICE_YES)
+		cut_overlays()
+		design_chosen = FALSE
+
+	return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
 
 #undef SHIELD_BANG_COOLDOWN
 
+/obj/item/weapon/shield/tower/metal/psy
+	name = "Covenant"
+	desc = "The Ordo Benetarus holds a mantra: A Psydonian endures. A Psydonian preserves themselves. A Psydonian preserves His flock. Protect them."
+	icon_state = "psyshield"
+	force = 20
+	throwforce = 10
+	throw_speed = 1
+	throw_range = 3
+	wlength = WLENGTH_NORMAL
+	resistance_flags = null
+	flags_1 = CONDUCT_1
+	wdefense = 8
+	coverage = 50
+	attacked_sound = list('sound/combat/parry/shield/metalshield (1).ogg','sound/combat/parry/shield/metalshield (2).ogg','sound/combat/parry/shield/metalshield (3).ogg')
+	parrysound = list('sound/combat/parry/shield/metalshield (1).ogg','sound/combat/parry/shield/metalshield (2).ogg','sound/combat/parry/shield/metalshield (3).ogg')
+	max_integrity = 300
+
+/obj/item/weapon/shield/tower/metal/psy/Initialize(mapload)
+	. = ..()							//+0 force, +100 int, +1 def, make silver
+	AddComponent(/datum/component/psyblessed, TRUE, 0, FALSE, 100, 1, TRUE)
 
 /obj/item/weapon/shield/tower/buckleriron
 	name = "iron buckler"
@@ -283,7 +317,7 @@
 	coverage = 45
 	attacked_sound = list('sound/combat/parry/shield/metalshield (1).ogg','sound/combat/parry/shield/metalshield (2).ogg','sound/combat/parry/shield/metalshield (3).ogg')
 	parrysound = list('sound/combat/parry/shield/metalshield (1).ogg','sound/combat/parry/shield/metalshield (2).ogg','sound/combat/parry/shield/metalshield (3).ogg')
-	max_integrity = 250
+	max_integrity = INTEGRITY_STRONG - 50
 	melting_material = /datum/material/iron
 	melt_amount = 75
 
@@ -308,25 +342,31 @@
 	coverage = 60
 	attacked_sound = list('sound/combat/parry/shield/towershield (1).ogg','sound/combat/parry/shield/towershield (2).ogg','sound/combat/parry/shield/towershield (3).ogg')
 	parrysound = list('sound/combat/parry/shield/towershield (1).ogg','sound/combat/parry/shield/towershield (2).ogg','sound/combat/parry/shield/towershield (3).ogg')
-	max_integrity = 200
+	max_integrity = INTEGRITY_STANDARD
 
-/obj/item/weapon/shield/heater/attack_right(mob/user)
-	if(!overlays.len)
-		var/icon/J = new('icons/roguetown/weapons/heater_heraldry.dmi')
-		var/list/istates = J.IconStates()
-		var/picked_name = input(user, "Choose a Heraldry", "ROGUETOWN", name) as null|anything in sortList(istates)
-		if(!picked_name)
-			picked_name = "none"
-		var/mutable_appearance/M = mutable_appearance('icons/roguetown/weapons/heater_heraldry.dmi', picked_name)
-		M.alpha = 178
-		add_overlay(M)
-		var/mutable_appearance/MU = mutable_appearance(icon, "heatershield_detail")
-		MU.alpha = 114
-		add_overlay(MU)
-		if(alert("Are you pleased with your heraldry?", "Heraldry", "Yes", "No") != "Yes")
-			cut_overlays()
-	else
-		..()
+/obj/item/weapon/shield/heater/choose_design(proc_value, mob/user)
+	. = proc_value
+	if(design_chosen)
+		return
+
+	var/icon/icon_file = new('icons/roguetown/weapons/heater_heraldry.dmi')
+	var/picked_name = browser_input_list(user, "Choose a Heraldry", "Heraldry", sortList(icon_file.IconStates()))
+	if(!picked_name)
+		return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
+
+	var/mutable_appearance/M = mutable_appearance('icons/roguetown/weapons/heater_heraldry.dmi', picked_name)
+	M.alpha = 178
+	add_overlay(M)
+	var/mutable_appearance/MU = mutable_appearance(icon, "heatershield_detail")
+	MU.alpha = 114
+	add_overlay(MU)
+
+	design_chosen = TRUE
+	if(browser_alert(user, "Are you pleased with your heraldry?", "Heraldry", DEFAULT_INPUT_CHOICES) != CHOICE_YES)
+		cut_overlays()
+		design_chosen = FALSE
+
+	return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
 
 /obj/item/weapon/shield/heater/getonmobprop(tag)
 	. = ..()

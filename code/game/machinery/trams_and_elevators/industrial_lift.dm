@@ -73,12 +73,17 @@ GLOBAL_LIST_INIT(all_radial_directions, list(
 	///this is our held_cargo
 	var/list/held_cargo = list()
 	var/list/moving_lifts = list()
+	///are we fake? if so we remove the z_fall block and such
+	var/fake = FALSE
 
 /obj/structure/industrial_lift/Initialize(mapload)
 	. = ..()
 	GLOB.lifts.Add(src)
 
 	set_movement_registrations()
+	if(fake)
+		alpha = 0
+		obj_flags = CAN_BE_HIT
 
 	//since lift_master datums find all connected platforms when an industrial lift first creates it and then
 	//sets those platforms' lift_master_datum to itself, this check will only evaluate to true once per tram platform
@@ -141,7 +146,7 @@ GLOBAL_LIST_INIT(all_radial_directions, list(
 
 /obj/structure/industrial_lift/proc/AddItemOnLift(datum/source, atom/movable/new_lift_contents)
 	SIGNAL_HANDLER
-	var/static/list/blacklisted_types = typecacheof(list(/obj/effect/decal/cleanable, /obj/structure/industrial_lift, /mob/camera, /obj/effect/overlay/water, /atom/movable/lighting_object))
+	var/static/list/blacklisted_types = typecacheof(list(/obj/effect/decal/cleanable, /atom/movable/outdoor_effect, /obj/structure/industrial_lift, /mob/camera, /obj/effect/overlay/water, /atom/movable/lighting_object))
 	if(is_type_in_typecache(new_lift_contents, blacklisted_types) || new_lift_contents.invisibility == INVISIBILITY_ABSTRACT) //prevents the tram from stealing things like landmarks
 		return FALSE
 	if(new_lift_contents in lift_load)
@@ -580,7 +585,7 @@ GLOBAL_LIST_INIT(all_radial_directions, list(
 	if(!isliving(user))
 		return FALSE
 	// Gotta be awake and aware
-	if(user.incapacitated(ignore_grab = TRUE))
+	if(user.incapacitated(IGNORE_GRAB))
 		return FALSE
 	// Gotta be by the lift
 	if(!user.Adjacent(src))
@@ -662,11 +667,11 @@ GLOBAL_LIST_INIT(all_radial_directions, list(
  * * boolean, FALSE if the menu should be closed, TRUE if the menu is clear to stay opened.
  */
 /obj/structure/industrial_lift/proc/check_menu(mob/user, starting_loc)
-	if(user.incapacitated(ignore_grab = TRUE) || !user.Adjacent(src) || starting_loc != src.loc)
+	if(user.incapacitated(IGNORE_GRAB) || !user.Adjacent(src) || starting_loc != src.loc)
 		return FALSE
 	return TRUE
 
-/obj/structure/industrial_lift/attack_hand(mob/user, list/modifiers)
+/obj/structure/industrial_lift/attack_hand(mob/user, params)
 	. = ..()
 	if(.)
 		return
