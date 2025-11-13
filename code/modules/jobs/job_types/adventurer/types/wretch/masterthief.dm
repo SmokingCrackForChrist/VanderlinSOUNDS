@@ -9,6 +9,42 @@
 	total_positions = 10
 	cmode_music = 'sound/music/cmode/adventurer/CombatRogue.ogg'
 
+	skills = list(
+		/datum/skill/combat/axesmaces = SKILL_LEVEL_JOURNEYMAN, // Needed just for NPC's.
+		/datum/skill/misc/swimming = SKILL_LEVEL_MASTER,
+		/datum/skill/combat/wrestling = SKILL_LEVEL_MASTER,
+		/datum/skill/combat/unarmed = SKILL_LEVEL_EXPERT, // They're not meant to kill. Unarmed/Wrestling is annoying, but they're on their own, and they dodge. If it sucks we can always change it.
+		/datum/skill/misc/climbing = SKILL_LEVEL_MASTER,
+		/datum/skill/craft/crafting = SKILL_LEVEL_JOURNEYMAN,
+		/datum/skill/misc/athletics = SKILL_LEVEL_EXPERT,
+		/datum/skill/misc/reading = SKILL_LEVEL_JOURNEYMAN,
+		/datum/skill/misc/sneaking = SKILL_LEVEL_LEGENDARY,
+		/datum/skill/misc/stealing = SKILL_LEVEL_LEGENDARY,
+		/datum/skill/misc/lockpicking = SKILL_LEVEL_MASTER,
+		/datum/skill/misc/sewing = SKILL_LEVEL_JOURNEYMAN,
+		/datum/skill/craft/bombs = SKILL_LEVEL_JOURNEYMAN // To craft Smoke Bombs.
+	)
+
+	traits = list(
+		TRAIT_DEADNOSE,
+		TRAIT_THIEVESGUILD,
+		TRAIT_DODGEEXPERT,
+		TRAIT_LIGHT_STEP,
+		TRAIT_BLACKBAGGER
+	)
+
+	jobstats = list(
+		STATKEY_SPD = 3,
+		STATKEY_CON = -1,
+		STATKEY_STR = 2 // For wrestling, mainly.
+	)
+
+	spells = list(
+		/datum/action/cooldown/spell/undirected/conjure_item/garrote,
+		/datum/action/cooldown/spell/undirected/conjure_item/smoke_bomb,
+		/datum/action/cooldown/spell/undirected/shadow_step // Slippery bastard.
+	)
+
 /datum/outfit/wretch/masterthief/pre_equip(mob/living/carbon/human/H)
 	..()
 	H.set_patron(/datum/patron/inhumen/matthios) //It's a toss-up between Xylix or Matthios. Matthios fits more here.
@@ -28,30 +64,6 @@
 		/obj/item/grapplinghook = 1,
 		/obj/item/reagent_containers/glass/bottle/stronghealthpot = 1,
 	)
-	H.adjust_skillrank(/datum/skill/combat/axesmaces, 2, TRUE) // Needed just for NPC's.
-	H.adjust_skillrank(/datum/skill/misc/swimming, 5, TRUE)
-	H.adjust_skillrank(/datum/skill/combat/wrestling, 5, TRUE)
-	H.adjust_skillrank(/datum/skill/combat/unarmed, 4, TRUE) // They're not meant to kill. Unarmed/Wrestling is annoying, but they're on their own, and they dodge. If it sucks we can always change it.
-	H.adjust_skillrank(/datum/skill/misc/climbing, 5, TRUE)
-	H.adjust_skillrank(/datum/skill/craft/crafting, 2, TRUE)
-	H.adjust_skillrank(/datum/skill/misc/athletics, 4, TRUE)
-	H.adjust_skillrank(/datum/skill/misc/reading, 3, TRUE)
-	H.adjust_skillrank(/datum/skill/misc/sneaking, 6, TRUE)
-	H.adjust_skillrank(/datum/skill/misc/stealing, 5, TRUE)
-	H.adjust_skillrank(/datum/skill/misc/lockpicking, 5, TRUE)
-	H.adjust_skillrank(/datum/skill/misc/sewing, 3, TRUE)
-	H.adjust_skillrank(/datum/skill/craft/bombs, 3, TRUE) // To craft smoke bombs.
-	ADD_TRAIT(H, TRAIT_DEADNOSE, TRAIT_GENERIC)
-	ADD_TRAIT(H, TRAIT_THIEVESGUILD, TRAIT_GENERIC)
-	ADD_TRAIT(H, TRAIT_DODGEEXPERT, TRAIT_GENERIC)
-	ADD_TRAIT(H, TRAIT_LIGHT_STEP, TRAIT_GENERIC)
-	ADD_TRAIT(H, TRAIT_BLACKBAGGER, TRAIT_GENERIC)
-	H.change_stat(STATKEY_SPD, 3)
-	H.change_stat(STATKEY_CON, -1)
-	H.change_stat(STATKEY_STR, 2) // For wrestling, mainly.
-	H.add_spell(/datum/action/cooldown/spell/undirected/conjure_item/garrote)
-	H.add_spell(/datum/action/cooldown/spell/undirected/conjure_item/smoke_bomb)
-	H.add_spell(/datum/action/cooldown/spell/undirected/shadow_step) // Slippery bastard.
 	wretch_select_bounty(H)
 
 /datum/outfit/wretch/masterthief/post_equip(mob/living/carbon/human/H, visuals_only)
