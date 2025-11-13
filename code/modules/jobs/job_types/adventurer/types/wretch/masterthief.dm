@@ -37,6 +37,7 @@
 	H.adjust_skillrank(/datum/skill/misc/athletics, 4, TRUE)
 	H.adjust_skillrank(/datum/skill/misc/reading, 3, TRUE)
 	H.adjust_skillrank(/datum/skill/misc/sneaking, 6, TRUE)
+	H.adjust_skillrank(/datum/skill/misc/stealing, 5, TRUE)
 	H.adjust_skillrank(/datum/skill/misc/lockpicking, 5, TRUE)
 	H.adjust_skillrank(/datum/skill/misc/sewing, 3, TRUE)
 	H.adjust_skillrank(/datum/skill/craft/bombs, 3, TRUE) // To craft smoke bombs.
