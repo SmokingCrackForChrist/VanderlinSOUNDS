@@ -36,7 +36,7 @@
 	jobstats = list(
 		STATKEY_SPD = 3,
 		STATKEY_CON = -1,
-		STATKEY_STR = 2 // For wrestling, mainly.
+		STATKEY_STR = 3 // For wrestling, mainly.
 	)
 
 	spells = list(
