@@ -59,6 +59,7 @@
 	neck = /obj/item/clothing/neck/coif
 	belt = /obj/item/storage/belt/leather/black
 	beltl = /obj/item/weapon/mace/cudgel
+	beltr = /obj/item/weapon/knife/dagger
 	backpack_contents = list(
 		/obj/item/lockpick = 1,
 		/obj/item/grapplinghook = 1,
