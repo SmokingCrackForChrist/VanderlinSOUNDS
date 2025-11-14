@@ -41,8 +41,7 @@
 
 	spells = list(
 		/datum/action/cooldown/spell/undirected/conjure_item/garrote,
-		/datum/action/cooldown/spell/undirected/conjure_item/smoke_bomb,
-		/datum/action/cooldown/spell/undirected/shadow_step // Slippery bastard.
+		/datum/action/cooldown/spell/undirected/conjure_item/smoke_bomb
 	)
 
 /datum/outfit/wretch/masterthief/pre_equip(mob/living/carbon/human/H)
