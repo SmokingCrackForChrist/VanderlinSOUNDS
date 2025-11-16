@@ -102,7 +102,7 @@
 
 /obj/item/clothing/face/antiq
 	name = "Antiquarian's Hood"
-	desc = "The mechanisms inside hum in a strange, mechanical unison. You have a feeling that this mask has seen things you wouldn't believe."
+	desc = "The mechanisms inside hum in a strange, mechanical unison - Glowing Gems radiate a dull light outwards, piercing the dark. You have a feeling that this mask has seen things you wouldn't believe."
 	icon_state = "antiqmask"
 	blocksound = SOFTHIT
 	break_sound = 'sound/foley/cloth_rip.ogg'
