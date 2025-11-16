@@ -47,8 +47,8 @@
 		/datum/action/cooldown/spell/undirected/adrenalinerush,
 		/datum/action/cooldown/spell/undirected/secondsight,
 		///datum/action/cooldown/spell/undirected/jaunt/ethereal_jaunt, // He's missing a two-tile jaunt, something to slip under doors. Outta my skill-level. Oh well!
-		/datum/action/cooldown/spell/flashpowder,
 		/datum/action/cooldown/spell/undirected/conjure_item/summon_lockpick,
+		/datum/action/cooldown/spell/projectile/flashpowder,
 		///datum/action/cooldown/spell/aoe/snuff,
 		/datum/action/cooldown/spell/undirected/conjure_item/calling_card
 	)
@@ -66,7 +66,6 @@
 	neck = /obj/item/clothing/neck/coif
 	belt = /obj/item/storage/belt/leather/black
 	beltl = /obj/item/weapon/mace/cudgel
-	beltr = /obj/item/weapon/knife/dagger
 	backpack_contents = list(
 		/obj/item/lockpick = 1,
 		/obj/item/grapplinghook = 1,

@@ -10,12 +10,11 @@
 	associated_skill = /datum/skill/misc/lockpicking
 	item_type = /obj/item/lockpick
 	item_duration = 1 MINUTES
-	item_outline ="#0e5c21"
+	item_outline ="#1e202cff"
 	delete_old = FALSE
 	spell_type = SPELL_STAMINA
 	spell_cost = 30
 
 /datum/action/cooldown/spell/undirected/conjure_item/summon_lockpick/cast(mob/living/cast_on)
 	. = ..()
-	cast_on.emote("chuckle", forced = TRUE)
-	cast_on.adjustBruteLoss(5) // This shit ain't free, man
+	cast_on.adjustBruteLoss(3) // This shit ain't free, man

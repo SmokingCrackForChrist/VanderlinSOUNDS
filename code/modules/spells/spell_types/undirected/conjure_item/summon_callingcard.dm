@@ -10,6 +10,6 @@
 	associated_skill = /datum/skill/craft/bombs
 	item_type = /obj/item/weapon/knife/throwingknife/throwcard
 	item_duration = null
-	item_outline ="#0e5c21"
+	item_outline ="#154666ff"
 	delete_old = FALSE
 	spell_type = SPELL_STAMINA
