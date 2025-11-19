@@ -11,10 +11,9 @@
 	confess_lines = list(
 		"THERE IS ONLY ONE GOD!",
 		"THE SUCCESSORS HALT HIS RETURN!",
-		"PSYDON LYVES!",
+		"PSYDON LIVES!",
 	)
 	profane_words = list()
-	devotion_holder = /datum/devotion/psydon
 
 /datum/patron/psydon/can_pray(mob/living/carbon/human/follower)
 	//We just kind of assume the follower is a human here
