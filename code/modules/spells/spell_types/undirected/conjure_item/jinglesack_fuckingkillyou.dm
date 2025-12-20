@@ -2,7 +2,7 @@
 	name = "NAUGHTY"
 	desc = "Have an adequate festive period, everyone!"
 	button_icon_state = "bcry"
-	sound = 'sound/magic/barbroar.ogg'
+	sound = 'sound/magic/fuckyoudie.ogg'
 
 	antimagic_flags = NONE
 

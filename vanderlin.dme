@@ -3406,6 +3406,7 @@
 #include "code\modules\spells\spell_types\undirected\conjure_item\_conjure_item.dm"
 #include "code\modules\spells\spell_types\undirected\conjure_item\briar_claw.dm"
 #include "code\modules\spells\spell_types\undirected\conjure_item\call_bird.dm"
+#include "code\modules\spells\spell_types\undirected\conjure_item\jinglesack_festiveperiod.dm"
 #include "code\modules\spells\spell_types\undirected\conjure_item\jinglesack_fuckingkillyou.dm"
 #include "code\modules\spells\spell_types\undirected\conjure_item\light.dm"
 #include "code\modules\spells\spell_types\undirected\conjure_item\magicians_brick.dm"
