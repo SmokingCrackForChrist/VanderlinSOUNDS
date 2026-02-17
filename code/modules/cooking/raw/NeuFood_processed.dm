@@ -12,9 +12,9 @@
 	icon_state = "fat"
 	list_reagents = list(/datum/reagent/consumable/nutriment = SNACK_POOR)
 	eat_effect = /datum/status_effect/debuff/uncookedfood
-	possible_item_intents = list(/datum/intent/food, /datum/intent/splash)
+	possible_item_intents = list(/datum/intent/food, /datum/intent/splash, /datum/intent/use)
 
-/obj/item/reagent_containers/food/snacks/fat/attack(mob/living/M, mob/user, proximity)
+/obj/item/reagent_containers/food/snacks/fat/attack(mob/living/M, mob/user, list/modifiers)
 	if(user.used_intent.type == /datum/intent/food)
 		return ..()
 
@@ -26,11 +26,11 @@
 		return
 	M.apply_status_effect(/datum/status_effect/buff/oiled)
 
-/obj/item/reagent_containers/food/snacks/fat/attackby(obj/item/I, mob/living/user, params)
+/obj/item/reagent_containers/food/snacks/fat/attackby(obj/item/I, mob/living/user, list/modifiers)
 	var/found_table = locate(/obj/structure/table) in (loc)
 	var/obj/item/reagent_containers/glass/R = I
 	if(user.mind)
-		long_cooktime = (90 - ((user.get_skill_level(/datum/skill/craft/cooking))*15))
+		long_cooktime = (90 - ((user.get_skill_level(/datum/skill/craft/cooking, TRUE))*15))
 	if(isturf(loc)&& (found_table))
 		if(!istype(R))
 			return ..()
@@ -41,12 +41,13 @@
 			to_chat(user, span_warning("Gelatine is much too strange for you."))
 			return
 		to_chat(user, span_notice("Congealing the sugar..."))
-		playsound(get_turf(user), 'sound/foley/splishy.ogg', 100, TRUE, -1)
+		playsound(user, 'sound/foley/splishy.ogg', 100, TRUE, -1)
 		if(do_after(user, long_cooktime, src))
 			new /obj/item/reagent_containers/food/snacks/jellycake_base(loc)
 			user.mind.add_sleep_experience(/datum/skill/craft/cooking, (user.STAINT*0.5))
 			qdel(src)
 			R.reagents.remove_reagent(/datum/reagent/consumable/sugar, 33)
+			user.nobles_seen_servant_work()
 	else
 		to_chat(user, span_warning("You need to put [src] on a table to work on it."))
 
@@ -369,16 +370,16 @@
 \-------*/
 
 /*	............   Churning butter   ................ */
-/obj/item/reagent_containers/glass/bucket/wooden/attackby(obj/item/I, mob/living/user, params)
+/obj/item/reagent_containers/glass/bucket/wooden/attackby(obj/item/I, mob/living/user, list/modifiers)
 	if(user.mind)
-		long_cooktime = (200 - ((user.get_skill_level(/datum/skill/craft/cooking))*22))
+		long_cooktime = (200 - ((user.get_skill_level(/datum/skill/craft/cooking, TRUE))*22))
 	if(istype(I, /obj/item/kitchen/spoon))
 		if(!reagents.has_reagent(/datum/reagent/consumable/milk/salted, 15) && !reagents.has_reagent(/datum/reagent/consumable/milk/salted_gote, 15))
 			to_chat(user, span_warning(">Not enough salted milk."))
 			return
 		user.adjust_stamina(40) // forgot stamina is our lovely stamloss proc here
 		user.visible_message("<span class='info'>[user] churns butter...</span>")
-		playsound(get_turf(user), 'sound/foley/butterchurn.ogg', 100, TRUE, -1)
+		playsound(user, 'sound/foley/butterchurn.ogg', 100, TRUE, -1)
 		if(do_after(user, long_cooktime, src))
 			user.adjust_stamina(50)
 			if(reagents.has_reagent(/datum/reagent/consumable/milk/salted, 15))
@@ -387,6 +388,7 @@
 				reagents.remove_reagent(/datum/reagent/consumable/milk/salted_gote, 15)
 			new /obj/item/reagent_containers/food/snacks/butter(drop_location())
 			user.mind.add_sleep_experience(/datum/skill/craft/cooking, (user.STAINT))
+			user.nobles_seen_servant_work()
 		return
 	..()
 
@@ -456,9 +458,9 @@
 \-------*/
 
 /*	............   Making fresh cheese   ................ */
-/obj/item/reagent_containers/glass/bucket/wooden/attackby(obj/item/I, mob/living/user, params)
+/obj/item/reagent_containers/glass/bucket/wooden/attackby(obj/item/I, mob/living/user, list/modifiers)
 	if(user.mind)
-		long_cooktime = (100 - ((user.get_skill_level(/datum/skill/craft/cooking))*12))
+		long_cooktime = (100 - ((user.get_skill_level(/datum/skill/craft/cooking, TRUE))*12))
 	if(istype(I, /obj/item/natural/cloth) && (user.used_intent.type == INTENT_USE || user.used_intent.type == INTENT_SOAK))
 		var/milk = null
 		var/cheese = null
@@ -478,21 +480,23 @@
 					reagents.remove_reagent(milk, 5)
 					new cheese(drop_location())
 					user.mind.add_sleep_experience(/datum/skill/craft/cooking, (user.STAINT))
+				user.nobles_seen_servant_work()
 			return
 	..()
 
 /*	............   Making cheese wheel   ................ */
-/obj/item/natural/cloth/attackby(obj/item/I, mob/living/user, params)
+/obj/item/natural/cloth/attackby(obj/item/I, mob/living/user, list/modifiers)
 	var/found_table = locate(/obj/structure/table) in (loc)
 	if(istype(I, /obj/item/reagent_containers/food/snacks/cheese))
 		if(isturf(loc)&& (found_table))
 			user.visible_message("<span class='info'>[user] starts packing the cloth with fresh cheese...</span>")
-			playsound(get_turf(user), 'sound/foley/dropsound/food_drop.ogg', 30, TRUE, -1)
+			playsound(user, 'sound/foley/dropsound/food_drop.ogg', 30, TRUE, -1)
 			if(do_after(user,3 SECONDS, src))
 				new /obj/item/reagent_containers/food/snacks/foodbase/cheesewheel_start(loc)
 				user.mind.add_sleep_experience(/datum/skill/craft/cooking, (user.STAINT*0.5))
 				qdel(I)
 				qdel(src)
+				user.nobles_seen_servant_work()
 			return
 		else
 			to_chat(user, span_warning("You need to put [src] on a table to work on it."))
@@ -506,13 +510,13 @@
 	grid_height = 32
 	grid_width = 96
 
-/obj/item/reagent_containers/food/snacks/foodbase/cheesewheel_start/attackby(obj/item/I, mob/living/user, params)
+/obj/item/reagent_containers/food/snacks/foodbase/cheesewheel_start/attackby(obj/item/I, mob/living/user, list/modifiers)
 	var/found_table = locate(/obj/structure/table) in (loc)
 	if(user.mind)
-		short_cooktime = (50 - ((user.get_skill_level(/datum/skill/craft/cooking))*8))
+		short_cooktime = (50 - ((user.get_skill_level(/datum/skill/craft/cooking, TRUE))*8))
 	if(istype(I, /obj/item/reagent_containers/food/snacks/cheese))
 		if(isturf(loc)&& (found_table))
-			playsound(get_turf(user), 'sound/foley/dropsound/food_drop.ogg', 30, TRUE, -1)
+			playsound(user, 'sound/foley/dropsound/food_drop.ogg', 30, TRUE, -1)
 			if(do_after(user, short_cooktime, src))
 				new /obj/item/reagent_containers/food/snacks/foodbase/cheesewheel_two(loc)
 				qdel(I)
@@ -530,13 +534,13 @@
 	grid_height = 32
 	grid_width = 96
 
-/obj/item/reagent_containers/food/snacks/foodbase/cheesewheel_two/attackby(obj/item/I, mob/user, params)
+/obj/item/reagent_containers/food/snacks/foodbase/cheesewheel_two/attackby(obj/item/I, mob/user, list/modifiers)
 	var/found_table = locate(/obj/structure/table) in (loc)
 	if(user.mind)
-		short_cooktime = (50 - ((user.get_skill_level(/datum/skill/craft/cooking))*8))
+		short_cooktime = (50 - ((user.get_skill_level(/datum/skill/craft/cooking, TRUE))*8))
 	if(istype(I, /obj/item/reagent_containers/food/snacks/cheese))
 		if(isturf(loc)&& (found_table))
-			playsound(get_turf(user), 'sound/foley/dropsound/food_drop.ogg', 30, TRUE, -1)
+			playsound(user, 'sound/foley/dropsound/food_drop.ogg', 30, TRUE, -1)
 			if(do_after(user, short_cooktime, src))
 				new /obj/item/reagent_containers/food/snacks/foodbase/cheesewheel_three(loc)
 				qdel(I)
@@ -554,13 +558,13 @@
 	grid_height = 32
 	grid_width = 96
 
-/obj/item/reagent_containers/food/snacks/foodbase/cheesewheel_three/attackby(obj/item/I, mob/living/user, params)
+/obj/item/reagent_containers/food/snacks/foodbase/cheesewheel_three/attackby(obj/item/I, mob/living/user, list/modifiers)
 	var/found_table = locate(/obj/structure/table) in (loc)
 	if(user.mind)
-		short_cooktime = (50 - ((user.get_skill_level(/datum/skill/craft/cooking))*8))
+		short_cooktime = (50 - ((user.get_skill_level(/datum/skill/craft/cooking, TRUE))*8))
 	if(istype(I, /obj/item/reagent_containers/food/snacks/cheese) && icon_state != "cheesewheel_end")
 		if(isturf(loc)&& (found_table))
-			playsound(get_turf(user), 'sound/foley/dropsound/food_drop.ogg', 30, TRUE, -1)
+			playsound(user, 'sound/foley/dropsound/food_drop.ogg', 30, TRUE, -1)
 			user.mind.add_sleep_experience(/datum/skill/craft/cooking, (user.STAINT*0.5))
 			if(do_after(user, short_cooktime, src))
 				qdel(I)
@@ -568,6 +572,7 @@
 				icon_state = "cheesewheel_end"
 				desc = "Slowly solidifying, best left alone a bit longer."
 				addtimer(CALLBACK(src, PROC_REF(maturing_done)), 5 MINUTES)
+				user.nobles_seen_servant_work()
 		else
 			to_chat(user, span_warning("You need to put [src] on a table to work on it."))
 	else

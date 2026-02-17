@@ -28,6 +28,10 @@
 	lockid_list = list(ACCESS_MANOR)
 	locked = TRUE
 
+/datum/lock/key/atarms
+	lockid_list = list(ACCESS_AT_ARMS)
+	locked = TRUE
+
 /datum/lock/key/inn
 	lockid_list = list(ACCESS_INN)
 	locked = TRUE
@@ -55,3 +59,6 @@
 ///// Multiple key locks
 /datum/lock/key/pillory
 	lockid_list = list(ACCESS_GARRISON, ACCESS_FOREST, ACCESS_AT_ARMS, ACCESS_DUNGEON)
+
+/datum/lock/key/pillory/church
+	lockid_list = list(ACCESS_CHURCH, ACCESS_PRIEST)

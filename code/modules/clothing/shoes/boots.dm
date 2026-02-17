@@ -100,6 +100,7 @@
 	salvage_amount = 1
 	item_weight = 3
 	max_integrity = INTEGRITY_STANDARD
+	wetable = FALSE
 
 //THE ARMOUR VALUES OF ADVANCED AND MASTERWORK BOOTS ARE INTENDED
 //KEEP THIS IN MIND
@@ -146,6 +147,7 @@
 	salvage_amount = 1
 	item_weight = 3
 	min_cold_protection_temperature = -20
+	wetable = FALSE
 
 /obj/item/clothing/shoes/boots/furlinedanklets
 	name = "fur lined anklets"
@@ -181,6 +183,19 @@
 	prevent_crits = ALL_CRITICAL_HITS_VAMP
 	armor = ARMOR_PLATE_GOOD
 	item_weight = 5 * STEEL_MULTIPLIER
+
+/obj/item/clothing/shoes/boots/armor/silver
+	name = "silver boots"
+	desc = "Finely forged boots made out of silver."
+	icon_state = "silverboots"
+	armor = ARMOR_PLATE_SILVER
+	smeltresult = /obj/item/ingot/silver
+	item_weight = 12 * SILVER_MULTIPLIER
+	sellprice = VALUE_SILVER_ITEM
+
+/obj/item/clothing/shoes/boots/armor/silver/Initialize(mapload)
+	. = ..()
+	enchant(/datum/enchantment/silver)
 
 //............... Evil Boots ............... //
 

@@ -1,7 +1,6 @@
 /datum/patron/godless
-	name = null
+	abstract_type = /datum/patron/godless
 	associated_faith = /datum/faith/godless
-	profane_words = list()
 
 /datum/patron/godless/can_pray(mob/living/follower)
 	// Redefined this entire proc just to tell you:
@@ -102,3 +101,20 @@
 		"RASHAN-KAHL WILL ENSLAVE YOU!"
 	)
 	allowed_races = list(SPEC_ID_RAKSHARI)
+
+/datum/patron/godless/galadros
+	name = "Galadros"
+	domain = "The Great Wyrm in the heart of Kruskros, Krusnakell"
+	desc = "Galadros has brought himself to reverential status among Kobolds through generational servitude. They feed him the lux of the mountain. He gives their short lives purpose. For them, this is everything."
+	flaws = "Ignorance, Co-dependency, Stubbornness"
+	worshippers = "Kobolds, His Offspring"
+	sins = "Self-dependency, Failing your sire, Discouraging servantry"
+	boons = "A sense of purpose and accomplishment!"
+	confess_lines = list(
+		"I'LL NEVER LET YOU DOWN AGAIN!!",
+		"I HAVE FAILED YOU, MASTER!",
+		"HE IS HUNGRY! I MUST TO FEED HIM!!",
+		"I FIND PURPOSE THROUGH SERVITUDE!",
+		"THE GREAT WYRM WILL DEVOUR YOU!!",
+	)
+	allowed_races = list(SPEC_ID_KOBOLD)

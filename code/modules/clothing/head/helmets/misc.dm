@@ -13,6 +13,51 @@
 	item_weight = 5.5 * STEEL_MULTIPLIER
 
 
+//................ Gallowglass ............... //
+
+/obj/item/clothing/head/helmet/gallowglass
+	name = "gallowglass helmet"
+	desc = "Worn by proud fighters of the clans of Kaledon."
+	icon_state = "gallowglass"
+	sellprice = VALUE_STEEL_SMALL_ITEM
+	smeltresult = /obj/item/fertilizer/ash
+	melting_material = /datum/material/steel
+	melt_amount = 75
+
+
+	max_integrity = INTEGRITY_STRONGEST
+	item_weight = 5.5 * STEEL_MULTIPLIER
+
+//................ Coppergate ............... //
+/obj/item/clothing/head/helmet/coppergate
+	name = "coppergate helmet"
+	desc = "A typical style of helmet worn by Sea Elf pirates, this helmet comes with metal flaps that protects the cheeks."
+	icon_state = "coppergate"
+	sellprice = VALUE_STEEL_SMALL_ITEM
+	smeltresult = /obj/item/fertilizer/ash
+	melting_material = /datum/material/steel
+	melt_amount = 75
+
+
+	body_parts_covered = COVERAGE_NASAL
+	max_integrity = INTEGRITY_STRONGEST
+	item_weight = 5.5 * STEEL_MULTIPLIER
+
+//................ Decorative Coppergate ............... //
+/obj/item/clothing/head/helmet/decorativecoppergate
+	name = "decorative coppergate helmet"
+	desc = "Worn by proud Sea Elf clan leaders this decorative helmet design signifies wealth and authority."
+	icon_state = "decorative_coppergate"
+	sellprice = VALUE_STEEL_SMALL_ITEM+BONUS_VALUE_MODEST
+	smeltresult = /obj/item/fertilizer/ash
+	melting_material = /datum/material/steel
+	melt_amount = 75
+
+
+	body_parts_covered = COVERAGE_NASAL
+	max_integrity = INTEGRITY_STRONGEST
+	item_weight = 5.5 * STEEL_MULTIPLIER
+
 //................ Skull Cap ............... //
 /obj/item/clothing/head/helmet/skullcap
 	name = "skull cap"
@@ -140,8 +185,8 @@
 	item_weight = 5.5 * IRON_MULTIPLIER
 
 /obj/item/clothing/head/helmet/ironpot/lakkariancap
-	name = "lakkarian crowned cap"
-	desc = "a crimson red iron cap decorated with gold trims and embellishments. The design of this Lakkarian helmet hasn't changed in centuries."
+	name = "embellished crowned cap"
+	desc = "A crimson red iron cap decorated with gold trims and embellishments."
 	icon_state = "lakkaricap"
 	item_state = "lakkaricap"
 	sellprice = 50
@@ -503,6 +548,15 @@
 	worn_y_dimension = 64
 
 /obj/item/clothing/head/helmet/visored/silver/Initialize(mapload)
+	. = ..()
+	enchant(/datum/enchantment/silver)
+
+/obj/item/clothing/head/helmet/visored/silver/armet
+	name = "silver armet"
+	desc = "A finely forged silver armet, with adjustable visor to protect the face."
+	icon_state = "silverarmet"
+
+/obj/item/clothing/head/helmet/visored/silver/armet/Initialize(mapload)
 	. = ..()
 	enchant(/datum/enchantment/silver)
 

@@ -64,6 +64,7 @@ GLOBAL_LIST_INIT(oocpronouns_required, list(
 		return
 
 	msg = emoji_parse(msg)
+	msg = parsemarkdown_basic(msg, limited = TRUE, barebones = TRUE)
 
 
 	if(!holder)
@@ -212,7 +213,7 @@ GLOBAL_LIST_INIT(oocpronouns_required, list(
 /client/proc/set_ooc(newColor as color)
 	set name = "Set Default OOC Color"
 	set desc = ""
-	set category = "Fun"
+	set category = "OOC.Admin"
 	set hidden = FALSE
 	if(!holder)
 		return
@@ -223,7 +224,7 @@ GLOBAL_LIST_INIT(oocpronouns_required, list(
 /client/proc/reset_ooc()
 	set name = "Reset Default OOC Color"
 	set desc = ""
-	set category = "Fun"
+	set category = "OOC.Admin"
 	set hidden = FALSE
 	if(!holder)
 		return
@@ -233,7 +234,7 @@ GLOBAL_LIST_INIT(oocpronouns_required, list(
 
 //Checks admin notice
 /client/verb/admin_notice()
-	set name = "Adminnotice"
+	set name = "Show Admin Notice"
 	set category = "Admin"
 	set desc ="Check the admin notice if it has been set"
 	set hidden = 1
@@ -260,7 +261,7 @@ GLOBAL_LIST_INIT(oocpronouns_required, list(
 
 /mob/dead/new_player/verb/togglobb()
 	set name = "SilenceLobbyMusic"
-	set category = "Options"
+	set category = "Preferences.Sound"
 	stop_sound_channel(CHANNEL_LOBBYMUSIC)
 
 /proc/CheckJoinDate(ckey)
@@ -296,7 +297,7 @@ GLOBAL_LIST_INIT(oocpronouns_required, list(
 
 /client/verb/fix_chat()
 	set name = "Fix Chat"
-	set category = "OOC"
+	set category = "OOC.Fix"
 	if (!chatOutput || !istype(chatOutput))
 		var/action = alert(src, "Invalid Chat Output data found!\nRecreate data?", "Wot?", "Recreate Chat Output data", "Cancel")
 		if (action != "Recreate Chat Output data")
@@ -382,7 +383,7 @@ GLOBAL_LIST_INIT(oocpronouns_required, list(
 		return TRUE
 
 	// staff/donators can choose whatever pronouns they want given, you know, we trust them to use them like a normal person
-	if (usr && is_admin(usr) || patreon.is_donator())
+	if (usr && is_admin(usr) || patreon.is_donator() || twitch.is_donator())
 		return TRUE
 
 	var/pronouns = splittext(value, "/")
@@ -490,8 +491,8 @@ GLOBAL_LIST_INIT(oocpronouns_required, list(
 	prefs.save_preferences()
 
 /client/verb/select_ignore()
-	set name = "Ignore"
-	set category = "Options"
+	set name = "Ignore Player"
+	set category = "OOC"
 	set desc ="Ignore a player's messages on the OOC channel"
 	set hidden = 1
 	if(!holder)
@@ -529,7 +530,7 @@ GLOBAL_LIST_INIT(oocpronouns_required, list(
 
 /client/verb/fit_viewport()
 	set name = "Fit Viewport"
-	set category = "Options"
+	set category = "Preferences.Options"
 	set desc = ""
 	set hidden = 1
 	if(!holder)
@@ -579,7 +580,7 @@ GLOBAL_LIST_INIT(oocpronouns_required, list(
 /client/verb/policy()
 	set name = "Show Policy"
 	set desc = ""
-	set category = "OOC"
+	set category = "OOC.Links"
 	set hidden = 1
 	if(!holder)
 		return
