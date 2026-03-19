@@ -19,8 +19,6 @@
 	var/should_reset_stats = TRUE
 	/// Should this advclass spawn with a torch?
 	var/spawn_with_torch = FALSE
-	/// Can we not be purchased with the advclass triumph buys? if the CTAGS bar it then this isn't necessary
-	var/triumph_blacklisted = FALSE
 
 /datum/job/advclass/after_spawn(mob/living/carbon/human/spawned, client/player_client)
 	. = ..()
@@ -33,10 +31,8 @@
 
 	apply_character_post_equipment(spawned)
 
-/datum/job/advclass/proc/check_requirements(mob/living/carbon/human/to_check, check_slots=TRUE)
+/datum/job/advclass/proc/check_requirements(mob/living/carbon/human/to_check)
 	if(!prob(roll_chance))
-		return FALSE
-	if(check_slots && total_positions > -1 && current_positions >= total_positions)
 		return FALSE
 
 	var/datum/preferences/player_prefs = to_check.client.prefs
@@ -53,6 +49,14 @@
 	if(length(allowed_patrons) && !(to_check.patron.type in allowed_patrons))
 		return FALSE
 
+	if(length(banned_patrons) && (to_check.patron.type in banned_patrons))
+		return FALSE
+
 	if(!antags_can_pick && to_check.mind?.special_role)
 		return FALSE
+
+	if(total_positions > -1)
+		if(current_positions >= total_positions)
+			return FALSE
+
 	return TRUE
