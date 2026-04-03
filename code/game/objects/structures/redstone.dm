@@ -406,6 +406,7 @@ GLOBAL_LIST_EMPTY(redstone_objs)
 	resistance_flags = INDESTRUCTIBLE
 
 /obj/structure/floordoor/Initialize()
+	AddElement(/datum/element/footstep_override, footstep = FOOTSTEP_OLDWOOD)
 	AddComponent(/datum/component/squeak, list('sound/foley/footsteps/FTMET_A1.ogg','sound/foley/footsteps/FTMET_A2.ogg','sound/foley/footsteps/FTMET_A3.ogg','sound/foley/footsteps/FTMET_A4.ogg'), 40, extrarange = SHORT_RANGE_SOUND_EXTRARANGE)
 	return ..()
 
@@ -495,6 +496,11 @@ GLOBAL_LIST_EMPTY(redstone_objs)
 	var/changing_state = FALSE
 	layer = ABOVE_OPEN_TURF_LAYER
 	resistance_flags = INDESTRUCTIBLE
+	var/vol = 100
+
+/obj/structure/kybraxor/Initialize()
+	. = ..()
+	AddElement(/datum/element/footstep_override, footstep = FOOTSTEP_CATWALK)
 
 /obj/structure/kybraxor/redstone_triggered(mob/user)
 	if(changing_state)
@@ -504,13 +510,13 @@ GLOBAL_LIST_EMPTY(redstone_objs)
 	changing_state = TRUE
 	openn = !openn
 	if(openn)
-		playsound(src, 'sound/misc/kybraxorop.ogg', 100, FALSE)
+		playsound(src, 'sound/misc/kybraxorop.ogg', vol, FALSE)
 		flick("kybraxoropening",src)
 		sleep(40)
 		icon_state = "kybraxor0"
 		changing_state = FALSE
 	else
-		playsound(src, 'sound/misc/kybraxor.ogg', 100, FALSE)
+		playsound(src, 'sound/misc/kybraxor.ogg', vol, FALSE)
 		flick("kybraxorclosing",src)
 		sleep(40)
 		icon_state = "kybraxor1"

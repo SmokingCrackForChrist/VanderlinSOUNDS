@@ -240,7 +240,7 @@
 		else
 			to_chat(user, span_notice("This platter is already clean."))
 			return
-	if(istype(I, /obj/item/reagent_containers/food/snacks/veg/cabbage_sliced))
+	if(reagents.total_volume == 0 && istype(I, /obj/item/reagent_containers/food/snacks/veg/cabbage_sliced))
 		to_chat(user, span_warning("Tossing up a salad..."))
 		short_cooktime = (50 - ((GET_MOB_SKILL_VALUE_OLD(user, /datum/attribute/skill/craft/cooking))*8))
 		playsound(get_turf(user), 'sound/foley/dropsound/food_drop.ogg', 40, TRUE, -1)
@@ -477,6 +477,13 @@
 	taste_description = "egg soup"
 	nutriment_factor = 12
 
+/datum/reagent/consumable/soup/bone
+	name = "bone broth"
+	color = "#978e0d"
+	taste_description = "Savory, and deeply rich."
+	nutriment_factor = 12
+	taste_mult = 4
+
 /datum/reagent/consumable/soup/cheese // A thicker soup, almost on the level of old oatmeal. But less hydration than other soups
 	name = "cheese soup"
 	description = "A thick cheese soup. Creamy and comforting."
@@ -493,6 +500,16 @@
 	reagent_state = LIQUID
 	nutriment_factor = 11
 	taste_mult = 4
+
+/datum/reagent/consumable/soup/stew/sinew
+	color = "#6e6116"
+	taste_description = "bone broth"
+
+
+/datum/reagent/consumable/soup/stew/bone
+	color = "#8a770c"
+	taste_description = "bone broth"
+
 
 /datum/reagent/consumable/soup/stew/chicken
 	color = "#baa21c"
@@ -636,7 +653,7 @@
 		if(do_after(user, short_cooktime, src))
 			var/obj/item/reagent_containers/food/snacks/dough_base/base = new /obj/item/reagent_containers/food/snacks/dough_base(get_turf(src))
 			base.set_quality(recipe_quality)
-			user.mind.add_sleep_experience(/datum/attribute/skill/craft/cooking, (GET_MOB_ATTRIBUTE_VALUE(user, STAT_INTELLIGENCE)*0.5))
+			user.mind.add_sleep_experience(/datum/attribute/skill/craft/cooking/baking, (GET_MOB_ATTRIBUTE_VALUE(user, STAT_INTELLIGENCE)*0.5))
 			user.nobles_seen_servant_work()
 			qdel(src)
 	else

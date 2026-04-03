@@ -819,7 +819,10 @@
  */
 /atom/proc/setDir(newdir)
 	SEND_SIGNAL(src, COMSIG_ATOM_DIR_CHANGE, dir, newdir)
+	var/olddir = dir
+	. = dir != newdir
 	dir = newdir
+	SEND_SIGNAL(src, COMSIG_ATOM_POST_DIR_CHANGE, olddir, newdir)
 
 /**
  * Wash this atom
@@ -947,7 +950,7 @@
 
 		if(reagents)
 			var/chosen_id
-			switch(alert(usr, "Choose a method.", "Add Reagents", "Search", "Choose from a list", "I'm feeling lucky"))
+			switch(tgui_alert(usr, "Choose a method.", "Add Reagents", list("Search", "Choose from a list", "I'm feeling lucky")))
 				if("Search")
 					var/valid_id
 					while(!valid_id)
@@ -1025,10 +1028,10 @@
 /**
  * An atom has entered this atom's contents
  *
- * Default behaviour is to send the COMSIG_ATOM_ENTERED
+ * Default behaviour is to send the [COMSIG_ATOM_ENTERED]
  */
-/atom/Entered(atom/movable/AM, atom/oldLoc)
-	SEND_SIGNAL(src, COMSIG_ATOM_ENTERED, AM, oldLoc)
+/atom/Entered(atom/movable/arrived, atom/old_loc, list/atom/old_locs)
+	SEND_SIGNAL(src, COMSIG_ATOM_ENTERED, arrived, old_loc, old_locs)
 
 /**
  * An atom is attempting to exit this atom's contents
@@ -1049,8 +1052,8 @@
  *
  * Default behaviour is to send the COMSIG_ATOM_EXITED
  */
-/atom/Exited(atom/movable/AM, atom/newLoc)
-	SEND_SIGNAL(src, COMSIG_ATOM_EXITED, AM, newLoc)
+/atom/Exited(atom/movable/gone, atom/new_loc)
+	SEND_SIGNAL(src, COMSIG_ATOM_EXITED, gone, new_loc)
 
 /**
  *Tool behavior procedure. Redirects to tool-specific procs by default.
@@ -1286,7 +1289,7 @@
 /proc/cmp_filter_data_priority(list/A, list/B)
 	return A["priority"] - B["priority"]
 
-/atom/movable/proc/update_filters()
+/atom/proc/update_filters()
 	filters = null
 	var/atom/atom_cast = src // filters only work with images or atoms.
 	atom_cast.filters = null
@@ -1302,9 +1305,24 @@
 	. = ..()
 	update_item_action_buttons()
 
-/atom/movable/proc/get_filter(name)
+/atom/proc/get_filter(name)
 	if(filter_data && filter_data[name])
 		return filters[filter_data.Find(name)]
+
+/atom/proc/transition_filter(name, time, list/new_params, easing, loop)
+	var/filter = get_filter(name)
+	if(!filter)
+		return
+
+	var/list/old_filter_data = filter_data[name]
+
+	var/list/params = old_filter_data.Copy()
+	for(var/thing in new_params)
+		params[thing] = new_params[thing]
+
+	animate(filter, new_params, time = time, easing = easing, loop = loop)
+	for(var/param in params)
+		filter_data[name][param] = params[param]
 
 /atom/proc/intercept_zImpact(atom/movable/AM, levels = 1)
 	. |= SEND_SIGNAL(src, COMSIG_ATOM_INTERCEPT_Z_FALL, AM, levels)
