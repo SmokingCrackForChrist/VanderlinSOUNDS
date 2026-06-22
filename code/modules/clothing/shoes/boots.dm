@@ -301,6 +301,7 @@
 /obj/item/clothing/shoes/boots/armor/matthios/Initialize()
 	. = ..()
 	AddComponent(/datum/component/squeak, custom_sounds = list(SFX_EVIL_BOOT_STEP))
+
 // variant with no armor, just drip.
 /obj/item/clothing/shoes/boots/armor/matthios/lord
 	name = "lordly boots"
