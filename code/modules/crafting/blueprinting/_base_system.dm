@@ -26,8 +26,7 @@
 	create_buttons()
 	holder.screen += buttons
 	holder.click_intercept = src
-	init_blueprint_recipes()
-	RegisterSignal(holder.mob, COMSIG_USER_MOUSE_ENTERED, PROC_REF(on_mouse_moved))
+	RegisterSignal(holder.mob, COMSIG_MOB_MOUSE_ENTERED, PROC_REF(on_mouse_moved))
 	RegisterSignal(holder?.mob, COMSIG_ATOM_MOUSE_ENTERED, PROC_REF(on_mouse_moved_pre))
 
 /datum/blueprint_system/proc/quit()
@@ -39,7 +38,7 @@
 		recipe_browser.close()
 		recipe_browser = null
 	if(holder?.mob)
-		UnregisterSignal(holder.mob, COMSIG_USER_MOUSE_ENTERED)
+		UnregisterSignal(holder.mob, COMSIG_MOB_MOUSE_ENTERED)
 		UnregisterSignal(holder.mob, COMSIG_ATOM_MOUSE_ENTERED)
 	qdel(src)
 
@@ -660,7 +659,7 @@
 
 	var/atom/selected_output = selected_recipe.result_type
 
-	if(ispath(selected_output, /turf/closed) && (istype(get_area(final_location), /area/overlord_lair) && !("overlord" in user.faction)))
+	if(ispath(selected_output, /turf/closed) && (istype(get_area(final_location), /area/overlord_lair) && !user.has_faction("overlord")))
 		return
 
 	// Handle wall fixtures - place blueprint on adjacent floor when clicking on wall

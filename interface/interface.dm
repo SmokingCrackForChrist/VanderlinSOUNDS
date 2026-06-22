@@ -82,7 +82,7 @@
 		message += "<br>The following experimental changes are active and may be the cause of any new or sudden issues:<br>"
 		message += GLOB.revdata.GetTestMergeInfo(FALSE)
 
-	if(tgui_alert(src, message, "Report Issue", DEFAULT_INPUT_CHOICES) != CHOICE_YES)
+	if(browser_alert(src, message, "Report Issue", DEFAULT_INPUT_CHOICES) != CHOICE_YES)
 		return
 
 	// Keep a static version of the template to avoid reading file
@@ -223,37 +223,13 @@
 /client/verb/set_stretch()
 	set name = "IconScaling"
 	set category = "Preferences.Options"
-	if(prefs)
-		if(prefs.crt == TRUE)
-			to_chat(src, "CRT mode is on.")
-			winset(src, "mapwindow.map", "zoom-mode=blur")
-			return
+
 	if(winget(src, "mapwindow.map", "zoom-mode") == "normal")
 		to_chat(src, "Pixel-perfect... OK")
 		winset(src, "mapwindow.map", "zoom-mode=distort")
 	else
 		to_chat(src, "Anti-aliased... OK")
 		winset(src, "mapwindow.map", "zoom-mode=normal")
-
-/client/verb/crtmode()
-	set category = "Preferences.Options"
-	set name = "ToggleCRT"
-	if(!prefs)
-		return
-	if(prefs.crt == TRUE)
-		winset(src, "mapwindow.map", "zoom-mode=normal")
-		prefs.crt = FALSE
-		prefs.save_preferences()
-		to_chat(src, "CRT... OFF")
-		for(var/atom/movable/screen/scannies/S in screen)
-			S.alpha = 0
-	else
-		winset(src, "mapwindow.map", "zoom-mode=blur")
-		prefs.crt = TRUE
-		prefs.save_preferences()
-		to_chat(src, "CRT... ON")
-		for(var/atom/movable/screen/scannies/S in screen)
-			S.alpha = 70
 
 /client/verb/ui_scaling()
 	set name = "UI Scaling"
