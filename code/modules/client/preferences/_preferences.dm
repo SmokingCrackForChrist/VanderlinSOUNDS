@@ -55,6 +55,7 @@ GLOBAL_LIST_INIT(name_adjustments, list())
 	var/toggles = TOGGLES_DEFAULT
 	var/chat_toggles = TOGGLES_DEFAULT_CHAT
 	var/toggles_maptext = NONE
+	var/toggles_gameplay = NONE
 	var/ghost_form = "ghost"
 	var/ghost_orbit = GHOST_ORBIT_CIRCLE
 	var/ghost_accs = GHOST_ACCS_DEFAULT_OPTION
@@ -107,7 +108,7 @@ GLOBAL_LIST_INIT(name_adjustments, list())
 	var/socks = "Nude"
 
 	/// Skin color.
-	var/skin_tone = "caucasian1"
+	var/skin_tone = SKIN_COLOR_CONTINENTAL
 
 	/// Eye color.
 	var/eye_color = "000"
@@ -253,6 +254,20 @@ GLOBAL_LIST_INIT(name_adjustments, list())
 	/// culture datum type
 	var/datum/culture/culture = /datum/culture/universal/ambiguous
 
+	/// Typepath strings the player has permanently purchased (persisted)
+	var/list/owned_loadout_items = list()
+	/// Up to 3 equipped slots (typepath strings); must be in owned_loadout_items
+	/// to survive validate_loadouts(). Persisted.
+	var/list/equipped_loadout = list()
+	/// Single-round rentals queued for this spawn only. NOT persisted.
+	var/list/single_round_loadout = list()
+
+	var/list/equipped_loadout_colors = list()
+	var/list/single_round_loadout_colors = list()
+
+	var/list/owned_tickets = list() // list of /datum/ticket subtypes
+	var/list/ticket_history = list() // list of assoc lists
+
 /datum/preferences/New(client/C)
 	parent = C
 
@@ -287,7 +302,7 @@ GLOBAL_LIST_INIT(name_adjustments, list())
 	//we couldn't load character data so just randomize the character appearance + name
 	randomise_appearance_prefs(include_donator = donator)		//let's create a random character then - rather than a fat, bald and naked man.
 	if(!selected_patron)
-		selected_patron = GLOB.patrons_by_type[default_patron]
+		selected_patron = default_patron
 	key_bindings = deepCopyList(GLOB.hotkey_keybinding_list_by_key) // give them default keybinds and update their movement keys
 	if(isclient(C))
 		C.update_movement_keys()
@@ -623,7 +638,7 @@ GLOBAL_LIST_INIT(name_adjustments, list())
 	</div>
 	<div class="sprite" style="top:30px; left:172px; width:42px; height:9px; background-image: url('header_patron.png');">
 		<a href='?_src_=prefs;preference=patron;task=input' style="text-decoration: none; display: block; width: 100%; height: 100%;">
-			<div id="char-patron" class="clickable-text auto-shrink" style="width:42px; height:9px;">[selected_patron.name]</div>
+			<div id="char-patron" class="clickable-text auto-shrink" style="width:42px; height:9px;">[selected_patron::name]</div>
 		</a>
 	</div>
 	<div class="sprite" style="top:30px; left:220px; width:31px; height:9px; background-image: url('header_pq.png');">
@@ -740,7 +755,7 @@ GLOBAL_LIST_INIT(name_adjustments, list())
 	if(!winexists(user, "preferences_browser"))
 		return
 
-	var/datum/faith/selected_faith = GLOB.faith_list[selected_patron.associated_faith]
+	var/datum/faith/selected_faith = GLOB.faith_list[selected_patron::associated_faith]
 	var/datum/job/high_job
 	for(var/job_type in job_preferences)
 		if(job_preferences[job_type] != JP_HIGH)
@@ -762,7 +777,7 @@ GLOBAL_LIST_INIT(name_adjustments, list())
 	if(update_all || ("species" in fields_to_update))
 		params["species"] = pref_species.name
 	if(update_all || ("patron" in fields_to_update))
-		params["patron"] = selected_patron.name
+		params["patron"] = selected_patron::name
 	if(update_all || ("pq" in fields_to_update))
 		params["pq"] = get_playerquality(user.ckey, text = TRUE)
 	if(update_all || ("age" in fields_to_update))
@@ -784,11 +799,17 @@ GLOBAL_LIST_INIT(name_adjustments, list())
 	if(update_all || ("accent" in fields_to_update))
 		params["accent"] = selected_accent
 	if(update_all || ("loadout1" in fields_to_update))
-		params["loadout1"] = loadout1 ? loadout1.name : "None"
+		var/loadout1_str = _get_loadout_slot(1)
+		var/datum/loadout_item/loadout1_item = loadout1_str ? GLOB.loadout_items[text2path(loadout1_str)] : null
+		params["loadout1"] = loadout1_item ? loadout1_item.name : "None"
 	if(update_all || ("loadout2" in fields_to_update))
-		params["loadout2"] = loadout2 ? loadout2.name : "None"
+		var/loadout2_str = _get_loadout_slot(2)
+		var/datum/loadout_item/loadout2_item = loadout2_str ? GLOB.loadout_items[text2path(loadout2_str)] : null
+		params["loadout2"] = loadout2_item ? loadout2_item.name : "None"
 	if(update_all || ("loadout3" in fields_to_update))
-		params["loadout3"] = loadout3 ? loadout3.name : "None"
+		var/loadout3_str = _get_loadout_slot(3)
+		var/datum/loadout_item/loadout3_item = loadout3_str ? GLOB.loadout_items[text2path(loadout3_str)] : null
+		params["loadout3"] = loadout3_item ? loadout3_item.name : "None"
 	if(update_all || ("triumphs" in fields_to_update))
 		params["triumphs"] = user.get_triumphs() ? "\Roman [user.get_triumphs()]" : "0"
 	if(update_all || ("headshot" in fields_to_update))
@@ -804,6 +825,13 @@ GLOBAL_LIST_INIT(name_adjustments, list())
 	user << output(list2params(params), "preferences_browser:updateCharacterData")
 	update_preview_icon()
 
+/datum/preferences/proc/_get_loadout_slot(slot)
+    if(length(equipped_loadout) >= slot)
+        return equipped_loadout[slot]
+    var/rent_idx = slot - length(equipped_loadout)
+    if(rent_idx >= 1 && rent_idx <= length(single_round_loadout))
+        return single_round_loadout[rent_idx]
+    return null
 
 /datum/preferences/proc/set_ui_theme(new_theme)
 	if(new_theme in list("dusty", "grimshart", "paper", "parchment"))
@@ -814,7 +842,7 @@ GLOBAL_LIST_INIT(name_adjustments, list())
 #undef APPEARANCE_CATEGORY_COLUMN
 #undef MAX_MUTANT_ROWS
 
-/datum/preferences/proc/set_choices(mob/user, limit = 15, list/splitJobs = list("Captain", "Priest", "Merchant", "Butler", "Village Elder"), widthPerColumn = 400, height = 620)
+/datum/preferences/proc/set_choices(mob/user, limit = 15, list/splitJobs = list(JOB_GUARD_CAPTAIN, JOB_PRIEST, JOB_MERCHANT, JOB_BUTLER, "Village Elder"), widthPerColumn = 400, height = 620)
 	if(!SSjob)
 		return
 
@@ -951,6 +979,7 @@ GLOBAL_LIST_INIT(name_adjustments, list())
 			var/list/omegalist = list(
 				GLOB.noble_courthand_positions,
 				GLOB.garrison_positions,
+				GLOB.gallowband_positions,
 				GLOB.church_positions,
 				GLOB.peasant_positions,
 				GLOB.apprentices_positions,
@@ -990,6 +1019,8 @@ GLOBAL_LIST_INIT(name_adjustments, list())
 						cat_name = "Nobles"
 					if(GARRISON)
 						cat_name = "Garrison"
+					if(GALLOWBAND)
+						cat_name = "Gallowband"
 					if(SERFS)
 						cat_name = "Yeomanry"
 					if(CHURCHMEN)
@@ -1027,10 +1058,6 @@ GLOBAL_LIST_INIT(name_adjustments, list())
 						var/available_in_days = job.available_in_days(user.client)
 						category_html += "[used_name]</td><td><font color=red> \[IN [(available_in_days)] DAYS\]</font></td></tr>"
 						continue
-					if(CONFIG_GET(flag/usewhitelist))
-						if(job.whitelist_req && (!user.client.whitelisted()))
-							category_html += "<font color=#6183a5>[used_name]</font></td><td> </td></tr>"
-							continue
 					var/lock_html = get_job_lock_html(job, user, used_name)
 					if(lock_html)
 						category_html += lock_html
@@ -1496,7 +1523,8 @@ GLOBAL_LIST_INIT(name_adjustments, list())
 	else if(href_list["preference"] == "toggles")
 		var/list/toggles_list = list(
 			"Default Toggles" = list("toggles_default", toggles),
-			"Maptext Toggles" = list("toggles_maptext", toggles_maptext)
+			"Maptext Toggles" = list("toggles_maptext", toggles_maptext),
+			"Gameplay Toggles" = list("toggles_gameplay", toggles_gameplay),
 		)
 		var/toggle_type = browser_input_list(user, title = "Toggle Select", items = toggles_list)
 		if(!toggle_type)
@@ -1506,26 +1534,29 @@ GLOBAL_LIST_INIT(name_adjustments, list())
 		var/prefs_variable = toggles_data[2]
 		var/new_toggles = input_bitfield(user, toggle_type, bitfield, prefs_variable, nheight = 500)
 		if(!isnull(new_toggles))
-			if(toggle_type == "Default Toggles")
-				// Reset all fields we touch to 0 first because we don't use a full set to do toggles = X
-				// And don't want to override them
-				for(var/field in GLOB.bitfields[bitfield])
-					toggles &= ~GLOB.bitfields[bitfield][field]
-				toggles ^= new_toggles
-				if((prefs_variable & SOUND_LOBBY) && user.client && isnewplayer(user))
-					user.client.playtitlemusic()
-				else
-					user.stop_sound_channel(CHANNEL_LOBBYMUSIC)
+			switch(toggle_type)
+				if("Default Toggles")
+					// Reset all fields we touch to 0 first because we don't use a full set to do toggles = X
+					// And don't want to override them
+					for(var/field in GLOB.bitfields[bitfield])
+						toggles &= ~GLOB.bitfields[bitfield][field]
+					toggles ^= new_toggles
+					if((prefs_variable & SOUND_LOBBY) && user.client && isnewplayer(user))
+						user.client.playtitlemusic()
+					else
+						user.stop_sound_channel(CHANNEL_LOBBYMUSIC)
 
-				if((prefs_variable & SOUND_SHIP_AMBIENCE) && user.client && !isnewplayer(user))
-					user.refresh_looping_ambience()
-				else
-					user.cancel_looping_ambience()
+					if((prefs_variable & SOUND_SHIP_AMBIENCE) && user.client && !isnewplayer(user))
+						user.refresh_looping_ambience()
+					else
+						user.cancel_looping_ambience()
 
-				user.client?.update_ambience_pref()
+					user.client?.update_ambience_pref()
+				if("Maptext Toggles")
+					toggles_maptext = new_toggles
 
-			else if(toggle_type == "Maptext Toggles")
-				toggles_maptext = new_toggles
+				if("Gameplay Toggles")
+					toggles_gameplay = new_toggles
 
 	switch(href_list["task"])
 		if("change_customizer")
@@ -1627,35 +1658,35 @@ GLOBAL_LIST_INIT(name_adjustments, list())
 						if(!faith.preference_accessible(src))
 							continue
 						faiths_named["\The [faith.name]"] = faith
-					var/faith_input = browser_input_list(user, "SELECT YOUR HERO'S BELIEF", "PUPPETS ON STRINGS", faiths_named, "\The [selected_patron.associated_faith::name]")
+					var/faith_input = browser_input_list(user, "SELECT YOUR HERO'S BELIEF", "PUPPETS ON STRINGS", faiths_named, "\The [selected_patron::associated_faith::name]")
 					if(faith_input)
 						var/datum/faith/faith = faiths_named[faith_input]
 						to_chat(user, "<font color='purple'>Faith: [faith.name]</font>")
 						to_chat(user, "<font color='purple'>Background: [faith.desc]</font>")
-						selected_patron = GLOB.patrons_by_type[faith.godhead] || GLOB.patrons_by_type[pick(GLOB.patrons_by_faith[faith.type])]
+						selected_patron = faith.godhead || pick(GLOB.patrons_by_faith[faith.type])
 
 				if("patron")
 					var/list/patrons_named = list()
-					for(var/datum/patron/patron as anything in GLOB.patrons_by_faith[selected_patron.associated_faith || initial(default_patron.associated_faith)])
-						patron = GLOB.patrons_by_type[patron]
+					for(var/datum/patron/patron as anything in GLOB.patrons_by_faith[selected_patron::associated_faith || default_patron::associated_faith])
+						patron = GLOB.patron_list[patron]
 						if(!patron.preference_accessible(src))
 							continue
 						var/pref_name = patron.display_name ? patron.display_name : patron.name
-						patrons_named[pref_name] = patron
+						patrons_named[pref_name] = patron.type
 
 					if(length(patrons_named))
-						var/datum/faith/current_faith = GLOB.faith_list[selected_patron.associated_faith] || GLOB.faith_list[initial(default_patron.associated_faith)]
+						var/datum/faith/current_faith = GLOB.faith_list[selected_patron::associated_faith] || GLOB.faith_list[default_patron::associated_faith]
 						var/god_input = browser_input_list(user, "SELECT YOUR HERO'S PATRON GOD", uppertext("\The [current_faith.name]"), patrons_named, selected_patron)
 						if(god_input)
 							selected_patron = patrons_named[god_input]
 
-					to_chat(user, "<font color='purple'>Patron: [selected_patron]</font>")
-					to_chat(user, "<font color='purple'>Domain: [selected_patron.domain]</font>")
-					to_chat(user, "<font color='purple'>Background: [selected_patron.desc]</font>")
-					to_chat(user, "<font color='purple'>Flawed aspects: [selected_patron.flaws]</font>")
-					to_chat(user, "<font color='purple'>Likely Worshippers: [selected_patron.worshippers]</font>")
-					to_chat(user, "<font color='red'>Considers these to be Sins: [selected_patron.sins]</font>")
-					to_chat(user, "<font color='white'>Blessed with boon(s): [selected_patron.boons]</font>")
+					to_chat(user, "<font color='purple'>Patron: [selected_patron::name]</font>")
+					to_chat(user, "<font color='purple'>Domain: [selected_patron::domain]</font>")
+					to_chat(user, "<font color='purple'>Background: [selected_patron::desc]</font>")
+					to_chat(user, "<font color='purple'>Flawed aspects: [selected_patron::flaws]</font>")
+					to_chat(user, "<font color='purple'>Likely Worshippers: [selected_patron::worshippers]</font>")
+					to_chat(user, "<font color='red'>Considers these to be Sins: [selected_patron::sins]</font>")
+					to_chat(user, "<font color='white'>Blessed with boon(s): [selected_patron::boons]</font>")
 
 				if("voice")
 					var/new_voice = input(user, "SELECT YOUR HERO'S VOICE COLOR", "THE THROAT","#"+voice_color) as color|null
@@ -1663,7 +1694,7 @@ GLOBAL_LIST_INIT(name_adjustments, list())
 						if(color_hex2num(new_voice) < 230)
 							to_chat(user, "<font color='red'>This voice color is too dark for mortals.</font>")
 							return
-						voice_color = sanitize_hexcolor(new_voice)
+						voice_color = sanitize_hexcolor(new_voice, include_crunch = FALSE)
 
 				if("headshot")
 					if(!donator)
@@ -1701,39 +1732,7 @@ GLOBAL_LIST_INIT(name_adjustments, list())
 					popup.set_content(dat.Join())
 					popup.open(use_onclose = FALSE)
 				if("loadout_item")
-					var/list/loadouts_available = list("None" = null)
-					for(var/datum/loadout_item/item as anything in GLOB.loadout_items)
-						var/datum/loadout_item/singleton = GLOB.loadout_items[item]
-						if(singleton.is_unlocked_for(user.client))
-							loadouts_available[item.name] = item
-						else
-							// Show it but greyed out with a hint, so players know it exists
-							var/datum/award/A = SSachievements.awards[item.required_award]
-							var/locked_name = "\[Locked\] [item.name]"
-							if(A?.name)
-								locked_name += " (Requires: [A.name]"
-								// Show progress for progress-type awards
-								if(istype(A, /datum/award/achievement/progress))
-									locked_name += " - [user.client.player_details.achievements.get_progress_string(item.required_award)]"
-								locked_name += ")"
-							loadouts_available[locked_name] = null // Maps to null so set_loadout gets nothing if somehow selected
-					var/loadout_input = browser_input_list(
-						user,
-						"Choose your character's loadout item. RMB a tree, statue or clock to collect.",
-						"Loadout",
-						loadouts_available,
-					)
-					var/loadout_number = href_list["loadout_number"]
-					// Re-validate on submission in case of href manipulation
-					var/datum/loadout_item/chosen = loadouts_available[loadout_input]
-					var/datum/loadout_item/chosen_singleton = GLOB.loadout_items[chosen]
-					if(!chosen || !chosen_singleton)
-						to_chat(user, span_warning("Error selecting [loadout_input] for loadout."))
-						return
-					if(!chosen_singleton.is_unlocked_for(user.client))
-						to_chat(user, span_warning("You haven't unlocked that loadout item yet."))
-						return
-					set_loadout(user, loadout_number, chosen)
+					open_loadout_shop(user)
 
 				if("species")
 					selected_accent = ACCENT_DEFAULT
@@ -1912,12 +1911,12 @@ GLOBAL_LIST_INIT(name_adjustments, list())
 				if("ooccolor")
 					var/new_ooccolor = input(user, "Choose your OOC colour:", "Game Preference", ooccolor) as color|null
 					if(new_ooccolor)
-						ooccolor = sanitize_ooccolor(new_ooccolor)
+						ooccolor = sanitize_color(new_ooccolor)
 
 				if("asaycolor")
 					var/new_asaycolor = input(user, "Choose your ASAY color:", "Game Preference", asaycolor) as color|null
 					if(new_asaycolor)
-						asaycolor = sanitize_ooccolor(new_asaycolor)
+						asaycolor = sanitize_color(new_asaycolor)
 				if ("clientfps")
 					var/desiredfps = input(user, "Choose your desired fps. (0 = synced with server tick rate (currently:[world.fps]))", "Character Preference", clientfps)  as null|num
 					if (!isnull(desiredfps))
@@ -1967,29 +1966,7 @@ GLOBAL_LIST_INIT(name_adjustments, list())
 					else
 						domhand = 1
 				if("bespecial")
-					if(next_special_trait)
-						print_special_text(user, next_special_trait)
-						return
-					to_chat(user, span_boldwarning("You will become special for one round, this could be something negative, positive or neutral and could have a high impact on your character and your experience. You cannot back out from or reroll this, and it will not carry over to other rounds."))
-					if(!donator)
-						to_chat(user, span_boldwarning("THIS COSTS 1 TRIUMPH"))
-						if(user.get_triumphs() < 1)
-							to_chat(user, span_bignotice("YOU DON'T HAVE ENOUGH TRIUMPHS."))
-							return
-					var/result = tgui_alert(user, "You'll receive a unique trait for one round\n You cannot back out from or reroll this.\nDo you really wish to [donator ? "" : "spend 1 triumph and " ]proceed?", "Be Special", list("Yes", "No"))
-					if(result != "Yes")
-						return
-					if(!donator)
-						user.adjust_triumphs(-1)
-					if(next_special_trait)
-						return
-					next_special_trait = roll_random_special(user.client)
-					if(next_special_trait)
-						log_game("SPECIALS: Rolled [next_special_trait] for ckey: [user.ckey]")
-						print_special_text(user, next_special_trait)
-						user.playsound_local(user, 'sound/misc/alert.ogg', 100)
-						to_chat(user, span_warning("This will be applied on your next game join."))
-						to_chat(user, span_warning("You may switch your character and choose any role, if you don't meet the requirements (if any are specified) it won't be applied"))
+					open_loadout_shop(user)
 
 				if("family")
 					var/list/famtree_options_list = list(FAMILY_NONE, FAMILY_PARTIAL, FAMILY_NEWLYWED, FAMILY_FULL, "EXPLAIN THIS TO ME")
@@ -2189,8 +2166,6 @@ GLOBAL_LIST_INIT(name_adjustments, list())
 					user << browse(null, "window=mob_occupation")
 					user << browse(null, "window=latechoices") //closes late job selection
 					user << browse(null, "window=migration") // Closes migrant menu
-
-					SStriumphs.remove_triumph_buy_menu(user.client)
 
 					winshow(user, "stonekeep_prefwin", FALSE)
 					user << browse(null, "window=preferences_browser")
@@ -2532,6 +2507,13 @@ GLOBAL_LIST_INIT(name_adjustments, list())
 			"<b>This role has been whitelisted by staff for event purposes.</b>"
 		)
 
+	if(job.job_flags & JOB_REQUIRE_WHITELIST && !user.client?.is_whitelisted(initial(job.title)))
+		return make_lock_row(
+			used_name,
+			"\[WHITELISTED\]",
+			"<b>This role has been whitelisted.</b>"
+		)
+
 	if(job.required_playtime_remaining(user.client))
 		var/list/lines = list()
 		for(var/t in job.exp_requirements)
@@ -2574,12 +2556,10 @@ GLOBAL_LIST_INIT(name_adjustments, list())
 			"<b>Sexes Needed:</b><br>[sexes_text]"
 		)
 
-	if(length(job.allowed_patrons) && !(user.client.prefs.selected_patron.type in job.allowed_patrons))
+	if(length(job.allowed_patrons) && !(user.client.prefs.selected_patron in job.allowed_patrons))
 		var/list/patron_list = list()
-		for(var/mult_patron in job.allowed_patrons)
-			var/datum/patron/P = new mult_patron
-			patron_list += (P.display_name ? P.display_name : P.name)
-			qdel(P)
+		for(var/datum/patron/mult_patron as anything in job.allowed_patrons)
+			patron_list += mult_patron::display_name || mult_patron::name
 		var/patron_text = jointext(patron_list, ", ")
 
 		return make_lock_row(
@@ -2588,7 +2568,7 @@ GLOBAL_LIST_INIT(name_adjustments, list())
 			"<b>Patron Needed:</b><br>[patron_text]"
 		)
 
-	if(length(job.banned_patrons) && (user.client.prefs.selected_patron.type in job.banned_patrons))
+	if(length(job.banned_patrons) && (user.client.prefs.selected_patron in job.banned_patrons))
 		var/list/patron_list = list()
 		for(var/mult_patron in job.banned_patrons)
 			var/datum/patron/P = new mult_patron
