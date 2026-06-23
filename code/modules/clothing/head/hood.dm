@@ -62,6 +62,11 @@
 /obj/item/clothing/head/roguehood/colored/red
 	color = CLOTHING_BLOOD_RED
 
+/obj/item/clothing/head/roguehood/colored/red/pyromaniac
+	color = CLOTHING_BLOOD_RED
+	resistance_flags = FIRE_PROOF
+	desc = "This hood has undergone so many fires that you can tell it no longer wishes to burn. It is tired."
+
 /obj/item/clothing/head/roguehood/colored/black
 	color = CLOTHING_SOOT_BLACK
 
