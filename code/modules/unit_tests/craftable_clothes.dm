@@ -79,6 +79,10 @@ abstract types are automatically excluded.
 		/obj/item/clothing/shirt/robe/hag,
 		/obj/item/clothing/armor/leather/splint/pyromaniac,
 		/obj/item/clothing/head/roguehood/colored/red/pyromaniac,
+		/obj/item/clothing/face/facemask/pyromaniac,
+		/obj/item/clothing/pants/trou/leather/pyromaniac,
+		/obj/item/clothing/armor/gambeson/heavy/pyromaniac,
+		/obj/item/clothing/gloves/leather/pyromaniac,
 
 		/obj/item/clothing/head/helmet/heavy/dwarven,
 		/obj/item/clothing/head/helmet/heavy/dwarven/smith,

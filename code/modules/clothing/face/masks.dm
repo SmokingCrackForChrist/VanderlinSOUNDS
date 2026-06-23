@@ -48,6 +48,13 @@
 	material_category = ARMOR_MAT_PLATE
 	item_weight = 1.2 KILOGRAMS
 
+/obj/item/clothing/face/facemask/pyromaniac
+	name = "insulated iron mask"
+	icon_state = "imaskjaw"
+	desc = "An iron mask that covers everything but the mouth. Notably, the interior has been heavily padded with imported Zalamander-skin, along with the eyes having goggles sealed against the ports."
+	resistance_flags = FIRE_PROOF
+	armor = list("blunt" = 50, "slash" = 70, "stab" = 70, "piercing" = 50, "fire" = 100, "acid" = 10)
+
 /obj/item/clothing/face/facemask/goldnosechain
 	name = "gold nosechain"
 	icon_state = "nosechain_g"

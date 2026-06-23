@@ -267,6 +267,24 @@
 	effectedstats = list(STAT_SPEED = 4, STAT_ENDURANCE = 2, STAT_CONSTITUTION = 2) // Meant as a 'GET THE FUCK OUT' spell.
 	duration = 2 MINUTES
 
+/datum/status_effect/buff/pyrojoy
+	id = "pyromania"
+	alert_type = /atom/movable/screen/alert/status_effect/buff/pyrojoy
+	duration = 2 MINUTES
+
+/atom/movable/screen/alert/status_effect/buff/pyrojoy
+	name = "Joy!"
+	desc = span_nicegreen("Unbothered. Happy. In my lane. Focused. Fluorishing.")
+	icon_state = "bestialsense"
+
+/datum/status_effect/buff/pyrojoy/on_apply()
+	. = ..()
+	owner.add_stress(/datum/stress_event/pyrojoystress)
+
+/datum/status_effect/buff/pyrojoy/on_remove()
+	. = ..()
+	owner.remove_stress(/datum/stress_event/pyrojoystress)
+
 /atom/movable/screen/alert/status_effect/buff/barbrage
 	name = "Barbaric Rage"
 	desc = span_nicegreen("WITNESS ME!")

@@ -1,6 +1,7 @@
 /datum/attribute_holder/sheet/job/pyromaniac
 	raw_attribute_list = list(
-		STAT_ENDURANCE = 3,
+		STAT_ENDURANCE = 2,
+		STAT_STRENGTH = 1,
 		STAT_CONSTITUTION = 3,
 		STAT_INTELLIGENCE = 3,
 		/datum/attribute/skill/combat/crossbows = 30,
@@ -35,11 +36,13 @@
 	traits = list(
 		TRAIT_MEDIUMARMOR,
 		TRAIT_FORAGER,
+		TRAIT_BEAUTIFUL,
 		TRAIT_NOPAINSTUN
 	)
 
 	spells = list(
-		/datum/action/cooldown/spell/enchantment/singingblade
+		/datum/action/cooldown/spell/enchantment/singingblade,
+		/datum/action/cooldown/spell/undirected/joy
 	)
 
 /datum/job/advclass/wretch/pyromaniac/on_roundstart(mob/living/carbon/human/spawned, client/player_client)
@@ -69,18 +72,19 @@
 /datum/outfit/wretch/pyromaniac
 	name = "Pyromaniac (Wretch)"
 	head = /obj/item/clothing/head/roguehood/colored/red/pyromaniac
-	mask = /obj/item/clothing/face/facemask
+	mask = /obj/item/clothing/face/facemask/pyromaniac
 	neck = /obj/item/clothing/neck/chaincoif/iron
-	pants = /obj/item/clothing/pants/trou/leather
+	pants = /obj/item/clothing/pants/trou/leather/pyromaniac
 	armor = /obj/item/clothing/armor/leather/splint/pyromaniac
-	shirt = /obj/item/clothing/armor/chainmail
+	shirt = /obj/item/clothing/armor/gambeson/heavy/pyromaniac
 	backl = /obj/item/storage/backpack/satchel
 	belt = /obj/item/storage/belt/leather/black
-	gloves = /obj/item/clothing/gloves/plate
+	gloves = /obj/item/clothing/gloves/leather/pyromaniac
 	shoes = /obj/item/clothing/shoes/boots/armor
 	r_hand = /obj/item/explosive/bottle
 	l_hand = /obj/item/explosive/bottle
 	cloak = /obj/item/clothing/cloak/raincloak/furcloak/colored
+	mouth = /obj/item/clothing/face/cigarette/rollie/nicotine/zigar
 	backpack_contents = list(
 		/obj/item/explosive/bottle = 2,
 		/obj/item/weapon/knife/hunting = 1,

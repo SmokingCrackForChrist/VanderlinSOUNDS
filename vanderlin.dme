@@ -4047,6 +4047,7 @@
 #include "code\modules\spells\spell_types\undirected\hags_call.dm"
 #include "code\modules\spells\spell_types\undirected\hunters_grace.dm"
 #include "code\modules\spells\spell_types\undirected\joke.dm"
+#include "code\modules\spells\spell_types\undirected\joy.dm"
 #include "code\modules\spells\spell_types\undirected\locate_dead.dm"
 #include "code\modules\spells\spell_types\undirected\longstrider.dm"
 #include "code\modules\spells\spell_types\undirected\mansion_portal.dm"
