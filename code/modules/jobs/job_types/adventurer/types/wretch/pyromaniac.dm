@@ -23,7 +23,7 @@
 
 /datum/job/advclass/wretch/pyromaniac
 	title = "Pyromaniac"
-	tutorial = "You have been baptized twice - once in water, once in fire. In your rage and with your hubris, you wield your own personal vendetta against the chaotic forces within Faience - wrath comes for them. Your body is fuel, and your fingers are your wicks. THERE IS POWER IN PAIN!"
+	tutorial = "You have been baptized twice - once in water, once in flame. In your rage and hubris, you wield your own personal vendetta against the chaotic forces within Faience - wrath comes for them. Your body is fuel, and your fingers wicks. There is power in pain!"
 	allowed_sexes = list(MALE, FEMALE)
 	allowed_races = RACES_PLAYER_ALL
 	outfit = /datum/outfit/wretch/pyromaniac
