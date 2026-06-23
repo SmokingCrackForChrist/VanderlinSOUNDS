@@ -77,6 +77,8 @@ abstract types are automatically excluded.
 		/obj/item/clothing/neck/gorget/gold/king,
 		/obj/item/clothing/head/helmet/visored/gold/king,
 		/obj/item/clothing/shirt/robe/hag,
+		/obj/item/clothing/armor/leather/splint/pyromaniac,
+		/obj/item/clothing/head/roguehood/colored/red/pyromaniac,
 
 		/obj/item/clothing/head/helmet/heavy/dwarven,
 		/obj/item/clothing/head/helmet/heavy/dwarven/smith,
