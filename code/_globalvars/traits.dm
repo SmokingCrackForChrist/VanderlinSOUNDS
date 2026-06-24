@@ -346,6 +346,7 @@ GLOBAL_LIST_INIT(roguetraits, list(
 	TRAIT_COIN_ILLITERATE = span_info("I care little for the concept of coins and prefer to barter via other means."),
 	TRAIT_LUCKY_COOK = span_info("Xylix smiles upon my cooking, I often end up with impossible amounts of extra goods..."),
 	TRAIT_ABOMINATION = span_info("I am an abomination, others will recognise me for what I am"),
+	TRAIT_STUD = span_info ("I am a stud. I am ballsy. I do not take shit from anybody. I smoke my Ztogies anywhere I want. I do not have to find a hideout place, like YOU."),
 ))
 
 /// value -> trait name, generated on use from trait_by_type global

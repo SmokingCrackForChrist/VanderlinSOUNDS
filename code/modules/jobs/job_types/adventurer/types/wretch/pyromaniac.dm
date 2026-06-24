@@ -24,7 +24,13 @@
 
 /datum/job/advclass/wretch/pyromaniac
 	title = "Pyromaniac"
-	tutorial = "You have been baptized twice - once in water, once in flame. In your rage and hubris, you wield your own personal vendetta against the chaotic forces within Faience - wrath comes for them. Your body is fuel, and your fingers wicks. There is power in pain!"
+	tutorial = "They said you reveled in punishment far too much, that you dared to lie and claim that you sought to harm, not cleanse! \
+	They cast you out, they told you to find Astrata elsewhere... That the miracles you preform are child's play... FOOLS! YOUR control of \
+	fire is better than them! Only YOU can suffer the smoke of a smouldering heretic! This world is naught meant for 'good and evil', only WRATH! \
+	SHOW them what it means to be cleansed of sin! SHOW them the might of a TRUE sun-fearing stud! You are NOT a Zealot, Zealots provide no compromise! \
+	They would never ramble on-and-on about their cause! For YOURS is the TRUTH! YOU are her HOLY FURY, and you would NEVER stoop so low as to blindly bend \
+	the words of THE ULTIMATE JUDGE for your SICK FANTASIES. This is NOT a game! This is the truth! \
+	SHOW THEM THAT THERE IS POWER IN PAIN! SHOW THEM WHAT A TRUE ZEALOT CAN DO!" // The 'Mania' in Pyromania really means something here.
 	allowed_sexes = list(MALE, FEMALE)
 	allowed_races = RACES_PLAYER_ALL
 	outfit = /datum/outfit/wretch/pyromaniac
@@ -37,12 +43,45 @@
 		TRAIT_MEDIUMARMOR,
 		TRAIT_FORAGER,
 		TRAIT_BEAUTIFUL,
+		TRAIT_STUD,
 		TRAIT_NOPAINSTUN
 	)
 
 	spells = list(
 		/datum/action/cooldown/spell/enchantment/singingblade,
 		/datum/action/cooldown/spell/undirected/joy
+	)
+
+	honoraries = list(
+ 		"the Arsonist" = HONORARY_SUFFIX,
+ 		"the Firebug" = HONORARY_SUFFIX,
+ 		"the Insane" = HONORARY_SUFFIX,
+ 		"Firestarter" = HONORARY_PREFIX,
+ 		"Pious" = HONORARY_PREFIX,
+ 		"of Astrata" = HONORARY_SUFFIX,
+ 		"the Cook" = HONORARY_SUFFIX,
+ 		"the Trailblazer" = HONORARY_SUFFIX,
+ 		"the Wildfire" = HONORARY_SUFFIX,
+ 		"the Judge" = HONORARY_SUFFIX,
+ 		"Judge" = HONORARY_PREFIX,
+ 		"of Sound Mind" = HONORARY_SUFFIX,
+ 		"Sin-Eater" = HONORARY_PREFIX,
+ 		"the Cleaner" = HONORARY_SUFFIX,
+		"the Zealot" = HONORARY_SUFFIX,
+		"the Creature ov Deception" = HONORARY_SUFFIX,
+		"Ztogie Chomping" = HONORARY_PREFIX,
+		"the Kind" = HONORARY_SUFFIX,
+		"the Burning One" = HONORARY_SUFFIX,
+		"the Hammer of Astrata" = HONORARY_SUFFIX,
+		", Astrata's Reject" = HONORARY_SUFFIX,
+		", Borne of Fire" = HONORARY_SUFFIX,
+		"Immolated" = HONORARY_PREFIX,
+		"the Immolator" = HONORARY_SUFFIX,
+		"Well-Done" = HONORARY_PREFIX,
+		"Venator" = HONORARY_PREFIX,
+		"the Consecrator" = HONORARY_SUFFIX,
+		", Ira Domini" = HONORARY_SUFFIX,
+		"borne of Wrath" = HONORARY_SUFFIX,
 	)
 
 /datum/job/advclass/wretch/pyromaniac/on_roundstart(mob/living/carbon/human/spawned, client/player_client)
@@ -72,7 +111,7 @@
 /datum/outfit/wretch/pyromaniac
 	name = "Pyromaniac (Wretch)"
 	head = /obj/item/clothing/head/roguehood/colored/red/pyromaniac
-	mask = /obj/item/clothing/face/facemask/pyromaniac
+	mask = /obj/item/clothing/face/pyromaniac
 	neck = /obj/item/clothing/neck/chaincoif/iron
 	pants = /obj/item/clothing/pants/trou/leather/pyromaniac
 	armor = /obj/item/clothing/armor/leather/splint/pyromaniac
@@ -94,3 +133,27 @@
 		/obj/item/storage/fancy/cigarettes/tinzig = 1,
 		/obj/item/reagent_containers/glass/bottle/stronghealthpot = 1,
 	)
+
+/datum/job/advclass/wretch/pyromaniac/after_spawn(mob/living/carbon/human/spawned, client/player_client)
+	. = ..()
+	spawned.set_patron(/datum/patron/divine/astrata, TRUE)
+//	var/mob/living/carbon/human/stud = spawned
+	to_chat(spawned, span_green("I'm a Stud! I'm ballsy! I'm better than everyone else! Especially since I'm the only mortal being who is always objectively correct!"))
+
+///datum/job/advclass/wretch/pyromaniac/proc/on_examine(mob/living/carbon/human/stud, mob/living/carbon/human/user, list/examine_list)
+//	if(!istype(stud) || !istype(user))
+//		return
+//	if(stud == user)
+//		return
+//	if(HAS_TRAIT(user, TRAIT_APRICITY))
+//		examine_list += span_boldred("That's not a Priest.")
+//	else if(is_priest_job(user.mind?.assigned_role))
+//		examine_list += SPAN_GOD_ASTRATA("A VOLF IN SHEEPS GARBS! A psychopath who bends Astrata's will for pleasure and pain!")
+//	else if(user.mind?.has_antag_datum(/datum/antagonist/maniac))
+//		examine_list += span_green("What a STUD!")
+//	else if(HAS_TRAIT(user, TRAIT_CRACKHEAD))
+//		examine_list += span_green("That one REALLY knows how to have a good time!")
+//	else if(HAS_TRAIT(user, TRAIT_STUD))
+//		examine_list += span_green("Looking Good! Sssmokin'!")
+
+// Can't get all of this stuff to work! Oh well, fix it another time.

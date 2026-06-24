@@ -250,13 +250,12 @@
 //................ Pyromaniac Spear ............... //
 /obj/item/weapon/polearm/spear/pyromanicspear
 	name = "arsonist's brand"
-	desc = "A fire that burns twice as bright lasts half as long, and yet this one refuses to be snuffed out. Something is terribly wrong."
 	icon = 'icons/roguetown/weapons/64/polearms.dmi'
 	icon_state = "peasantwarspear_hayfire"
 	drop_sound = 'sound/foley/dropsound/blade_drop.ogg'
 	force = DAMAGE_SPEARPLUS + 1
 	resistance_flags = FIRE_PROOF
-	sellprice = 0 //Something's wrong with this weapon. It should ideally be destroyed.
+	sellprice = 0 // Yeah let's not sell holy fire.
 	item_weight = 2.5 KILOGRAMS
 	light_outer_range = 5
 	light_color = "#f74a05"
@@ -264,6 +263,15 @@
 /datum/intent/polearm/bash/pyromaniacspear
 	item_damage_type = "fire"
 	blade_class = BCLASS_SMASH
+
+/obj/item/weapon/polearm/spear/pyromanicspear/examine(mob/user)
+	. = ..()
+	if(HAS_TRAIT(user, TRAIT_STUD))
+		desc = "A strong and sturdy weapon to cleanse the sin out from those who would dare fight a man so grossly incandescent - such as yourself.\
+		 Who would dare fight you? A strong, moral-oriented soldier of the ultimate Judge, Astrata? Nay, only a fool would - and fools should never \
+		 be considered living, thinking, autonomous beings of reason. Nay! They are creatures of deceipt!"
+	else
+		desc = "A spear with the end wrapped in hay, burning with pilfered holy-fire... Only a madman would steal fire - who steals fire!??"
 
 
 //................ Billhook ............... //
