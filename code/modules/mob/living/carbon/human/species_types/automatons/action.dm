@@ -37,7 +37,7 @@ GLOBAL_LIST_INIT(automaton_voice_lines, list(
 	"I Cannot Comply" = list("text" = "I CANNOT COMPLY", "file" = 'sound/vo/automaton/icannotcomply.ogg'),
 	"Identity Authorized" = list("text" = "IDENTITY AUTHORIZED", "file" = 'sound/vo/automaton/identityauthorized.ogg'),
 	//"I Hate Women" = list("text" = "I HATE WOMEN", "file" = 'sound/vo/automaton/ihatewomen.ogg'),
-	//"I Love Men" = list("text" = "I LOVE MEN", "file" = 'sound/vo/automaton/ilovemen.ogg'),
+	"I Love Men" = list("text" = "I LOVE MEN", "file" = 'sound/vo/automaton/ilovemen.ogg'),
 	"Iron Within" = list("text" = "IRON WITHIN", "file" = 'sound/vo/automaton/ironwithin.ogg'),
 	"I Will Comply" = list("text" = "I WILL COMPLY", "file" = 'sound/vo/automaton/iwillcomply.ogg'),
 	"Jester Detected" = list("text" = "JESTER DETECTED", "file" = 'sound/vo/automaton/jesterdetected.ogg'),
