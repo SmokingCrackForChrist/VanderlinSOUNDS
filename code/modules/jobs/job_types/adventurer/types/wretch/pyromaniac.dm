@@ -49,7 +49,8 @@
 
 	spells = list(
 		/datum/action/cooldown/spell/enchantment/singingblade,
-		/datum/action/cooldown/spell/undirected/joy
+		/datum/action/cooldown/spell/undirected/joy,
+		/datum/action/cooldown/spell/undirected/conjure_item/fire_vial
 	)
 
 	honoraries = list(

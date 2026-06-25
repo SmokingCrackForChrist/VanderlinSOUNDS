@@ -4083,6 +4083,7 @@
 #include "code\modules\spells\spell_types\undirected\conjure_item\_conjure_item.dm"
 #include "code\modules\spells\spell_types\undirected\conjure_item\briar_claw.dm"
 #include "code\modules\spells\spell_types\undirected\conjure_item\call_bird.dm"
+#include "code\modules\spells\spell_types\undirected\conjure_item\fire_vial.dm"
 #include "code\modules\spells\spell_types\undirected\conjure_item\light.dm"
 #include "code\modules\spells\spell_types\undirected\conjure_item\magicians_brick.dm"
 #include "code\modules\spells\spell_types\undirected\conjure_item\poison_bomb.dm"
