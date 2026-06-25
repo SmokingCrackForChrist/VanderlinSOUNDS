@@ -69,7 +69,7 @@
  		"Sin-Eater" = HONORARY_PREFIX,
  		"the Cleaner" = HONORARY_SUFFIX,
 		"the Zealot" = HONORARY_SUFFIX,
-		"the Creature ov Deception" = HONORARY_SUFFIX,
+		"the Kreecher ov Deception" = HONORARY_SUFFIX,
 		"Ztogie Chomping" = HONORARY_PREFIX,
 		"the Kind" = HONORARY_SUFFIX,
 		"the Burning One" = HONORARY_SUFFIX,
