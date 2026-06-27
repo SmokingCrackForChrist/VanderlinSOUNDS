@@ -4114,6 +4114,7 @@
 #include "code\modules\spells\spell_types\pointed\status\vigorous_craft.dm"
 #include "code\modules\spells\spell_types\undirected\_undirected.dm"
 #include "code\modules\spells\spell_types\undirected\adrenalinerush.dm"
+#include "code\modules\spells\spell_types\undirected\trespasser.dm"
 #include "code\modules\spells\spell_types\undirected\arcyne_eye.dm"
 #include "code\modules\spells\spell_types\undirected\barbrage.dm"
 #include "code\modules\spells\spell_types\undirected\beast_sense.dm"

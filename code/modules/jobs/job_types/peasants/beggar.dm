@@ -42,6 +42,10 @@
 
 	attribute_sheet = /datum/attribute_holder/sheet/job/vagrant
 
+	spells = list(
+		/datum/action/cooldown/spell/undirected/trespasser
+	)
+
 /datum/job/vagrant/New()
 	. = ..()
 	peopleknowme = list()
