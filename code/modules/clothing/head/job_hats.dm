@@ -76,6 +76,14 @@
 	icon_state = "jester"
 	item_weight = 155 GRAMS
 
+/obj/item/clothing/head/hexknifehat
+	name = "accursed hat"
+	desc = "He liked to keep secrets. He kept the fact that he kept secrets a secret."
+	icon_state = "curator"
+	flags_inv = HIDEEARS
+	sellprice = VALUE_FINE_CLOTHING
+	item_weight = 100 GRAMS
+
 /obj/item/clothing/head/jester/Initialize()
 	. = ..()
 	AddComponent(/datum/component/squeak, custom_sounds = list(SFX_JINGLE_BELLS), step_delay_override = 2, falloff_exponent = 20) //die off quickly

@@ -93,6 +93,42 @@
 		sharpness = IS_BLUNT
 		wdefense = TERRIBLE_PARRY
 
+/obj/item/weapon/knife/dagger/navaja/hexknife
+	name = "hex knife"
+	desc = "I have places to be. I have people I must meet."
+	icon_state = "navaja_c"
+	item_state = "elfdag"
+	force = DAMAGE_KNIFE / 2
+	possible_item_intents = list(DAGGER_THRUST,DAGGER_CUT)
+	wdefense = TERRIBLE_PARRY
+	sellprice = 0 //shiny :o
+	item_weight = 100 GRAMS
+
+/obj/item/weapon/knife/dagger/navaja/hexknife/Initialize()
+	. = ..()
+	enchant(/datum/enchantment/on_hit/vampiric)
+
+/obj/item/weapon/knife/dagger/navaja/hexknife/attack_self(mob/user)
+	extended = !extended
+	playsound(src, 'sound/blank.ogg', 50, TRUE)
+	if(extended)
+		force = DAMAGE_KNIFE * 2
+		wdefense = AVERAGE_PARRY
+		w_class = WEIGHT_CLASS_BULKY
+		throwforce = 23
+		icon_state = "navaja_o"
+		attack_verb = list("gouged", "cleaved", "shanked", "pierced", "ripped", "diced", "sliced")
+		sharpness = IS_SHARP
+		playsound (user, 'sound/items/knife_open.ogg', 100, TRUE)
+	else
+		force = DAMAGE_KNIFE / 2
+		w_class = WEIGHT_CLASS_SMALL
+		throwforce = DAMAGE_KNIFE / 2
+		icon_state = "navaja_c"
+		attack_verb = list("stubbed", "poked")
+		sharpness = IS_BLUNT
+		wdefense = TERRIBLE_PARRY
+
 /obj/item/weapon/knife/scissors
 	name = "iron scissors"
 	desc = "Scissors made of iron that may be used to salvage usable materials from clothing."
@@ -301,6 +337,7 @@
 	possible_item_intents = list(STILETTO_THRUST, STILETTO_CUT)
 	melt_amount = 45
 	item_weight = 150 GRAMS
+
 
 /obj/item/weapon/knife/hunting/kukri
 	name = "steel kukri"
