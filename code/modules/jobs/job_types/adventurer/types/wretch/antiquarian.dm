@@ -31,7 +31,6 @@
 
 // The idea is that they're a slippery bastard. Cantrip focused, stealth-focused. They rely on their spells.
 	languages = list(/datum/language/thievescant)
-	//allowed_patrons = list(/datum/patron/godless/defiant) // This one has seen too much. Matthiosans are not compatible with Heartfelt.
 
 	traits = list(
 		TRAIT_DEADNOSE,
