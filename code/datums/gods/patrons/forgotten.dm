@@ -38,4 +38,18 @@
 		"PSYDON LIVES!",
 	)
 
+/datum/patron/psydon/quaker
+	display_name = "Quaker Psydonite"
+	desc = "The Ten are false prophets and my God is dead, but he lives on through his Spirit. And only through the inner light granted to us of contemplation through his word, may we seek to improve this realm."
+	flaws = "Enforcement of the categorical imperative, and true belief in your maxim with no room for error."
+	worshippers = "Richard Nixon for some fucking reason"
+	sins = "Violence, Cruelty, Working on Sunday"
+	boons = "Bitchin' Oatmeal."
+	added_traits = list(TRAIT_PACIFISM)
+	confess_lines = list(
+		"I FORGIVE YOU!",
+		"PSYDON LOVES YOU!",
+		"BLASPHEMY AGAINST THE SPIRIT (OF PSYDON!)",
+	)
+
 
