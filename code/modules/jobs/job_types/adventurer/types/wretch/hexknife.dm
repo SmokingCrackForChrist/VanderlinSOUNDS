@@ -47,6 +47,9 @@
 // Balance Trespassers cost and cooldown, give it some additional flaire if possible
 
 
+// POSSIBLY: An ability that requires a material cost to do, which makes someone sleepy prematurely. It needs to be a heavy enough cost to not abuse.
+
+
 // MAYBE: Butcher the Maniac code and have a rarer one that puts transparent eyes on the user's screen.
 // Butcher the theme_song feature to play some droning noise.
 
