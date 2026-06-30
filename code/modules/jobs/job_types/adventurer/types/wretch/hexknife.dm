@@ -78,7 +78,8 @@
 
 	spells = list(
 		/datum/action/cooldown/spell/undirected/trespasser,
-		/datum/action/cooldown/spell/undirected/shadow_step
+		/datum/action/cooldown/spell/undirected/shadow_step,
+		/datum/action/cooldown/spell/status/phantasm
 	)
 
 // make a second version of invisibility / shadow step that just makes you somewhat transparent.
