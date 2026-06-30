@@ -27,7 +27,7 @@
 	to_chat(owner, span_danger("I've seen that one before. In my dreams."))
 	target.adjust_jitter(30 SECONDS)
 	//target.adjust_drowsiness(10 SECONDS)
-	// Slap a number that goes up here. Display it to the Dreamweaver. They want the number to go up because it looks cool.
+	// Slap a number that goes up here. Display it to the Dreamweaver. They want the number to go up because it's cool.
 
 /datum/status_effect/debuff/phantasm/on_remove()
 	. = ..()
@@ -47,7 +47,22 @@
 		"I've seen that one before. In my dreams.",
 		"That hat... That hat...",
 		"This is a nightmare I can't wake from.",
-		"It's not real. <span class='boldwarning'>He said it was just a fairytale made to scare younglings.</span>",
+		"It doesn't eat or drink anymore.",
+		"It doesn't think. The lights are on but nobody's home.",
+		"It's a monster. It's only a mask...",
+		"I see it even when I close my eyes.",
+		"<span class='smallnotice'>Where is here?</span>",
+		"<span class='smallnotice'>What was that noise?</span>",
+		"<span class='smallnotice'>I taste metal in my mouth.</span>",
+		"<span class='smallnotice'>What time is it?</span>",
+		"<span class='smallnotice'>Eyes in the dark...</span>",
+		"<span class='bold notice'>Noc, just take it away. Please.</span>",
+		"<span class='bold notice'>I thought this was a dream.</span>",
+		"<span class='bold notice'>I promised myself I'd remember to forget. I forgot to remember to forget.</span>",
+		"<span class='bold notice'>I saw it. Last nite. At the foot of my bed.</span>",
+		"<span class='bold notice'>That smile... That smile...</span>",
+		"<span class='redtextbig'>IT'S JUST A FAIRYTALE, MADE TO SCARE THE YOUNG.</span>",
+		"<span class='redtextbig'>It's going to follow me, until it bores of me, and slits my throat open.</span>",
 		"<span class='boldwarning'>I'm going to die.</span>",
 		"<span class='boldwarning'>I can feel my heart lurching out of my chest.</span>",
 		"<span class='boldwarning'>IT'S HERE. IT'S HERE.</span>",
@@ -55,7 +70,7 @@
 		"<span class='boldwarning'>I'M NOT READY. I'M NOT READY TO GO.'</span>",
 		"<span class='boldwarning'>Not even my dreams are sacred.</span>",
 		"<span class='boldwarning'>I feel sick. I'm nauseous. I need to see a physicker.</span>",
-		"<span class='boldwarning'>That's not a Jacket. That's his flesh. Oh, Gods...</span>",
+		"<span class='boldwarning'>That's not a Jacket. That's it's hide. Oh, Gods...</span>",
 		"<span class='boldwarning'>It's here to take me away.</span>",
 		"<span class='boldwarning'>Can't sleep. It's waiting for me. Can't sleep. It's waiting for me.</span>",
 	)
@@ -81,7 +96,7 @@
 	name = "Phantasm"
 	desc = "Every night, all over the stadt, dozens of people see this man in their dreams. If this man appears in your dreams too, or you have any \
 	information that can help us identify him, please caocttn su ta hte eknBro Oegr vteran yb hte .kscdo.."
-	icon_state = "debuff"
+	icon_state = "blackeye"
 
 /datum/stress_event/phantasm
 	desc = "<span class='boldwarning'>I feel like something bad is going to happen to me. I feel like something bad has happened. It hasn't reached me yet but it's on its way.</span>\n"

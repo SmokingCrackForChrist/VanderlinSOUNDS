@@ -15,7 +15,6 @@
 		/datum/attribute/skill/misc/medicine = 50,
 		/datum/attribute/skill/misc/lockpicking = 50,
 		/datum/attribute/skill/combat/knives = 30,
-		/datum/attribute/skill/magic/holy = 10,
 	)
 // GOAL: Harvest Lux. Infest Dreams. Become an idea. The Dreamweaver is a stealth-focused antagonist who breaks into places and torments the peasantry's residence.
 // He has average combat-stats and a permanent inability to equip armor, but an annoying kit and night-vision to compensate for his shortcomings.
@@ -62,9 +61,9 @@
 	realized that there was something wrong with me. I started to cry standing there at the foot of their bed."
 	allowed_sexes = list(MALE, FEMALE)
 	outfit = /datum/outfit/wretch/hexknife
-	total_positions = 1
+	total_positions = 100
 	roll_chance = 100
-	cmode_music = 'sound/music/cmode/antag/CombatBeest.ogg'
+	cmode_music = 'sound/music/cmode/adventurer/CombatDream.ogg'
 
 	attribute_sheet = /datum/attribute_holder/sheet/job/hexknife
 
@@ -117,6 +116,13 @@
 	eyes = new /obj/item/organ/eyes/night_vision/nightmare
 	eyes.Insert(spawned)
 
-/datum/job/advclass/wretch/hexknife/after_spawn(mob/living/carbon/human/spawned, client/player_client)
+/datum/job/advclass/wretch/hexknife/after_spawn(mob/living/carbon/human/spawned, mob/living/carbon/human/H, client/player_client)
 	. = ..()
 	spawned.set_patron(/datum/patron/divine/noc, TRUE)
+
+	to_chat(spawned, span_notice("<span class='boldwarning'>The limits of Noc no longer concern you. You have seen what people dream of. You will never make peace with this. </span> \
+	Like a rat in a cage you've reduced yourself to gnawing through the man affixed to the metal. \
+	<span class='redtext'>You must burn a fingerprint on the psyche of the living.</span> \
+	<span class='hypnophrase'>INFESTING a target while they are ASLEEP is the only way to LIVE FOREVER.</span> \
+	<span class='redtext'>Men die at the hands of cowards. Ideas live forever.</span> "))
+	playsound(spawned, 'sound/music/dreamweaverintro.ogg', 80, FALSE)
