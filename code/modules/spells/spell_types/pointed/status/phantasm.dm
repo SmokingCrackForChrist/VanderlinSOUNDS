@@ -26,11 +26,13 @@
 	owner.add_stress(/datum/stress_event/phantasm)
 	to_chat(owner, span_danger("I've seen that one before. In my dreams."))
 	target.adjust_jitter(30 SECONDS)
+	ADD_TRAIT(owner, TRAIT_DREAMWEAVERPHANTASM, "[type]")
 	//target.adjust_drowsiness(10 SECONDS)
 	// Slap a number that goes up here. Display it to the Dreamweaver. They want the number to go up because it's cool.
 
 /datum/status_effect/debuff/phantasm/on_remove()
 	. = ..()
+	REMOVE_TRAIT(owner, TRAIT_DREAMWEAVERPHANTASM, "[type]")
 	//C.remove_stress(/datum/stress_event/phantasm)
 
 /datum/status_effect/debuff/phantasm/tick()
@@ -102,3 +104,5 @@
 	desc = "<span class='boldwarning'>I feel like something bad is going to happen to me. I feel like something bad has happened. It hasn't reached me yet but it's on its way.</span>\n"
 	stress_change = -1
 	timer = 2 MINUTES
+
+//=====	This spell is heavily tied into dreamweaverscreens

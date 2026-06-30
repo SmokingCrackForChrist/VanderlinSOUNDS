@@ -565,6 +565,7 @@ Remember to update _globalvars/traits.dm if you're adding/removing/renaming trai
 #define TRAIT_EARGRAB "Ear Grab"
 #define TRAIT_FACELESS "Faceless One"
 #define TRAIT_ROYALSERVANT "Household Insight" // Let's you see the royals liked/hated food/drink
+#define TRAIT_DREAMWEAVERPHANTASM "Dreamweaved" // Dreamweaver Wretch. Hallucinations.
 
 // ************* obj traits
 

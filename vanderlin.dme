@@ -2375,6 +2375,7 @@
 #include "code\modules\antagonists\villain\peasantrebel.dm"
 #include "code\modules\antagonists\villain\wretch.dm"
 #include "code\modules\antagonists\villain\zomble.dm"
+#include "code\modules\antagonists\villain\dreamweaver\dreamweaverscreens.dm"
 #include "code\modules\antagonists\villain\harlequinn\_harlequin.dm"
 #include "code\modules\antagonists\villain\harlequinn\clothing.dm"
 #include "code\modules\antagonists\villain\harlequinn\disguise_kit.dm"
