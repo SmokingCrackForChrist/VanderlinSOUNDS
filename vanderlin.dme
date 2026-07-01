@@ -4002,6 +4002,7 @@
 #include "code\modules\spells\spell_types\cone\eldritch_blast.dm"
 #include "code\modules\spells\spell_types\cone\void_cone.dm"
 #include "code\modules\spells\spell_types\pointed\absolve.dm"
+#include "code\modules\spells\spell_types\pointed\steal_dream.dm"
 #include "code\modules\spells\spell_types\pointed\adopt_child.dm"
 #include "code\modules\spells\spell_types\pointed\appraise.dm"
 #include "code\modules\spells\spell_types\pointed\attach_bodypart.dm"

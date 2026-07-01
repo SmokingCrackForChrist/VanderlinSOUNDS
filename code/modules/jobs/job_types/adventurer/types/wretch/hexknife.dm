@@ -78,6 +78,7 @@
 	spells = list(
 		/datum/action/cooldown/spell/undirected/trespasser,
 		/datum/action/cooldown/spell/undirected/sleepwalk,
+		/datum/action/cooldown/spell/stealdream,
 		/datum/action/cooldown/spell/status/phantasm
 	)
 
