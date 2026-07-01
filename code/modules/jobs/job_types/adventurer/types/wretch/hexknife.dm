@@ -71,7 +71,7 @@
 	shoes = /obj/item/clothing/shoes/nobleboot
 	wrists = /obj/item/clothing/wrists/bracers/leather/advanced
 	backpack_contents = list(
-		/obj/item/weapon/knife/hunting = 1,
+		/obj/item/lockpick = 1,
 		/obj/item/storage/belt/pouch/coins/poor = 1,
 		/obj/item/storage/fancy/cigarettes/zig = 1,
 		/obj/item/flint = 1,

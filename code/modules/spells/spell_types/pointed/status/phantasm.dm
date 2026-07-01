@@ -84,7 +84,7 @@
 
 	if(prob(5) && iscarbon(L))
 		var/mob/living/carbon/C = L
-		C.add_nausea(rand(5,10))
+		C.add_nausea(rand(7,10))
 
 	if(prob(5) && iscarbon(L))
 		var/mob/living/carbon/C = L
