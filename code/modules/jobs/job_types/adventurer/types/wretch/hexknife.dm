@@ -124,5 +124,5 @@
 	Like a rat in a cage you've reduced yourself to gnawing through the man affixed to the metal. \
 	<span class='redtext'>You must burn a fingerprint on the psyche of the living.</span> \
 	<span class='hypnophrase'>INFESTING a target while they are ASLEEP is the only way to LIVE FOREVER.</span> \
-	<span class='redtext'>Men die at the hands of cowards. Ideas live forever.</span> "))
+	<span class='redtext'>Men die at the hands of cowards. Ideas remain eternal.</span> "))
 	playsound(spawned, 'sound/music/dreamweaverintro.ogg', 80, FALSE)

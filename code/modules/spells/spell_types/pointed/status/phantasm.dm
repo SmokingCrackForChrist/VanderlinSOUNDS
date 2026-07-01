@@ -43,7 +43,7 @@
 		"It wants pain to be inflicted on others.",
 		"It has no catharsis. It's punishment eludes itself.",
 		"It's just an illusion! A moment's confusion - It MUST be! It has to be!",
-		"There's an idea of folklore; some kind of abstraction. But there's no real monster. Only an entity.",
+		"There's an idea of folklore, some kind of abstraction. But there's no real monster. It can't be real.",
 		"It wants to stab me to death and play around in my blood.",
 		"It wants me dead. I can't escape it.",
 		"I've seen that one before. In my dreams.",
