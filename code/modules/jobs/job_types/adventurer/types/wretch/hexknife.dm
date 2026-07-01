@@ -16,11 +16,13 @@
 		/datum/attribute/skill/misc/lockpicking = 50,
 		/datum/attribute/skill/combat/knives = 30,
 	)
-// GOAL: Harvest Lux. Infest Dreams. Become an idea. The Dreamweaver is a stealth-focused antagonist who breaks into places and torments the peasantry's residence.
+// GOAL: Eat Dreams for power. Torment. Become an idea. The Dreamweaver is a stealth-focused antagonist who breaks into places and torments the peasantry's residence.
 // He has average combat-stats and a permanent inability to equip armor, but an annoying kit and night-vision to compensate for his shortcomings.
 // Effectively a Rogue without the ability to dodge. Map awareness and clinging to darkness is how he survives - and accomplishes - his goals.
 // Also effectively a slasher villan. His powers are VERY good for freaking people the fuck out in roleplay, along with giving a mechanical reason
-// to stalk people and steal their lux.
+// to stalk people and commit home invasions.
+// INSPIRATIONS: Perfect Blue, ToME4 Solipsist Class, Hotline Miami, The Hat Man.
+// Go buy Collect Call when it comes out I've been waiting for 1-900-cult for like nine fucking years man
 
 // Once a mage, he became aware of the fragility of humen life by peering into the dreams of his peers. Now, he seeks to live on forever as an idea.
 // And the only effective means to do this, are to leave such a lasting imprint in the psyche of others, that even their next of kin will hear his tale.
@@ -39,26 +41,20 @@
 // An ability that sacrifices Lux for a random, permanent boon to a stat.
 
 // TODO: AOE spell that inflicts a temporary nightmares debuff.
-// Targeted debuff that gives a low amount of stress. Flavortext about "That's the one I keep seeing in my dreams!" Could give them an audio cue of receiving it aswell
-// A weaker version of shadow-step that makes him somewhat corporeal, very handy for trying to slink around the keep, but not a bullshit 'i'm going to duck around the corner
-// and immediately break chase' ability. He already has one of those if you get lucky with a door/window.
+
 // INCREDIBLY IMPORTANT TO NOT MAKE HIM STRONG IN COMBAT DUE TO THIS.
 // Balance Trespassers cost and cooldown, give it some additional flaire if possible
 
 
 // POSSIBLY: An ability that requires a material cost to do, which makes someone sleepy prematurely. It needs to be a heavy enough cost to not abuse.
-
-
-// MAYBE: Butcher the Maniac code and have a rarer one that puts transparent eyes on the user's screen.
 // Butcher the theme_song feature to play some droning noise.
 
 /datum/job/advclass/wretch/hexknife
 	title = "Dreamweaver"
-	tutorial = "I had a dream last night. I was cold and wet. I felt heavy, like I'd been drugged. And when I woke up, the sensations didn't go. \
-	I was feeling sick and confused and I was starting to get scared. I needed to see mum, to talk to her. I stumbled to her room and as I stood there at \
-	the bed watching them, I was overcome with this intense sadness. Then the sadness turned to fear. I just stood there paralyzed with fear and I realized \
-	that there was nothing that they could do for me anymore. I've never felt so utterly alone. Everything felt wrong-my body, the way things looked. Then I \
-	realized that there was something wrong with me. I started to cry standing there at the foot of their bed."
+	tutorial = "I was a natural at what I did. Noc blessed me, he truly did - my time at the Wizard's college of Kingsfield had been short, but I had learned more in two \
+	than many do within twenty years of their lives. I had no life. All of my time was spent toiling within the arcana. And it is here, flying higher and higher to Noc's \
+	greatness of learning the lauded tomes of Hypnomancy that I realize my better self was within the minds of my peers. My scholars. My tutors... When I look in a mirror, \
+	I do not see me, I see the idea of me. The REAL ME is the reflection in the mirror. I MUST MAKE ME REAL."
 	allowed_sexes = list(MALE, FEMALE)
 	outfit = /datum/outfit/wretch/hexknife
 	total_positions = 100
@@ -124,6 +120,8 @@
 	to_chat(spawned, span_notice("<span class='boldwarning'>The limits of Noc no longer concern you. You have seen what people dream of. You will never make peace with this. </span> \
 	Like a rat in a cage you've reduced yourself to gnawing through the man affixed to the metal. \
 	<span class='redtext'>You must burn a fingerprint on the psyche of the living.</span> \
-	<span class='hypnophrase'>INFESTING a target while they are ASLEEP is the only way to LIVE FOREVER.</span> \
+	<span class='hypnophrase'>STEALING the DREAMS of a target while they are ASLEEP is the only way to LIVE FOREVER.</span> \
+	Inside the thoughts of other people there's a perfect image of you. You need to find it. \
+	<span class='smallnotice'>GIVE YOUR TRUE IDENTITY FORM.</span> \
 	<span class='redtext'>Men die at the hands of cowards. Ideas remain eternal.</span> "))
 	playsound(spawned, 'sound/music/dreamweaverintro.ogg', 80, FALSE)
