@@ -1,6 +1,6 @@
 
 /datum/action/cooldown/spell/stealdream
-	name = "ABSOLVE"
+	name = "STEAL DREAM"
 	spell_flags = SPELL_STAMINA
 	spell_cost = 1
 	charge_time = 1
@@ -10,34 +10,36 @@
 	cooldown_time = 2 SECONDS // 60 seconds cooldown
 	button_icon_state = "ABSOLVE"
 
-/datum/action/cooldown/spell/stealdream/cast(mob/living/carbon/human/H)
+/datum/action/cooldown/spell/stealdream/cast(mob/living/carbon/human/H, client/player_client)
 	. = ..()
 	var/mob/living/user = owner
 	if(!H.mind)
-		to_chat(user, span_warning("They have no thoughts in which to form dreams. Useless for the moment."))
+		to_chat(user, span_warning("They have no thoughts in which to form dreams. Homonculus. Useless."))
 		return FALSE // mind check? doublecheck this
-	if(!iscarbon(H)) //ishuman maybe?
-		to_chat(user, span_warning("Only those that think can make me real."))
-		return TRUE
 
-	if(H.stat >= UNCONSCIOUS) // Sleep check.
+	if(!iscarbon(H)) //Rocks don't dream
+		to_chat(user, span_warning("Only those that think can make me real."))
+		return FALSE
+
+	if(H.stat <= CONSCIOUS) // Sleep check.
 		to_chat(user, span_warning("They're not dreaming yet. They have to be asleep."))
-		return TRUE
+		return FALSE
 
 	if(H == user) // Nice job targeting yourself dumb-dumb.
 		to_chat(user, span_warning("What's the point in stealing my own dreams, stupid?"))
-		return TRUE
+		return FALSE
 
-	if(H == TRAIT_DREAMSTOLEN) // If they've been targeted before, they cannot be targeted again.
-		to_chat(user, span_warning("[H] already sees me in their dreams.")) // note to self do i gotta turn all these fuckin returns off?
-		return TRUE
+	if(H.stat >= DEAD) // Deathcheck
+		to_chat(user, span_warning("[H] is a corpse. I do not commune with the dead."))
+		return FALSE
 
-	// Special case for dead targets
-	if(H.stat >= UNCONSCIOUS)
-		if(H.stat >= UNCONSCIOUS) // &&?
-			//if(!H.mind)
-			//to_chat(user, span_warning("The mind of [H] is not there."))
-			//	return FALSE
+	if(HAS_TRAIT(H,TRAIT_DREAMSTOLEN)) // If they've been targeted before, they cannot be targeted again.
+		to_chat(user, span_warning("[H] already sees me in their dreams."))
+		return FALSE
+
+	// This is structured so poorly man. It's vestigial.
+	if(H.stat >= CONSCIOUS)
+		if(H.stat >= CONSCIOUS)
 			to_chat(user, span_warning("You attempt to eat the dreams of [H]!"))
 			// Dramatic effect
 			user.visible_message(span_danger("[user] grabs [H] by the forehead, gripping it tight!"))
@@ -49,14 +51,44 @@
 			)
 				//return FALSE
 			H.add_nausea(rand(15,20))
-			//H.apply_status_effect(/datum/status_effect/buff/psyvived)
 			H.emote("whimper")
 			H.adjust_jitter(100 SECONDS)
 			ADD_TRAIT(H, TRAIT_DREAMSTOLEN, TRAIT_GENERIC)
-			H.visible_message(span_notice("[H] has awoken into an eternal nightmare."), span_hypnophrase("I had a dream last night. I was cold and wet. I felt heavy, like I'd been drugged. And when I woke up, the sensations didn't go. I was feeling sick and confused and I was starting to get scared. I needed to see my mother, to talk to her. I stumbled to her room and as I stood there at the bed watching them, I was overcome with this intense sadness. Then the sadness turned to fear. I just stood there paralyzed with fear and I realized that there was nothing that she could do for me anymore. I've never felt so utterly alone. Everything felt wrong-my body, the way things looked. Then I realized that there was something wrong with me. I started to cry standing there at the foot of her bed."))
+			H.visible_message(span_notice("[H] has awoken into an eternal nightmare."), span_animatedpain("I had a dream last night. I was cold and wet. I felt heavy, like \
+			I'd been drugged. And when I woke up, the sensations didn't go. I was feeling sick and confused and I was starting to get scared. I needed to see my mother, to \
+			talk to her. I stumbled to her room and as I stood there at the bed watching them, I was overcome with this intense sadness. Then the sadness turned to fear. I \
+			just stood there paralyzed with fear and I realized that there was nothing that she could do for me anymore. I've never felt so utterly alone. Everything felt \
+			wrong-my body, the way things looked. Then I realized that there was something wrong with me. I started to cry standing there at the foot of her bed."))
+			// VISUALS
+			H.add_stress(/datum/stress_event/phantasm)
+			ADD_TRAIT(H, TRAIT_DREAMWEAVERPHANTASM, "[type]")
+			H.visible_message(SPAN_GOD_ZIZO("It's over."))
+			H.set_eye_blur_if_lower(60 SECONDS)
+			H.emote("agony", forced = TRUE)
+			H.emote("agony", forced = TRUE)
+			H.emote("agony", forced = TRUE)
+			//
+			H.playsound_local(H, 'sound/magic/dreamdevoured.ogg', vol = 80, vary = FALSE)
+
+			// SKILL ADJUSTMENT. This is temporary until it isn't.
+			var/static/list/dreamwboon = list("STRENGTH", "SPEED", "ENDURANCE", "CONSTITUTION", "INTELLIGENCE", "FORTUNE",)
+			var/boon_choice = tgui_input_list(player_client, "DIVINE LIGHT SEVERED", "ETERNAL NIGHTMARE", dreamwboon)
+			switch(boon_choice)
+				if("STRENGTH")
+					user.adjust_stat_modifier(STATMOD_DREAMWEAVER, STAT_STRENGTH = 1)
+				if("SPEED")
+					user.adjust_stat_modifier(STATMOD_DREAMWEAVER, STAT_SPEED = 1)
+				if("ENDURANCE")
+					user.adjust_stat_modifier(STATMOD_DREAMWEAVER, STAT_ENDURANCE = 1)
+				if("CONSTITUTION")
+					user.adjust_stat_modifier(STATMOD_DREAMWEAVER, STAT_CONSTITUTION = 1)
+				if("INTELLIGENCE")
+					user.adjust_stat_modifier(STATMOD_DREAMWEAVER, STAT_INTELLIGENCE = 1)
+				if("FORTUNE")
+					user.adjust_stat_modifier(STATMOD_DREAMWEAVER, STAT_FORTUNE = 1)
 			return TRUE
 		else
-			to_chat(user, span_warning("[H] is missing vital organs and cannot be revived!"))
+			to_chat(user, span_warning("[H] I have no idea how you triggered this message but good job. Something's probably broken!"))
 			return FALSE
 
 

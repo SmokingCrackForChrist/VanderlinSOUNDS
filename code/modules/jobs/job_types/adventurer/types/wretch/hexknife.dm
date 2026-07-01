@@ -16,50 +16,27 @@
 		/datum/attribute/skill/misc/lockpicking = 50,
 		/datum/attribute/skill/combat/knives = 30,
 	)
-// GOAL: Eat Dreams for power. Torment. Become an idea. The Dreamweaver is a stealth-focused antagonist who breaks into places and torments the peasantry's residence.
-// He has average combat-stats and a permanent inability to equip armor, but an annoying kit and night-vision to compensate for his shortcomings.
-// Effectively a Rogue without the ability to dodge. Map awareness and clinging to darkness is how he survives - and accomplishes - his goals.
-// Also effectively a slasher villan. His powers are VERY good for freaking people the fuck out in roleplay, along with giving a mechanical reason
-// to stalk people and commit home invasions.
+
 // INSPIRATIONS: Perfect Blue, ToME4 Solipsist Class, Hotline Miami, The Hat Man.
 // Go buy Collect Call when it comes out I've been waiting for 1-900-cult for like nine fucking years man
 
-// Once a mage, he became aware of the fragility of humen life by peering into the dreams of his peers. Now, he seeks to live on forever as an idea.
-// And the only effective means to do this, are to leave such a lasting imprint in the psyche of others, that even their next of kin will hear his tale.
-
-// NOTEWORTHY FEATURES
-// Hex Knife - A navaja with the vampric enchantment, keeping him a threat despite the low combat stats.
-// Night-Vision Eyes - He can see in the dark. Keeping an area lit is a major counter.
-// Trespasser - A blink that allows the user to teleport through one open tile. Grates, gates, windows, windoors, so on. He can teleport directly into a door if you're
-// spaced properly, but I consider this a feature.
-// Attempting to teleport into a wall will result in the Dreamweaver's gibbing. This is incredibly unbalanced but it's both funny and what has been coded for it.
-// I didn't code this so the dial's on 'fuck you and die' for now. lol. Thanks Cannibal!
-// His leather coat is regenerating and unable to be taken off, giving him a limited choice for protection.
-
-
-// NUMBER ONE PRIORITIES
-// An ability that sacrifices Lux for a random, permanent boon to a stat.
-
-// TODO: AOE spell that inflicts a temporary nightmares debuff.
-
-// INCREDIBLY IMPORTANT TO NOT MAKE HIM STRONG IN COMBAT DUE TO THIS.
+// TODO: AOE spell that inflicts a temporary nightmares debuff
+// Get Blink spell fixed
 // Balance Trespassers cost and cooldown, give it some additional flaire if possible
-
-
-// POSSIBLY: An ability that requires a material cost to do, which makes someone sleepy prematurely. It needs to be a heavy enough cost to not abuse.
-// Butcher the theme_song feature to play some droning noise.
+// Make sure numbers on the spells are correct
+// Make sure stats are correct
 
 /datum/job/advclass/wretch/hexknife
 	title = "Dreamweaver"
-	tutorial = "I was a natural at what I did. Noc blessed me, he truly did - my time at the Wizard's college of Kingsfield had been short, but I had learned more in two \
-	than many do within twenty years of their lives. I had no life. All of my time was spent toiling within the arcana. And it is here, flying higher and higher to Noc's \
+	tutorial = "I was a natural at what I did. Noc blessed me, truly - my time at the Wizard's college of Kingsfield had been short, but I had learned more in two \
+	than many do within twenty decades of their lives. But I had no life. All of my time was spent toiling within the arcana. And it is here, flying higher and higher to Noc's \
 	greatness of learning the lauded tomes of Hypnomancy that I realize my better self was within the minds of my peers. My scholars. My tutors... When I look in a mirror, \
 	I do not see me, I see the idea of me. The REAL ME is the reflection in the mirror. I MUST MAKE ME REAL."
 	allowed_sexes = list(MALE, FEMALE)
 	outfit = /datum/outfit/wretch/hexknife
 	total_positions = 100
 	roll_chance = 100
-	cmode_music = 'sound/music/cmode/adventurer/CombatDream.ogg'
+	cmode_music = 'sound/music/cmode/adventurer/CombatDream2.ogg'
 
 	attribute_sheet = /datum/attribute_holder/sheet/job/hexknife
 
@@ -68,6 +45,7 @@
 		TRAIT_NO_REFLECTION,
 		TRAIT_KEENEARS,
 		TRAIT_KEENEYES,
+		TRAIT_SILENT_FOOTSTEPS,
 		TRAIT_STEELHEARTED
 	)
 
@@ -77,10 +55,6 @@
 		/datum/action/cooldown/spell/stealdream,
 		/datum/action/cooldown/spell/status/phantasm
 	)
-
-// make a second version of invisibility / shadow step that just makes you somewhat transparent.
-// give him eyes that have some night vision.
-// do NOT give him very strong combat skills/stats.
 
 /datum/outfit/wretch/hexknife
 	name = "Dreamweaver (Wretch)"
@@ -103,8 +77,8 @@
 		/obj/item/flint = 1,
 		/obj/item/reagent_containers/glass/bottle/stronghealthpot = 1,
 	)
-
-/datum/job/advclass/wretch/hexknife/on_roundstart(mob/living/carbon/human/spawned, client/player_client)
+// This would be Thermal Vision if it had worked.
+/datum/job/advclass/wretch/hexknife/on_roundstart(mob/living/carbon/human/spawned, mob/living/carbon/human/H, client/player_client)
 	. = ..()
 	var/obj/item/organ/eyes/eyes = spawned.getorganslot(ORGAN_SLOT_EYES)
 	if(eyes)
