@@ -3,11 +3,11 @@
 	name = "STEAL DREAM"
 	spell_flags = SPELL_STAMINA
 	spell_cost = 1
-	charge_time = 1
+	charge_time = 10
 	cast_range = 1
 	sound = 'sound/magic/psyabsolution.ogg'
 	invocation_type = INVOCATION_NONE
-	cooldown_time = 30 SECONDS
+	cooldown_time = 5 SECONDS
 	button_icon_state = "ABSOLVE"
 
 /datum/action/cooldown/spell/stealdream/cast(mob/living/carbon/human/H, client/player_client)
