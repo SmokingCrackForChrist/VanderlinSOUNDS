@@ -1,9 +1,10 @@
 /datum/attribute_holder/sheet/job/hexknife
 	raw_attribute_list = list(
-		STAT_PERCEPTION = 2,
-		STAT_INTELLIGENCE = 1,
-		STAT_ENDURANCE = 1,
-		STAT_FORTUNE = 1,
+		STAT_SPEED = 1,
+		STAT_INTELLIGENCE = -1,
+		STAT_ENDURANCE = -1,
+		STAT_FORTUNE = -1,
+		STAT_STRENGTH = -1,
 		/datum/attribute/skill/misc/swimming = 40,
 		/datum/attribute/skill/misc/athletics = 40,
 		/datum/attribute/skill/combat/wrestling = 30,
@@ -34,7 +35,7 @@
 	I do not see me, I see the idea of me. The REAL ME is the reflection in the mirror. I MUST MAKE ME REAL."
 	allowed_sexes = list(MALE, FEMALE)
 	outfit = /datum/outfit/wretch/hexknife
-	total_positions = 100
+	total_positions = 1
 	roll_chance = 100
 	cmode_music = 'sound/music/cmode/adventurer/CombatDream2.ogg'
 

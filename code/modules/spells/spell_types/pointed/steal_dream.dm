@@ -7,7 +7,7 @@
 	cast_range = 1
 	sound = 'sound/magic/psyabsolution.ogg'
 	invocation_type = INVOCATION_NONE
-	cooldown_time = 2 SECONDS // 60 seconds cooldown
+	cooldown_time = 30 SECONDS
 	button_icon_state = "ABSOLVE"
 
 /datum/action/cooldown/spell/stealdream/cast(mob/living/carbon/human/H, client/player_client)

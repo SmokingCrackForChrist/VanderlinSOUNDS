@@ -4,9 +4,9 @@
 	button_icon_state = "jaunt"
 	sound = 'sound/magic/turntoflies2.ogg'
 
-	cooldown_time = 2 SECONDS
+	cooldown_time = 60 SECONDS
 	has_visual_effects = FALSE
-	spell_cost = 1
+	spell_cost = 15
 	spell_type = SPELL_STAMINA
 	charge_required = FALSE
 

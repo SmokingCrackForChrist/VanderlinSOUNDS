@@ -8,8 +8,8 @@
 	invocation_type = INVOCATION_NONE
 	spell_flags = SPELL_STAMINA
 	charge_time = 2 SECONDS
-	cooldown_time = 2 SECONDS
-	spell_cost = 10
+	cooldown_time = 60 SECONDS
+	spell_cost = 20
 	duration_scaling = TRUE
 	duration_modification = 5 SECONDS
 	status_effect = /datum/status_effect/debuff/phantasm

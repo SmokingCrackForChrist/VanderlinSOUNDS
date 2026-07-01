@@ -7,7 +7,7 @@
 
 	charge_time = 1 SECONDS
 	cooldown_time = 10 SECONDS
-	spell_cost = 5
+	spell_cost = 2
 	spell_flags = SPELL_STAMINA
 
 
