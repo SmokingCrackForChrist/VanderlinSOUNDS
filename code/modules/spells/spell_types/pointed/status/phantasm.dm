@@ -102,7 +102,7 @@
 
 /datum/stress_event/phantasm
 	desc = "<span class='boldwarning'>I feel like something bad is going to happen to me. I feel like something bad has happened. It hasn't reached me yet but it's on its way.</span>\n"
-	stress_change = -1
+	stress_change = -2
 	timer = 2 MINUTES
 
 //=====	This spell is heavily tied into dreamweaverscreens
