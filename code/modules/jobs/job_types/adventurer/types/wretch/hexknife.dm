@@ -10,7 +10,8 @@
 		/datum/attribute/skill/combat/wrestling = 30,
 		/datum/attribute/skill/combat/unarmed = 20,
 		/datum/attribute/skill/misc/climbing = 40,
-		/datum/attribute/skill/misc/reading = 30,
+		/datum/attribute/skill/misc/reading = 60,
+		/datum/attribute/skill/misc/sneaking = 30,
 		/datum/attribute/skill/craft/crafting = 20,
 		/datum/attribute/skill/misc/sewing = 40,
 		/datum/attribute/skill/misc/medicine = 40,
@@ -55,7 +56,8 @@
 		/datum/action/cooldown/spell/undirected/trespasser,
 		/datum/action/cooldown/spell/undirected/sleepwalk,
 		/datum/action/cooldown/spell/stealdream,
-		/datum/action/cooldown/spell/status/phantasm
+		/datum/action/cooldown/spell/status/phantasm,
+		/datum/action/cooldown/spell/aoe/agamemnon
 	)
 
 /datum/outfit/wretch/hexknife
@@ -67,7 +69,8 @@
 	armor = /obj/item/clothing/armor/regenerating/skin/easttats/hexknife
 	backr = /obj/item/storage/backpack/satchel
 	belt = /obj/item/storage/belt/leather/black
-	beltr = /obj/item/weapon/knife/dagger/navaja/hexknife
+	beltl = /obj/item/weapon/knife/dagger/navaja/hexknife
+	neck = /obj/item/storage/belt/pouch/coins/rich
 	gloves = /obj/item/clothing/gloves/leather
 	shoes = /obj/item/clothing/shoes/nobleboot
 	wrists = /obj/item/clothing/wrists/bracers/leather
