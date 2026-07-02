@@ -19,7 +19,7 @@
 		/datum/attribute/skill/combat/knives = 30,
 	)
 
-// INSPIRATIONS: Perfect Blue, ToME4 Solipsist Class, Hotline Miami, The Hat Man.
+// INSPIRATIONS: Perfect Blue, ToME4 Solipsist Class, Hotline Miami, Killer7, Second Sight, The Hat Man.
 // Go buy Collect Call when it comes out I've been waiting for 1-900-cult for like nine fucking years man
 
 // TODO: AOE spell that inflicts a temporary nightmares debuff
@@ -58,6 +58,22 @@
 		/datum/action/cooldown/spell/stealdream,
 		/datum/action/cooldown/spell/status/phantasm,
 		/datum/action/cooldown/spell/aoe/agamemnon
+	)
+
+	honoraries = list(
+		"the Dreamweaver" = HONORARY_SUFFIX,
+		"the Sleepwalker" = HONORARY_SUFFIX,
+		"the Sandman" = HONORARY_SUFFIX,
+		"the Dreamcatcher" = HONORARY_SUFFIX,
+		"the Dreameater" = HONORARY_SUFFIX,
+		"the Hat Man" = HONORARY_SUFFIX,
+		"the Idea" = HONORARY_SUFFIX,
+		"the Shape" = HONORARY_SUFFIX,
+		"the Solipsist" = HONORARY_SUFFIX,
+		"The Real" = HONORARY_PREFIX,
+		"The Fake" = HONORARY_PREFIX,
+		"the Hatmaker" = HONORARY_PREFIX,
+		"the Idealist" = HONORARY_SUFFIX,
 	)
 
 /datum/outfit/wretch/hexknife

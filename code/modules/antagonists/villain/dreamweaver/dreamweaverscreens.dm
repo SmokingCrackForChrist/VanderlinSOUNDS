@@ -15,6 +15,9 @@
 	icon_state = "hall[rand(1, 7)]"
 	if(prob(1))
 		icon_state = "oatmealjumpscare"
+	if(prob(0.1))
+		icon_state = "gary"
+		to_chat(scared, span_warning("Noc..?"))
 	animate(src, alpha = 125, time = fade_in, easing = BOUNCE_EASING | EASE_IN | EASE_OUT)
 	animate(time = duration, easing = BOUNCE_EASING | EASE_IN | EASE_OUT)
 	animate(alpha = 0, time = fade_out, easing = LINEAR_EASING)
