@@ -330,6 +330,7 @@ GLOBAL_LIST_INIT(roguetraits, list(
 	TRAIT_FACELESS = span_danger("I am faceless. I am shunned. The others will recognise me for what I am. If I give them the chance."),
 	TRAIT_DREAMWEAVERPHANTASM = span_danger("THEY'RE COMING TO GET ME."),
 	TRAIT_DREAMSTOLEN = span_danger("I am not even safe in my dreams. I am so tired."),
+	TRAIT_DREAMPARANOIAAGENT = span_hypnophrase("MAKE ME REAL"),
 	TRAIT_FLOWERFIELD_IMMUNITY = span_info("I am immune to the effects of flower fields."),
 	TRAIT_SECRET_OFFICIANT = span_love("I am able to conduct secret wedding ceremonies outside of the church. Love cannot be stopped!"),
 	TRAIT_RECOGNIZE_ADDICTS = "I can recognize alcoholics and junkies just by looking at them.",

@@ -100,6 +100,7 @@
 	item_state = "elfdag"
 	force = DAMAGE_KNIFE / 2
 	possible_item_intents = list(DAGGER_THRUST,DAGGER_CUT)
+	var/hextended = 0 //lol
 	wdefense = TERRIBLE_PARRY
 	sellprice = 0 //shiny :o
 	item_weight = 100 GRAMS
@@ -109,9 +110,9 @@
 	enchant(/datum/enchantment/on_hit/vampiric)
 
 /obj/item/weapon/knife/dagger/navaja/hexknife/attack_self(mob/user)
-	extended = !extended
+	hextended = !hextended
 	playsound(src, 'sound/blank.ogg', 50, TRUE)
-	if(extended)
+	if(hextended)
 		force = DAMAGE_KNIFE * 2
 		wdefense = AVERAGE_PARRY
 		w_class = WEIGHT_CLASS_BULKY
@@ -128,6 +129,36 @@
 		attack_verb = list("stubbed", "poked")
 		sharpness = IS_BLUNT
 		wdefense = TERRIBLE_PARRY
+		playsound (user, 'sound/items/hexknife_close.ogg', 100, TRUE)
+
+/obj/item/weapon/knife/dagger/navaja/hexknife/pickup(mob/living/M)
+	. = ..()
+	if(ishuman(M))
+		var/mob/living/carbon/human/H = M
+		if (!HAS_TRAIT(H, TRAIT_DREAMPARANOIAAGENT)) // If you pick this knife up in 7 days you'll shit yourself and die.
+			H.add_stress(/datum/stress_event/phantasm)
+			H.set_eye_blur_if_lower(5 SECONDS)
+			to_chat(M, "<span class='danger'>You feel lightheaded as you pick up the knife. Something isn't right...</span>")
+			var/message = pick(
+				"<span class='hypnophrase'>It does not matter. None of this matters.</span>",
+				"<span class='hypnophrase'>You need to wake up. Wake up. Wake up. Wake up.</span>",
+				"<span class='hypnophrase'>YOU NEED TO PUT THE KNIFE DOWN AND RUN AS FAR AWAY AS YOU CAN.</span>",
+				"<span class='hypnophrase'>Don't go to bed tonight.</span>",
+				"<span class='hypnophrase'>It knows you're here.</span>",
+				"<span class='boldwarning'>RUN. RUN. RUN. RUN. RUN. RUN. RUN. RUN. RUN. RUN.</span>")
+			to_chat(M, "[M] murmurs, \"[message]\"")
+		else
+			var/message = pick(
+				"<span class='hypnophrase'>MAKE ME REAL.</span>",
+				"<span class='hypnophrase'>It does not matter. None of this matters.</span>",
+				"<span class='hypnophrase'>The world won't change. All it does is turn.</span>",
+				"<span class='hypnophrase'>I WILL SURPASS EVEN THE GODS.</span>",
+				"<span class='hypnophrase'>There's always time for fun. It's Fridae Nite.</span>",
+				"<span class='hypnophrase'>Let's dance.</span>",
+				"<span class='hypnophrase'>You're fucked.</span>",
+				"<span class='hypnophrase'>Sorry pal, but this is the moment I've been waiting for.</span>",
+				"<span class='hypnophrase'>This is too easy.</span>")
+			to_chat(M, "[M] murmus, \"[message]\"")
 
 /obj/item/weapon/knife/scissors
 	name = "iron scissors"

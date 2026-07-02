@@ -71,7 +71,7 @@
 			H.playsound_local(H, 'sound/magic/dreamdevoured.ogg', vol = 80, vary = FALSE)
 
 			// SKILL ADJUSTMENT. This is temporary until it isn't.
-			var/static/list/dreamwboon = list("STRENGTH", "SPEED", "ENDURANCE", "CONSTITUTION", "INTELLIGENCE", "FORTUNE",)
+			var/static/list/dreamwboon = list("STRENGTH", "SPEED", "ENDURANCE", "CONSTITUTION", "INTELLIGENCE", "PERCEPTION", "FORTUNE",)
 			var/boon_choice = tgui_input_list(player_client, "DIVINE LIGHT SEVERED", "ETERNAL NIGHTMARE", dreamwboon)
 			switch(boon_choice)
 				if("STRENGTH")
@@ -84,6 +84,8 @@
 					user.adjust_stat_modifier(STATMOD_DREAMWEAVER, STAT_CONSTITUTION = 1)
 				if("INTELLIGENCE")
 					user.adjust_stat_modifier(STATMOD_DREAMWEAVER, STAT_INTELLIGENCE = 1)
+				if("PERCEPTION")
+					user.adjust_stat_modifier(STATMOD_DREAMWEAVER, STAT_PERCEPTION = 1)
 				if("FORTUNE")
 					user.adjust_stat_modifier(STATMOD_DREAMWEAVER, STAT_FORTUNE = 1)
 			return TRUE

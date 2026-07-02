@@ -13,7 +13,7 @@
 		/datum/attribute/skill/misc/reading = 30,
 		/datum/attribute/skill/craft/crafting = 20,
 		/datum/attribute/skill/misc/sewing = 40,
-		/datum/attribute/skill/misc/medicine = 50,
+		/datum/attribute/skill/misc/medicine = 40,
 		/datum/attribute/skill/misc/lockpicking = 50,
 		/datum/attribute/skill/combat/knives = 30,
 	)
@@ -42,6 +42,7 @@
 	attribute_sheet = /datum/attribute_holder/sheet/job/hexknife
 
 	traits = list(
+		TRAIT_DREAMPARANOIAAGENT,
 		TRAIT_DECEIVING_MEEKNESS,
 		TRAIT_NO_REFLECTION,
 		TRAIT_KEENEARS,
@@ -65,12 +66,11 @@
 	head = /obj/item/clothing/head/hexknifehat
 	armor = /obj/item/clothing/armor/regenerating/skin/easttats/hexknife
 	backr = /obj/item/storage/backpack/satchel
-	backl = /obj/item/storage/backpack/satchel/surgbag
 	belt = /obj/item/storage/belt/leather/black
 	beltr = /obj/item/weapon/knife/dagger/navaja/hexknife
-	gloves = /obj/item/clothing/gloves/leather/advanced
+	gloves = /obj/item/clothing/gloves/leather
 	shoes = /obj/item/clothing/shoes/nobleboot
-	wrists = /obj/item/clothing/wrists/bracers/leather/advanced
+	wrists = /obj/item/clothing/wrists/bracers/leather
 	backpack_contents = list(
 		/obj/item/lockpick = 1,
 		/obj/item/storage/belt/pouch/coins/poor = 1,

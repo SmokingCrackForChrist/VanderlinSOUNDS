@@ -10,8 +10,6 @@
 	charge_time = 2 SECONDS
 	cooldown_time = 60 SECONDS
 	spell_cost = 20
-	duration_scaling = TRUE
-	duration_modification = 5 SECONDS
 	status_effect = /datum/status_effect/debuff/phantasm
 
 /datum/status_effect/debuff/phantasm
