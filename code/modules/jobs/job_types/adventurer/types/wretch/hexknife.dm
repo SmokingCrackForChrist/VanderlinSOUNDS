@@ -31,7 +31,7 @@
 /datum/job/advclass/wretch/hexknife
 	title = "Dreamweaver"
 	tutorial = "I was a natural at what I did. Noc blessed me, truly - my time at the Wizard's college of Kingsfield had been short, but I had learned more in two \
-	than many do within twenty decades of their lives. But I had no life. All of my time was spent toiling within the arcana. And it is here, flying higher and higher to Noc's \
+	than many do within twenty years of their lives. But I had no life. All of my time was spent toiling within the arcana. And it is here, flying higher and higher to Noc's \
 	greatness of learning the lauded tomes of Hypnomancy that I realize my better self was within the minds of my peers. My scholars. My tutors... When I look in a mirror, \
 	I do not see me, I see the idea of me. The REAL ME is the reflection in the mirror. I MUST MAKE ME REAL."
 	allowed_sexes = list(MALE, FEMALE)
