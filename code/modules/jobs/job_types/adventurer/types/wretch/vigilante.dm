@@ -13,6 +13,7 @@
 		/datum/attribute/skill/craft/crafting = 20,
 		/datum/attribute/skill/misc/sewing = 40,
 		/datum/attribute/skill/craft/tanning = 30,
+		/datum/attribute/skill/craft/tanning/patching = 30,
 		/datum/attribute/skill/misc/medicine = 20,
 		/datum/attribute/skill/misc/lockpicking = 20,
 		/datum/attribute/skill/combat/firearms = 40,
