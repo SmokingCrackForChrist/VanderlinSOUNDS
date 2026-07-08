@@ -94,8 +94,8 @@
 
 
 /datum/quirk/vice/dwnightmares
-	name = "Dream Demon"
-	desc = "Noc will not protect me as I sleep. I don't want to go to bed anymore. The one wearing the Hat will be there."
+	name = "Dream Demon" // THIS NEEDS TO BE A STATUS EFFECT. TODO DREAMWEAVER. FIX THIS SHIT!!!
+	desc = "There are eyes in the walls. I taste the ceiling and my body is falling through the floor into a whirling hall of knives."
 	point_value = 1
 	var/next_scream = 0
 

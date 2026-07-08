@@ -46,7 +46,7 @@
 
 /datum/curse/dreamweaved //Zizo curse. I REALLY wish and or hope that there's an option to have the curse be silent!!! AAGGGHHH!!!
 	name = "Dreamweaved"
-	description = "uh oohhhh"
+	description = "I have no head to retreat to, no castle to call my own. This is a nightmare to which I cannot wake."
 	trait = TRAIT_DREAMWEAVERPHANTASM
 	var/hallucination_prob = 80 // Another adjustment knob
 	var/atom/movable/screen/fullscreen/dreamweaver/hallucinations

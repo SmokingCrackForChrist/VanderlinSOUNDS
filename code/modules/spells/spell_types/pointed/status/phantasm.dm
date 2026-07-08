@@ -45,7 +45,6 @@
 		"It wants to stab me to death and play around in my blood.",
 		"It wants me dead. I can't escape it.",
 		"I've seen that one before. In my dreams.",
-		"That hat... That hat...",
 		"This is a nightmare I can't wake from.",
 		"It doesn't eat or drink anymore.",
 		"It doesn't think. The lights are on but nobody's home.",
@@ -94,12 +93,12 @@
 
 /atom/movable/screen/alert/status_effect/debuff/phantasm
 	name = "Phantasm"
-	desc = "Every night, all over the stadt, dozens of people see this man in their dreams. If this man appears in your dreams too, or you have any \
+	desc = "Every night, all over the town, dozens of people see this man in their dreams. If this man appears in your dreams too, or you have any \
 	information that can help us identify him, please caocttn su ta hte eknBro Oegr vteran yb hte .kscdo.."
 	icon_state = "blackeye"
 
 /datum/stress_event/phantasm
-	desc = "<span class='boldwarning'>I feel like something bad is going to happen to me. I feel like something bad has happened. It hasn't reached me yet but it's on its way.</span>\n"
+	desc = "<span class='boldwarning'>I feel like something bad is going to happen to me. I feel like something bad has happened. My reckoning won't be postponed indefinitely.</span>\n"
 	stress_change = -2
 	timer = 2 MINUTES
 

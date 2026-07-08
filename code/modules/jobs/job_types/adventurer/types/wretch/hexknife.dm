@@ -66,13 +66,12 @@
 		"the Sandman" = HONORARY_SUFFIX,
 		"the Dreamcatcher" = HONORARY_SUFFIX,
 		"the Dreameater" = HONORARY_SUFFIX,
-		"the Hat Man" = HONORARY_SUFFIX,
 		"the Idea" = HONORARY_SUFFIX,
 		"the Shape" = HONORARY_SUFFIX,
 		"the Solipsist" = HONORARY_SUFFIX,
 		"The Real" = HONORARY_PREFIX,
 		"The Fake" = HONORARY_PREFIX,
-		"the Hatmaker" = HONORARY_PREFIX,
+		"the Hatmaker" = HONORARY_SUFFIX,
 		"the Idealist" = HONORARY_SUFFIX,
 	)
 

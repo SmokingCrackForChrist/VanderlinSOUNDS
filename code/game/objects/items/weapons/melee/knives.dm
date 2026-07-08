@@ -153,7 +153,7 @@
 				"<span class='hypnophrase'>It does not matter. None of this matters.</span>",
 				"<span class='hypnophrase'>The world won't change. All it does is turn.</span>",
 				"<span class='hypnophrase'>I WILL SURPASS EVEN THE GODS.</span>",
-				"<span class='hypnophrase'>There's always time for fun. It's Fridae Nite.</span>",
+				"<span class='hypnophrase'>There's always time for fun. It's Freyja'Dae Nite.</span>",
 				"<span class='hypnophrase'>Let's dance.</span>",
 				"<span class='hypnophrase'>You're fucked.</span>",
 				"<span class='hypnophrase'>Sorry pal, but this is the moment I've been waiting for.</span>",
