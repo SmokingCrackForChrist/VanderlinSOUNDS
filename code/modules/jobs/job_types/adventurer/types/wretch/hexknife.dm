@@ -110,11 +110,11 @@
 	. = ..()
 	spawned.set_patron(/datum/patron/divine/noc, TRUE)
 
-	to_chat(spawned, span_notice("<span class='boldwarning'>The limits of Noc no longer concern you. You have seen what people dream of. You will never make peace with this. </span> \
-	Like a rat in a cage you've reduced yourself to gnawing through the man affixed to the metal. \
+	to_chat(spawned, span_notice("<span class='boldwarning'>Noc's whims no longer concern you. You have seen what mortals dream of. It drips sweet into your chalice. </span> \
+	Like a rat in a cage, you are reduced to gnawing through the barriers between them and you. \
 	<span class='redtext'>You must burn a fingerprint on the psyche of the living.</span> \
-	<span class='hypnophrase'>STEALING the DREAMS of a target while they are ASLEEP is the only way to LIVE FOREVER.</span> \
-	Inside the thoughts of other people there's a perfect image of you. You need to find it. \
-	<span class='smallnotice'>GIVE YOUR TRUE IDENTITY FORM.</span> \
-	<span class='redtext'>Men die at the hands of cowards. Ideas remain eternal.</span> "))
+	<span class='hypnophrase'>STEALING the DREAMS of a target while they are ASLEEP is the only way to EMBED YOURSELF INTO THE WEAVE.</span> \
+	Inside the thoughts of other people there's a perfect reflection of you. You need to find it. \
+	<span class='smallnotice'>REWEAVE THE TAPESTRY. BECOME ARCANA. </span> \
+	<span class='redtext'>Mortal flesh rots and dies at the hands of cowards. Ideas remain.</span> "))
 	playsound(spawned, 'sound/music/dreamweaverintro.ogg', 80, FALSE)
