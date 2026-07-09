@@ -36,8 +36,7 @@
 
 	if(victim.stat >= CONSCIOUS)
 		victim.apply_status_effect(/datum/status_effect/debuff/agamemnon)
-		//victim.apply_status_effect(/datum/status_effect/debuff/agamemnon, null, owner, clamp(round(GET_MOB_SKILL_VALUE_OLD(owner, associated_skill)), 1 , 3))
-		victim.add_quirk(/datum/quirk/vice/dwnightmares)
+//		victim.apply_status_effect(/datum/status_effect/debuff/dwnightmares)
 
 /atom/movable/screen/alert/status_effect/debuff/agamemnon
 	name = "gAnoamnem onCurtaerpt?"
@@ -93,33 +92,45 @@
 		qdel(src)
 
 
-/datum/quirk/vice/dwnightmares
-	name = "Dream Demon" // THIS NEEDS TO BE A STATUS EFFECT. TODO DREAMWEAVER. FIX THIS SHIT!!!
-	desc = "There are eyes in the walls. I taste the ceiling and my body is falling through the floor into a whirling hall of knives."
-	point_value = 1
-	var/next_scream = 0
+///datum/status_effect/debuff/dwnightmares
+//	id = "dream demon"
+//	alert_type = /atom/movable/screen/alert/status_effect/debuff/dwnightmares
+//	// desc = "There are eyes in the walls. I taste the ceiling and my body is falling through the floor into a whirling hall of knives."
+//	var/next_scream = 0
+//	var/mob/living/carbon/human/H
+//	var/base_tick = 1
+//	tick_interval = 5 SECONDS
+//	status_type = STATUS_EFFECT_UNIQUE
+//	duration = STATUS_EFFECT_PERMANENT
+//
+///atom/movable/screen/alert/status_effect/debuff/dwnightmares
+//	name = "Dream Demon"
+//	desc = "There are eyes in the walls. I taste the ceiling and my body is falling through the floor into a whirling hall of knives."
+//
+///datum/status_effect/debuff/dwnightmares/on_apply()
+//	. = ..()
+//	if(!H)
+//		return
+//	START_PROCESSING(SSobj, src)
+//
+///datum/status_effect/debuff/dwnightmares/tick()
+//	if(!H)
+//		return
+//
+//	if(H.stat == UNCONSCIOUS && H.IsSleeping())
+//		if(world.time >= next_scream)
+//			next_scream = world.time + rand(30 SECONDS, 60 SECONDS)
+//			H.emote("scream", forced = TRUE)
+//			H.adjustBruteLoss(rand(5, 10), damage_type = BCLASS_BLUNT) // 5-10 damage, you're not going to outheal wounds without being on a bed.
+//			if(prob(5))
+//				H.remove_status_effect(/datum/status_effect/debuff/dwnightmares)
+//				to_chat(H, span_warning("<b>It's gone. Noc has exorcised the demon. I can sleep in peace once more.</b>"))
+//
+///datum/status_effect/debuff/dwnightmares/on_remove()
+//	. = ..()
+//	STOP_PROCESSING(SSobj, src)
 
-/datum/quirk/vice/dwnightmares/on_spawn()
-	if(!owner)
-		return
-	START_PROCESSING(SSobj, src)
-
-/datum/quirk/vice/dwnightmares/process()
-	if(!owner)
-		return
-
-	if(owner.stat == UNCONSCIOUS && owner.IsSleeping())
-		if(world.time >= next_scream)
-			next_scream = world.time + rand(30 SECONDS, 60 SECONDS)
-			owner.emote("scream", forced = TRUE)
-			owner.adjustBruteLoss(rand(5, 10), damage_type = BCLASS_BLUNT) // 5-10 damage, you're not going to outheal wounds without being on a bed.
-			if(prob(5))
-				owner.remove_quirk(/datum/quirk/vice/dwnightmares)
-				to_chat(owner, span_warning("<b>It's gone. Noc has exorcised the demon. I can sleep in peace once more.</b>"))
-
-/datum/quirk/vice/dwnightmares/on_remove()
-	STOP_PROCESSING(SSobj, src)
 
 
-
-// NOTE TO SELF. This processes as a VICE. turn it into a debuff, it's fucky and will break shit
+// This may not work properly. Double back to see if the effects properly apply. TODO DREAMWEAVER
+// This likes to cause an issue in status_effect.dm line 61 LAZYADD(owner.status_effects, src), causing a crash. Not good!
