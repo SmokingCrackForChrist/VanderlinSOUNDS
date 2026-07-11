@@ -290,6 +290,15 @@
 
 	SEND_GLOBAL_SIGNAL(COMSIG_GLOB_JOB_AFTER_SPAWN, src, spawned, player_client)
 
+	if(player_client)
+		for(var/path in GLOB.post_job_spawn_prefs)
+			var/datum/preference/pref = GLOB.post_job_spawn_prefs[path]
+			if(!length(pref.job_types))
+				continue // ???
+			if(!(type in pref.job_types))
+				continue
+			pref.post_job_apply(spawned, player_client.prefs.read_preference(pref.type), player_client)
+
 	if(spawned.attributes)
 		assign_attributes(spawned, player_client)
 	if(!ishuman(spawned))
@@ -431,6 +440,9 @@
 		var/mob/living/carbon/human/H = spawned
 		H.pick_job_packs(src)
 
+	/// Applies here because it relies on mobs having their traits, oh well if they get it midround besides late joining
+	for(var/datum/atom_hud/alternate_appearance/basic/traits/alt_hud in GLOB.active_alternate_appearances)
+		alt_hud.apply_to_new_mob(spawned)
 
 /// this "mostly" removes the existence of a job from someone.
 /// the unfortunately reality is that even this is still a flawed removal
@@ -705,7 +717,7 @@
 /mob/living/carbon/human/apply_prefs_job(client/player_client, datum/job/job, latejoining = FALSE)
 	var/fully_randomize = is_banned_from(player_client.ckey, "Appearance")
 	var/mob/dead/new_player/np = player_client?.mob
-	if(istype(np) && player_client?.prefs?.multi_char_ready && !latejoining)
+	if(istype(np) && player_client?.prefs?.read_preference(/datum/preference/toggle/multi_char_ready) && !latejoining)
 		np.ensure_multi_ready_character_loaded()
 	if(!player_client)
 		return // Disconnected while checking for the appearance ban.
@@ -717,7 +729,7 @@
 		var/is_antag = (player_client.mob.mind in GLOB.pre_setup_antags)
 		player_client.prefs.safe_transfer_prefs_to(src, TRUE, is_antag)
 		if(CONFIG_GET(flag/force_random_names))
-			player_client.prefs.real_name = player_client.prefs.pref_species.random_name(player_client.prefs.gender, TRUE)
+			player_client.prefs.write_preference(/datum/preference/text/real_name, player_client.prefs.pref_species.random_name(player_client.prefs.read_preference(/datum/preference/choiced/gender), TRUE))
 	dna.update_dna_identity()
 
 /datum/job/proc/adjust_current_positions(offset)
@@ -976,7 +988,8 @@
 		return FALSE
 
 	// Subterran dwarves can only be outsiders if they follow the wurm
-	if(species.id == SPEC_ID_DWARF_SUBTERRAN && istype(prefs.selected_patron, /datum/patron/alternate/wurm))
+	var/datum/patron/pref_patron = prefs.read_preference(/datum/preference/choiced/patron)
+	if(species.id == SPEC_ID_DWARF_SUBTERRAN && istype(pref_patron, /datum/patron/alternate/wurm))
 		var/datum/job/tested = parent_job ? SSjob.GetJobType(parent_job) : src // FUCK ADVCLASSES!
 		if(!(tested.department_flag & OUTSIDERS))
 			return FALSE

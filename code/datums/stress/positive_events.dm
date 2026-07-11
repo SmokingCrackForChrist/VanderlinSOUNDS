@@ -83,11 +83,6 @@
 	stress_change = -4
 	desc = span_blue("I'm so high, don't take away my sky.")
 
-/datum/stress_event/hug
-	timer = 30 MINUTES
-	stress_change = -1
-	desc = span_green("Somebody gave me a nice hug.")
-
 /datum/stress_event/stuffed
 	timer = 20 MINUTES
 	stress_change = -3
@@ -456,3 +451,8 @@
 	timer = 1 MINUTES
 	desc = "<span class='nicegreen'>Burning people alive is fucking AWESOME!</span>\n"
 	stress_change = -10
+  
+/datum/stress_event/soulchurnerdestroyed
+	timer = 10 MINUTES
+	stress_change = -5
+	desc = span_green("That barbaric machine has been destroyed, I have done a great service todae!")
