@@ -89,6 +89,8 @@
 	name = "accursed hat"
 	desc = "Every night, all over the city, dozens of people see this man in their dreams. If this man appears in your dreams too, or you have any \
 	information that can help us identify him, please contact us at the Broken Ogre tavern by the docks."
+	icon = 'icons/roguetown/maniac/dwclothing.dmi'
+	mob_overlay_icon = 'icons/roguetown/maniac/dwclothing_mob.dmi'
 	icon_state = "chzo"
 	flags_inv = HIDEEARS
 	sellprice = VALUE_FINE_CLOTHING
