@@ -22,11 +22,10 @@
 // INSPIRATIONS: Perfect Blue, ToME4 Solipsist Class, Hotline Miami, Killer7, Second Sight, The Hat Man.
 // Go buy Collect Call when it comes out I've been waiting for 1-900-cult for like nine fucking years man
 
-// TODO: AOE spell that inflicts a temporary nightmares debuff
-// Get Blink spell fixed
-// Balance Trespassers cost and cooldown, give it some additional flaire if possible
-// Make sure numbers on the spells are correct
-// Make sure stats are correct
+// TODO: Fix AOE spell that inflicts a temporary nightmares debuff
+// Fix(?) sections that use force emote (may cause crash while sleeping?)
+// Balance cost and cooldown overall
+// DOUBLECHECK to see if we gotta give the knife a shortsword statblock
 
 /datum/job/advclass/wretch/hexknife
 	title = "Dreamweaver"
