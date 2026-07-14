@@ -51,6 +51,8 @@
 		TRAIT_STEELHEARTED
 	)
 
+	voicepack_m = /datum/voicepack/male/dreamweaver
+
 	spells = list(
 		/datum/action/cooldown/spell/undirected/trespasser,
 		/datum/action/cooldown/spell/undirected/sleepwalk,
