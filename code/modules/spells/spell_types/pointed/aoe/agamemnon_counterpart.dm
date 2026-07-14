@@ -2,15 +2,15 @@
 	name = "aemmngnAo eCoptrurant?"
 	desc = "nemnAmgoa Crenartoptu? mgAenmona ptrroaunteC... goemmnaAn teCnaprtrou! annmoAmeg rtauprentoC..."
 	button_icon_state = "necra"
-	sound = 'sound/magic/churn.ogg'
-	charge_sound = 'sound/magic/holycharging.ogg'
+	sound = 'sound/magic/agamemnon.ogg'
+	charge_sound = 'sound/magic/dreamchannel.ogg'
 
 	spell_type = SPELL_STAMINA
 	invocation_type = INVOCATION_NONE
 
 	click_to_activate = FALSE
 	charge_required = FALSE
-	cooldown_time = 2 SECONDS // set to 180 seconds, not meant to be used in fights
+	cooldown_time = 160 SECONDS // set to 180? 160? seconds, not meant to be used in fights
 	spell_cost = 1
 
 	aoe_radius = 7
@@ -134,3 +134,4 @@
 
 // This may not work properly. Double back to see if the effects properly apply. TODO DREAMWEAVER
 // This likes to cause an issue in status_effect.dm line 61 LAZYADD(owner.status_effects, src), causing a crash. Not good!
+// Seems to be because the body doesn't like forced screams while sleeping? Unsure. Test me you oaf!

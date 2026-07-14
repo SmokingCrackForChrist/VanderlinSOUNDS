@@ -5,10 +5,17 @@
 	spell_cost = 1
 	charge_time = 10
 	cast_range = 1
-	sound = 'sound/magic/psyabsolution.ogg'
+	sound = 'sound/magic/stealdream.ogg'
+	charge_sound = 'sound/magic/dreamchannel.ogg'
 	invocation_type = INVOCATION_NONE
 	cooldown_time = 5 SECONDS
-	button_icon_state = "ABSOLVE"
+	button_icon_state = "stealdream"
+
+/datum/action/cooldown/spell/stealdream/is_valid_target(atom/cast_on)
+	. = ..()
+	if(!.)
+		return FALSE
+	return isliving(cast_on)
 
 /datum/action/cooldown/spell/stealdream/cast(mob/living/carbon/human/H, client/player_client)
 	. = ..()
@@ -64,8 +71,6 @@
 			ADD_TRAIT(H, TRAIT_DREAMWEAVERPHANTASM, "[type]")
 			H.visible_message(SPAN_GOD_ZIZO("It's over."))
 			H.set_eye_blur_if_lower(60 SECONDS)
-			H.emote("agony", forced = TRUE)
-			H.emote("agony", forced = TRUE)
 			H.emote("agony", forced = TRUE)
 			//
 			H.playsound_local(H, 'sound/magic/dreamdevoured.ogg', vol = 80, vary = FALSE)

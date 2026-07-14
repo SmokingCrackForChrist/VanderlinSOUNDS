@@ -101,7 +101,7 @@
 	force = DAMAGE_KNIFE / 2
 	possible_item_intents = list(DAGGER_THRUST,DAGGER_CUT)
 	var/hextended = 0 //lol
-	wdefense = TERRIBLE_PARRY
+	wdefense = AVERAGE_PARRY
 	sellprice = 0 //shiny :o
 	item_weight = 100 GRAMS
 

@@ -4,6 +4,7 @@
 	button_icon_state = "dreamthisman2"
 	self_cast_possible = TRUE
 	sound = 'sound/magic/whiteflame.ogg'
+	charge_sound = 'sound/magic/dreamchannel.ogg'
 
 	invocation_type = INVOCATION_NONE
 	spell_flags = SPELL_STAMINA
@@ -87,9 +88,10 @@
 		var/mob/living/carbon/C = L
 		to_chat(C, span_warning(pick(messages)))
 
-	if(prob(1) && iscarbon(L))
-		var/mob/living/carbon/C = L
-		C.emote("whimper", forced = TRUE)
+//	if(prob(1) && iscarbon(L))
+//		var/mob/living/carbon/C = L
+//		C.emote("whimper", forced = TRUE)
+// Apparently due to the nature of forced emotes, THIS COULD CAUSE A CRASH IF THEY SLEEP. Shame, this is huge flaire. Disabling for now.
 
 /atom/movable/screen/alert/status_effect/debuff/phantasm
 	name = "Phantasm"
