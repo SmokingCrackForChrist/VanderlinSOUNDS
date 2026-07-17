@@ -494,7 +494,7 @@
 	greet_text = span_notice("I am beloved by the Ten, I have been blessed by all their boons.")
 	req_text = "Be Tennite"
 	weight = 7
-	allowed_patrons = ALL_TEMPLE_PATRONS
+	allowed_patrons = UNDIVIDED_TEMPLE_PATRONS
 
 /datum/special_trait/blessed/on_apply(mob/living/carbon/human/character, silent)
 	ADD_TRAIT(character, TRAIT_APRICITY, "[type]")
@@ -1026,7 +1026,7 @@
 	allowed_jobs = list(/datum/job/vagrant, /datum/job/jester)
 
 /datum/special_trait/king/on_apply(mob/living/carbon/human/character, silent)
-	character.honorary = lowertext(character.pronouns == SHE_HER ? SSmapping.config.monarch_title_f : SSmapping.config.monarch_title)
+	character.honorary = LOWER_TEXT(character.pronouns == SHE_HER ? SSmapping.config.monarch_title_f : SSmapping.config.monarch_title)
 
 /datum/special_trait/augmentable
 	name = "Chippin' In"
