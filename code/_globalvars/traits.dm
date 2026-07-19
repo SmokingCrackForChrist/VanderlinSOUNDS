@@ -209,6 +209,7 @@ GLOBAL_LIST_INIT(traits_by_type, list(
 		"Graceless" = TRAIT_UNPARRYING,
 		"Agent of the Court" = TRAIT_COURTAGENT,
 		"Know Gallowband Secrets" = TRAIT_GALLOWBAND_SECRETS,
+		"Gatekeeper" = TRAIT_GATEKEEPER,
 	),
 	/obj/item/bodypart = list(
 		"TRAIT_PARALYSIS" = TRAIT_PARALYSIS
@@ -350,6 +351,8 @@ GLOBAL_LIST_INIT(roguetraits, list(
 	TRAIT_ABOMINATION = span_info("I am an abomination, others will recognise me for what I am"),
 	TRAIT_STUD = span_info ("I am a stud. I am ballsy. I do not take shit from anybody. I smoke my Ztogies anywhere I want. I do not have to find a hideout place, like YOU."),
 	TRAIT_COURTAGENT = span_info("I am an Agent of the Court, employed by the Hand. I am able to recognise my colleagues")
+	TRAIT_COURTAGENT = span_info("I am an Agent of the Court, employed by the Hand. I am able to recognise my colleagues"),
+	TRAIT_GATEKEEPER = span_info("I am well practiced in the art of swiftly opening and sealing the gates, alongside levers and switches.")
 ))
 
 /// value -> trait name, generated on use from trait_by_type global
