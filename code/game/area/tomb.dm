@@ -10,9 +10,9 @@
 	soundenv = 5
 	droning_index = DRONING_BASEMENT
 	ambient_index = AMBIENCE_DUNGEON
-	background_track = 'sound/music/area/catacombs.ogg'
+	background_track = 'sound/music/area/tombnormal.ogg'
 	background_track_dusk = null
-	background_track_night = null
+	background_track_night = 'sound/music/area/tombnormalnight.ogg'
 
 /area/under/tomb/indoors
 	icon_state = "indoors"
